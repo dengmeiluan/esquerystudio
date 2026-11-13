@@ -1,0 +1,135 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="660" viewBox="0 0 1200 660" role="img" aria-labelledby="title desc">
+  <title id="title">ESQueryStudio 三种交付形态</title>
+  <desc id="desc">独立部署 jar、嵌入式 console 模块、SPI 宿主集成三种形态，共用一套 Vue 控制台、页面契约与 25 个 MCP 工具。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0e14"/>
+      <stop offset="1" stop-color="#0d141c"/>
+    </linearGradient>
+    <linearGradient id="aGlow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5eead4" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#5eead4" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="bGlow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#93c5fd" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#93c5fd" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="cGlow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fbbf24" stop-opacity=".16"/>
+      <stop offset="1" stop-color="#fbbf24" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#ffffff" stroke-opacity=".035" stroke-width="1"/>
+    </pattern>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#64748b"/>
+    </marker>
+    <style>
+      .display { font-family: "Segoe UI", "Microsoft YaHei", "Noto Sans SC", sans-serif; font-weight: 700; }
+      .body { font-family: "Segoe UI", "Microsoft YaHei", "Noto Sans SC", sans-serif; }
+      .mono { font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace; }
+      .mut { fill: #8b9bb4; }
+      .white { fill: #f1f5f9; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="660" fill="url(#bg)"/>
+  <rect width="1200" height="660" fill="url(#grid)"/>
+  <circle cx="1040" cy="84" r="180" fill="#5eead4" opacity=".035"/>
+  <circle cx="170" cy="600" r="220" fill="#93c5fd" opacity=".03"/>
+
+  <text x="48" y="66" class="display white" font-size="30">三种交付形态</text>
+  <text x="48" y="94" class="body mut" font-size="14">One product, three deployment shapes — 同一套 Vue 源码 · 同一份页面契约 · 同一组 25 个 MCP 工具</text>
+
+  <!-- Column A -->
+  <g>
+    <rect x="48" y="128" width="352" height="430" rx="18" fill="#0f1620" stroke="#1f2b3a"/>
+    <rect x="48" y="128" width="352" height="150" rx="18" fill="url(#aGlow)"/>
+    <rect x="72" y="150" width="34" height="34" rx="9" fill="#123a37" stroke="#2dd4bf" stroke-opacity=".55"/>
+    <text x="89" y="173" text-anchor="middle" class="mono" fill="#5eead4" font-size="16" font-weight="700">A</text>
+    <text x="120" y="166" class="display white" font-size="19">独立部署</text>
+    <text x="120" y="186" class="body mut" font-size="12">Standalone jar · Kibana 式</text>
+
+    <rect x="72" y="214" width="304" height="116" rx="12" fill="#0b1118" stroke="#2dd4bf" stroke-opacity=".35"/>
+    <text x="88" y="238" class="mono" fill="#5eead4" font-size="11">esquerystudio-server.jar</text>
+    <text x="88" y="262" class="body white" font-size="13">Web server :5601</text>
+    <text x="88" y="283" class="body white" font-size="13">53 页面控制台 + REST + /mcp</text>
+    <text x="88" y="306" class="body mut" font-size="11">Java 8+ · 无宿主依赖 · Setup 向导</text>
+
+    <line x1="224" y1="330" x2="224" y2="362" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="92" y="368" width="264" height="52" rx="10" fill="#0b1118" stroke="#1f2b3a"/>
+    <text x="108" y="390" class="body white" font-size="12">Elasticsearch 6 / 7 / 8 / 9</text>
+    <text x="108" y="408" class="body mut" font-size="11">多集群档案 · 版本感知降级</text>
+
+    <rect x="72" y="446" width="304" height="86" rx="10" fill="#0b1118" stroke="#1f2b3a"/>
+    <text x="88" y="469" class="body mut" font-size="11">适合</text>
+    <text x="88" y="490" class="body white" font-size="12">独立运维一个或多个 ES 集群</text>
+    <text x="88" y="511" class="body mut" font-size="11">打开即用；控制集群档案落在本地</text>
+  </g>
+
+  <!-- Column B -->
+  <g>
+    <rect x="424" y="128" width="352" height="430" rx="18" fill="#0f1620" stroke="#1f2b3a"/>
+    <rect x="424" y="128" width="352" height="150" rx="18" fill="url(#bGlow)"/>
+    <rect x="448" y="150" width="34" height="34" rx="9" fill="#12263f" stroke="#93c5fd" stroke-opacity=".55"/>
+    <text x="465" y="173" text-anchor="middle" class="mono" fill="#93c5fd" font-size="16" font-weight="700">B</text>
+    <text x="496" y="166" class="display white" font-size="19">嵌入式 console</text>
+    <text x="496" y="186" class="body mut" font-size="12">Embedded module · 与业务同进程</text>
+
+    <rect x="448" y="214" width="304" height="200" rx="12" fill="#0b1118" stroke="#1f2b3a"/>
+    <text x="464" y="238" class="body mut" font-size="11">YOUR SPRING BOOT APP</text>
+    <rect x="464" y="250" width="272" height="66" rx="9" fill="#101c2b" stroke="#93c5fd" stroke-opacity=".35"/>
+    <text x="480" y="273" class="mono" fill="#93c5fd" font-size="11">esquerystudio-console</text>
+    <text x="480" y="294" class="body white" font-size="12">静态 UI + REST + /mcp</text>
+    <text x="480" y="310" class="body mut" font-size="10">自动注册 · 无需另起端口</text>
+    <text x="464" y="340" class="body white" font-size="12">共享登录态 / 路由 / 菜单</text>
+    <text x="464" y="362" class="body mut" font-size="11">iframe + ConsoleAuthDelegate</text>
+    <text x="464" y="384" class="body mut" font-size="11">页面契约是三端唯一事实源</text>
+
+    <line x1="600" y1="414" x2="600" y2="438" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="468" y="444" width="264" height="52" rx="10" fill="#0b1118" stroke="#1f2b3a"/>
+    <text x="484" y="466" class="body white" font-size="12">既有 Elasticsearch 集群</text>
+    <text x="484" y="484" class="body mut" font-size="11">复用宿主连接目录与凭据</text>
+
+    <text x="448" y="522" class="body mut" font-size="11">适合：已有 Spring Boot 业务应用</text>
+    <text x="448" y="540" class="body mut" font-size="11">把 ES 能力直接交付给内部用户</text>
+  </g>
+
+  <!-- Column C -->
+  <g>
+    <rect x="800" y="128" width="352" height="430" rx="18" fill="#0f1620" stroke="#1f2b3a"/>
+    <rect x="800" y="128" width="352" height="150" rx="18" fill="url(#cGlow)"/>
+    <rect x="824" y="150" width="34" height="34" rx="9" fill="#3a2c12" stroke="#fbbf24" stroke-opacity=".55"/>
+    <text x="841" y="173" text-anchor="middle" class="mono" fill="#fbbf24" font-size="16" font-weight="700">C</text>
+    <text x="872" y="166" class="display white" font-size="19">SPI 宿主集成</text>
+    <text x="872" y="186" class="body mut" font-size="12">Host integration · 不绑定具体宿主</text>
+
+    <rect x="824" y="214" width="304" height="200" rx="12" fill="#0b1118" stroke="#1f2b3a"/>
+    <text x="840" y="238" class="body mut" font-size="11">HOST APPLICATION</text>
+    <rect x="840" y="250" width="128" height="58" rx="9" fill="#101c2b" stroke="#fbbf24" stroke-opacity=".3"/>
+    <text x="852" y="272" class="body white" font-size="11">ConsoleHost</text>
+    <text x="852" y="289" class="body mut" font-size="10">Integration</text>
+    <rect x="980" y="250" width="128" height="58" rx="9" fill="#101c2b" stroke="#fbbf24" stroke-opacity=".3"/>
+    <text x="992" y="272" class="body white" font-size="11">Page Catalog</text>
+    <text x="992" y="289" class="body mut" font-size="10">11 packs / 53 pages</text>
+    <rect x="840" y="320" width="268" height="74" rx="9" fill="#0b1118" stroke="#1f2b3a"/>
+    <text x="854" y="342" class="body white" font-size="11">SPI：AuthDelegate · ConnStore</text>
+    <text x="854" y="362" class="body white" font-size="11">      AuditContributor · KeyStore</text>
+    <text x="854" y="382" class="body mut" font-size="10">宿主接管身份、连接与审计，控制台只做产品面</text>
+
+    <line x1="976" y1="414" x2="976" y2="438" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="844" y="444" width="264" height="52" rx="10" fill="#0b1118" stroke="#1f2b3a"/>
+    <text x="860" y="466" class="body white" font-size="12">多集群 · 按连接授权</text>
+    <text x="860" y="484" class="body mut" font-size="11">QA/UAT 可写 · PROD 只读</text>
+
+    <text x="824" y="522" class="body mut" font-size="11">适合：平台团队把控制台作为能力交付</text>
+    <text x="824" y="540" class="body mut" font-size="11">宿主保留自己的账号、菜单与审计</text>
+  </g>
+
+  <!-- Bottom spine -->
+  <rect x="48" y="584" width="1104" height="44" rx="12" fill="#0b1118" stroke="#1f2b3a"/>
+  <circle cx="70" cy="606" r="5" fill="#5eead4"/>
+  <circle cx="92" cy="606" r="5" fill="#93c5fd"/>
+  <circle cx="114" cy="606" r="5" fill="#fbbf24"/>
+  <text x="136" y="611" class="body mut" font-size="12">共用：Vue 3 控制台 · 页面级权限 · 多集群连接目录 · MCP 密钥与配额（130 tools · 10 resources · 5 prompts）</text>
+</svg>

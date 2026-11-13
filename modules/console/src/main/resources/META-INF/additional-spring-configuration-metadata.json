@@ -1,0 +1,224 @@
+{
+  "properties": [
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.builtin-login-enabled",
+      "type": "java.lang.Boolean",
+      "description": "内置账号登录三态：未设置=有宿主委托（ConsoleAuthDelegate）时自动关闭、独立部署开启；true/false 强制开/关。关闭后 /auth/login 回 403 BUILTIN_LOGIN_DISABLED（防默认兜底账号绕过宿主鉴权）。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.delegate.jwt.require-exp",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "是否强制要求 JWT 携带数值型 exp：true（默认）缺 exp 即拒（无 exp 令牌等同永久凭证）；旧宿主未签发 exp 可置 false 兼容（启动 WARN）。非数值 exp/nbf 始终拒绝。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.delegate.header.trusted-proxies",
+      "type": "java.util.List<java.lang.String>",
+      "defaultValue": [],
+      "description": "header 模式受信代理清单（精确 IP 或 IPv4 CIDR）。非空时身份头仅在 remoteAddr 命中清单时采信；留空默认信任回环/私网/链路本地。容器网段（172.17.x）、CGNAT（100.64/10）与 IPv6 直连不在默认清单，网关属这些段时必须显式配置。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.conn-secret",
+      "type": "java.lang.String",
+      "defaultValue": "",
+      "description": "连接档案凭据加密密钥（base64 的 32 字节 AES-256-GCM）。空=自动生成并落自举档案目录 conn.key（单实例零配置；多实例必须显式配置共享同一密钥）。存量明文档案读取透明兼容，保存时自动升级为密文。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.security.frame-ancestors",
+      "type": "java.lang.String",
+      "description": "iframe 嵌入白名单（CSP frame-ancestors 值，如 'self' https://portal.example.com）。默认不下发任何 frame 头（同源 iframe 嵌入不受影响）；显式配置后仅白名单域可嵌控制台页面。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.mapping.auto-register",
+      "type": "java.lang.String",
+      "defaultValue": "startup",
+      "description": "映射自动注册时机：startup（默认）在启动期对账，off 关闭。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.mapping.conflict-policy",
+      "type": "java.lang.String",
+      "defaultValue": "fail",
+      "description": "映射冲突处理策略：fail（默认）不写入冲突索引并报告冲突，warn 在报告冲突路径后允许安全新增。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.mapping.missing-index-policy",
+      "type": "java.lang.String",
+      "defaultValue": "skip",
+      "description": "目标索引不存在时的处理策略：skip（默认）报告并跳过，fail 报告对账失败；两者均不会自动创建索引。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.delegate.mode",
+      "type": "java.lang.String",
+      "description": "R38 配置式宿主鉴权委托模式：jwt（本地验签宿主 JWT）/ endpoint（回调宿主校验接口）/ header（信任网关注入头）。不配 = 不启用；宿主若注册 ConsoleAuthDelegate 代码 SPI Bean 则代码优先、本配置被忽略。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.delegate.token-header",
+      "type": "java.lang.String",
+      "defaultValue": "Authorization",
+      "description": "携带宿主凭据的请求头（jwt/endpoint 模式取 token 用）；Bearer 前缀自动剥离。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.delegate.jwt.secret",
+      "type": "java.lang.String",
+      "description": "HS256 共享密钥（支持 ${ENV} 引用）；与 public-key 二选一。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.delegate.jwt.public-key",
+      "type": "java.lang.String",
+      "description": "RS256 X.509 PEM 公钥；与 secret 二选一（都配时以 token 的 alg 为准）。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.delegate.jwt.username-claim",
+      "type": "java.lang.String",
+      "defaultValue": "sub",
+      "description": "用户名 claim 路径（支持 a.b.c 点分下钻）。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.delegate.jwt.roles-claim",
+      "type": "java.lang.String",
+      "defaultValue": "roles",
+      "description": "角色 claim 路径（支持 a.b.c 点分下钻；值为数组或逗号串）。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.delegate.endpoint.verify-url",
+      "type": "java.lang.String",
+      "description": "宿主凭据校验接口 URL（POST，透传 token-header；2xx + JSON 即认）。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.delegate.endpoint.forward-headers",
+      "type": "java.lang.String",
+      "description": "额外透传的请求头白名单（逗号分隔；默认只透传 token-header）。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.delegate.endpoint.username-path",
+      "type": "java.lang.String",
+      "defaultValue": "username",
+      "description": "校验接口返回 JSON 里的用户名字段路径（a.b.c）。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.delegate.endpoint.roles-path",
+      "type": "java.lang.String",
+      "defaultValue": "roles",
+      "description": "校验接口返回 JSON 里的角色字段路径（数组或逗号串）。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.delegate.endpoint.cache-seconds",
+      "type": "java.lang.Integer",
+      "defaultValue": 30,
+      "description": "校验结果短缓存秒数（按 token 缓存含负结果，降低宿主接口压力）。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.delegate.header.user-header",
+      "type": "java.lang.String",
+      "description": "header 模式用户名头（非空即信任）。安全前提：必须配合网关剥离外部同名 header，否则可被伪造。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.delegate.header.roles-header",
+      "type": "java.lang.String",
+      "description": "header 模式角色头（逗号分隔，经 role-mapping 映射；同样需网关剥离外部同名头）。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.delegate.role-mapping",
+      "type": "java.util.Map<java.lang.String,java.lang.String>",
+      "description": "角色映射：console 角色 → 宿主角色逗号串（如 role-mapping.ADMIN=admin,superuser）；宿主角色未命中一律 VIEWER（宁降不升）。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.conn-probe-enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "R38 连接档案后台周期探活开关：列表/顶栏集群状态点（GREEN/RED）数据源；关闭后列表无 health 字段、手动探活端点回友好提示。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.conn-probe-interval-seconds",
+      "type": "java.lang.Integer",
+      "defaultValue": 60,
+      "description": "R38 探活间隔秒（最小 10）；单次 ping 硬超时 3 秒，故障集群不会拖慢探活轮次。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.host-cluster-visible",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "R39.2 数据面是否暴露「宿主集群」目标。纯管理平台形态（如 宿主）设 false：控制集群降级为纯元数据存储，切换器只列自定义连接档案，后端对 host 目标直接 403 HOST_DISABLED。"
+    }
+  ],
+  "hints": [
+    {
+      "name": "esquerystudio.elasticsearch.console.control-mode",
+      "values": [
+        {
+          "value": "auto",
+          "description": "自动解析控制集群（默认）：本地自举档案 → 探测 spring 宿主 ES → 都不可用时前端弹首连向导。"
+        },
+        {
+          "value": "spring",
+          "description": "钉死宿主 spring ES 为控制集群：跳过自举档案与探测，Setup 向导永不出现（适合已有 ES 的传统宿主）。"
+        }
+      ]
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.delegate.mode",
+      "values": [
+        {
+          "value": "jwt",
+          "description": "本地验签宿主 JWT（HS256 共享密钥 / RS256 公钥），零网络开销。"
+        },
+        {
+          "value": "endpoint",
+          "description": "把凭据 POST 到宿主校验接口，2xx 即认（结果按 token 短缓存）。"
+        },
+        {
+          "value": "header",
+          "description": "信任网关注入的身份头（必须配合网关剥离外部同名头，否则可伪造）。"
+        }
+      ]
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.audit-retention.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "审计环形保留总开关（统一只用控制集群 ES 单载体立法）：审计按日索引写入+周期双闸清理；false 回到旧固定单索引行为（既不滚动也不清理），是发版期回退开关。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.audit-retention.max-days",
+      "type": "java.lang.Long",
+      "defaultValue": 90,
+      "description": "超龄闸（天）：严格早于「今天-N 天」的审计日期索引整索引删除，恰好第 N 天仍在保留面内。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.audit-retention.max-total-bytes",
+      "type": "java.lang.Long",
+      "defaultValue": 32212254720,
+      "description": "总量闸（字节）：审计日期索引族 store.size 合计上限（默认 30GB），超限从最旧日期索引删起。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.audit-retention.dry-run",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "演练模式：清理轮只记待删清单不执行删除（上线初期观察面）。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.monitor.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "监控快照落库总开关：服务端定时任务=唯一写入方，每轮把全部连接最近探活结果落控制集群 ES 监控日期索引；false=不启动落库调度（页面探活展示不受影响）。用户页面轮询永不构成入库路径。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.monitor.interval-seconds",
+      "type": "java.lang.Integer",
+      "defaultValue": 60,
+      "description": "监控落库节奏秒（下限钳 10；与连接探活间隔解耦可独立调整）。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.monitor.index-name",
+      "type": "java.lang.String",
+      "defaultValue": "esquerystudio_monitor",
+      "description": "监控日期索引前缀（写入 esquerystudio_monitor-yyyy.MM.dd，查询/清理打 前缀-*），与审计共用双闸环形清理、合计不超总量上限。"
+    },
+    {
+      "name": "esquerystudio.elasticsearch.console.auth.host-audit-merge",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "宿主审计并入开关（20260922 用户裁决默认关）：开启后宿主注册的 ConsoleAuditContributor 记录才并入控制台审计视图；关闭理由=宿主侧多为匿名登录族（username 结构性 null），非本控制台请求进控制台审计视图不可读也不可追责。"
+    }
+  ]
+}

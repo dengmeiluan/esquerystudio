@@ -1,0 +1,151 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          # Temurin 资产在 GitHub Release CDN 偶发 504；Zulu 走 Azul CDN，避开同一故障域。
+          distribution: zulu
+          java-version: "8"
+          cache: maven
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      # The console assets are git-ignored and generated at build time.
+      - name: Install UI deps
+        working-directory: ui
+        run: |
+          if ! npm ci; then
+            echo "### npm ci failed — falling back to npm install (self-heal)" >> "$GITHUB_STEP_SUMMARY"
+            npm install --no-audit --no-fund --loglevel=error || exit 1
+          fi
+      - name: Build UI
+        working-directory: ui
+        run: npm run build
+      - name: Verify Chrome extension
+        run: node scripts/verify-extension.mjs
+      - name: Backend tests
+        run: mvn -B clean test -DforkCount=2
+      - name: Package (boot jar + module jars)
+        run: mvn -B package -DskipTests -Dconsole.build.skip=true
+      - name: Verify release profile
+        run: mvn -B -P release -DskipTests -Dconsole.build.skip=true verify
+      - name: Report surefire failures as annotations
+        if: failure()
+        run: |
+          found=0
+          for f in */target/surefire-reports/*.txt */*/target/surefire-reports/*.txt; do
+            [ -e "$f" ] || continue
+            if grep -q "<<< FAILURE!\|<<< ERROR!" "$f"; then
+              found=1
+              cls=$(basename "$f" .txt)
+              while IFS= read -r line; do
+                echo "::error::$cls :: $(echo "$line" | head -c 380)"
+              done < <(grep -A4 "<<< FAILURE!\|<<< ERROR!" "$f" | head -40)
+            fi
+          done
+          if [ "$found" = "0" ]; then
+            echo "::error::backend mvn step failed with no surefire failure files - see raw log (compile/build error?)"
+          fi
+
+  docs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Documentation link check
+        run: node scripts/check-doc-links.mjs
+      - name: Browser-mode parity gate
+        run: node scripts/check-browser-parity.mjs
+      - name: MCP tool contract parity gate
+        run: node scripts/check-mcp-parity.mjs
+      - name: Local Node MCP smoke test
+        run: node scripts/verify-local-mcp.mjs
+
+  frontend-typecheck:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ui
+    env:
+      TZ: Asia/Shanghai
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      - name: Install UI deps
+        run: |
+          if ! npm ci; then
+            echo "### npm ci failed — falling back to npm install (self-heal)" >> "$GITHUB_STEP_SUMMARY"
+            npm install --no-audit --no-fund --loglevel=error || exit 1
+          fi
+      - name: Typecheck
+        run: npm run typecheck
+
+  # Split the full suite across 8 runners; each job still runs one shard serially
+  # and re-verifies a failing file serially before reporting it.
+  frontend-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    defaults:
+      run:
+        working-directory: ui
+    env:
+      TZ: Asia/Shanghai
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      - name: Install UI deps
+        run: |
+          if ! npm ci; then
+            echo "### npm ci failed — falling back to npm install (self-heal)" >> "$GITHUB_STEP_SUMMARY"
+            npm install --no-audit --no-fund --loglevel=error || exit 1
+          fi
+      # The bundle-size guard scans the Vite output, so every shard builds first.
+      - name: Build UI
+        run: npm run build
+      - name: Unit tests (shard ${{ matrix.shard }}/8)
+        run: node scripts/test-parallel.mjs --only-shard=${{ matrix.shard }}/8
+      - name: Upload shard logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitest-shard-${{ matrix.shard }}
+          path: ui/.tmp/vitest-parallel/
+          retention-days: 7

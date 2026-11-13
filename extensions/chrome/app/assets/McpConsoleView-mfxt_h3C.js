@@ -1,0 +1,1 @@
+import{M as e}from"./McpPanel-DrS1pvFl.js";import{e as o,f as s,n as t,o as c}from"./vendor-DCu7J7Gg.js";import{_ as n}from"./index-Be6PRRUV.js";const a={class:"mcp-console-page"},p=o({__name:"McpConsoleView",setup(r){return(_,i)=>(c(),s("div",a,[t(e,{show:!0,inline:""})]))}}),d=n(p,[["__scopeId","data-v-ef25d3bb"]]);export{d as default};

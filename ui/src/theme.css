@@ -1,0 +1,979 @@
+/* ═══════════ ESQueryStudio · Linear/Vercel 深色设计系统 ═══════════ */
+:root {
+  /* 背景三层递进（OKLCH 思路的暗色中性阶） */
+  --bg0: #0c1213;   /* 应用底（ v4b：中性色向品牌青调偏移，tinted neutral） */
+  --bg1: #111819;   /* 卡片/面板 */
+  --bg2: #172224;   /* 悬浮/输入 */
+  --bg3: #1e2c2e;   /* hover */
+  /* 表格分层浓度档（784 观察项令全授权落地）——表头底/斑马罩
+     用 .tbl 专用语义 token，比 --bg2/--hl-soft 深一档=克制增强；不动全局
+     --bg2/--hl-soft（悬浮/输入/hover 叠层消费面零波及） */
+  --tbl-th: #1d2c2f;     /* 表头底（比 bg2 深一档，行 hover 仍回 bg2=层次可辨） */
+  --tbl-zebra: rgba(255, 255, 255, .065);  /* 斑马罩（升自 hl-soft .05） */
+  /* 描边（半透明玉白，比实色灰更有空气感） */
+  --line: rgba(200, 240, 235, .09);
+  --line-strong: rgba(200, 240, 235, .16);
+  --line-hover: rgba(200, 240, 235, .26);
+  /* 文本（青调白/青灰，主文本 12:1、次文本 7:1、弱文本 4.2:1 对比） */
+  --tx0: #e2eeea;
+  --tx1: #a8beb8;
+  --tx2: #6f8b83;
+  /* 饱和彩色底上的文字（暗色下 --warn/--err/--dv-* 是亮色，配深字才够对比；浅色反向） */
+  --tx-on-strong: #0d0e12;
+  /* 品牌 accent（ES 生态青绿 / Elastic teal，与宿主暗色玻璃风互补，去 AI 模板感） */
+  --ac: #1fc8b4;
+  --ac-hi: #2dd4bf;
+  --ac-soft: color-mix(in srgb, var(--ac) 14%, transparent);
+  --ac-line: color-mix(in srgb, var(--ac) 38%, transparent);
+    /* 全站唯一焦点环（输入/勾选/下拉/自定义控件共用，主题自适应） */
+    --focus-ring: 0 0 0 3px color-mix(in srgb, var(--ac) 18%, transparent);
+  /* 视口内滚动区统一偏移（顶栏+页头+工具条标准高度），散值 100vh-172/160 等逐步收敛到此 */
+  /* 退役 --lh-tight/--lh-normal/--lh-loose 三档行高令牌（自始零消费：全站 line-height 走字面量；deadTokenGuard823 防回潮） */
+  /* 字距两档(注册):紧 .01em=卡头/.card-t 等标题压缩距;宽 .02em=表头 .tbl th 等
+     全大写/小标签扫读距。px 级微调(.cs-env .3px/.nf-code 4px/.pl-panel-tt .5px)为视觉
+     刻意值豁免记档不收编——字距梯只收 em 系,像素级是另一族 */
+  --ls-tight: .01em; --ls-wide: .02em;
+  --vh-offset: 210px;
+  /* 语义色（降饱和，暗色适配） */
+  --ok: #34d399;
+  --ok-soft: rgba(52, 211, 153, .12);
+  --warn: #fbbf24;
+  --warn-soft: rgba(251, 191, 36, .12);
+  --err: #f87171;
+  --err-soft: rgba(248, 113, 113, .12);
+  --info: #60a5fa;
+  /* 分类五色(9-1 设计 Day 5-6/Day 13-17: MQ 关系与徽标分类) */
+  --cyan: #22d3ee; --blue: #60a5fa; --violet: #a78bfa; --purple: #c084fc; --pink: #f472b6;
+  --dv-cyan-soft: color-mix(in srgb, var(--cyan) 12%, transparent);
+  --dv-blue-soft: color-mix(in srgb, var(--blue) 12%, transparent);
+  --dv-violet-soft: color-mix(in srgb, var(--violet) 12%, transparent);
+  --dv-purple-soft: color-mix(in srgb, var(--purple) 12%, transparent);
+  --dv-pink-soft: color-mix(in srgb, var(--pink) 12%, transparent);
+  --ok-line: color-mix(in srgb, var(--ok) 35%, transparent);
+  --brand-soft: color-mix(in srgb, var(--ac) 12%, transparent);
+  --warn-line: color-mix(in srgb, var(--warn) 35%, transparent);
+  --err-line: color-mix(in srgb, var(--err) 35%, transparent);
+  --info-line: color-mix(in srgb, var(--info) 35%, transparent);
+  /*  v4b 条件树语义色（暗色段）：must=品牌色本身（主条件即主色）；
+     全部用亮色文字+10% soft 底——v3.1 曾写深色文字在暗底不可见（字体可见性教训） */
+  --c-must: #2dd4bf; --c-must-bg: rgba(45, 212, 191, .10);
+  --c-filter: #6aa5e8; --c-filter-bg: rgba(106, 165, 232, .10);
+  --c-should: #a78bfa; --c-should-bg: rgba(167, 139, 250, .10);
+  --c-exclude: #e07a72; --c-exclude-bg: rgba(224, 122, 114, .10);
+  --violet-line: color-mix(in srgb, var(--violet) 35%, transparent);
+  --info-soft: rgba(96, 165, 250, .12);
+    /*  数据可视化分类色板（评分构成/分片状态/生命周期相位等多类目场景专用，语义色不够分时才用） */
+    --dv-blue: #3b82f6;
+    --dv-indigo: #6366f1;
+    --dv-violet: #8b5cf6;
+    --dv-purple: #a855f7;
+    --dv-cyan: #22d3ee;
+    --dv-pink: #ec4899;
+    --dv-slate: #94a3b8;
+    --dv-orange: #f97316;
+    --dv-sky: #38bdf8;
+    --dv-yellow: #eab308;
+    --dv-lime: #a3e635;
+    /* 深底档（白字场景专用底色）：暗色下与主档同值回落，浅色段各自加深到 WCAG AA；
+       消费方=白字彩底徽标（IlmView PHASE_COLORS 等），勿用于正文彩色文字 */
+    --dv-orange-deep: var(--dv-orange);
+    --dv-yellow-deep: var(--dv-yellow);
+    --dv-blue-deep: var(--dv-blue);
+    --dv-cyan-deep: var(--dv-cyan);
+  /* 字体（Variable 字体由 main.ts 真实加载，不再是纸面 fallback） */
+  --font: "Inter Variable", "Inter", -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "JetBrains Mono Variable", "JetBrains Mono", "SF Mono", Consolas, "Courier New", monospace;
+  /* 字阶（正文/控件只认这 7 档；9px 仅微徽章特例）
+     用途对位：--fs-2xs 10px＝紧凑徽章/角标微字号
+               --fs-xs  11px＝正文/表格与列表主导
+               --fs-sm  12px＝次强调（输入框/按钮/次要标签）
+               --fs-md  13px＝卡头/区块标题
+               --fs-lg  14px＝小标题/强调正文
+               --fs-xl  16px＝页头/页面主标题
+     展示数字三档立 token（，消费守卫见下方「字阶守卫」注释）：
+               --fs-num    21px＝KPI 中号数字
+               --fs-num-l  28px＝区块大数
+               --fs-num-xl 44px＝页面主数字（.hr-score-n 等）
+     其余特例档不设 token、保留字面量：15px 辅助说明、22px 视图标题、9px 微徽章 */
+  --fs-2xs: 10px; --fs-xs: 11px; --fs-sm: 12px; --fs-md: 13px; --fs-lg: 14px; --fs-xl: 16px;
+  --fs-num: 21px; --fs-num-l: 28px; --fs-num-xl: 44px;
+  /* 尺寸节奏（4px 网格） */
+  --r-xs: 4px; --r-s: 6px; --r-m: 8px; --r-l: 12px;
+  /* 间距阶梯（UX 轮 §9.2）：页内间距只许取这组值，散写 px 随轮转收编。
+     扩半档并立裁决：全站 px 间距 1628 处实测梯上仅 42%，梯外长尾 6/10/2px
+     合计 758 处为真实设计值（强归 4/8/12 会全站密度漂移），故扩 --sp-0/-1h/-2h 三枚半档直收；
+     1px 属边框语义豁免，3/5/7/9/14 等奇数微调为视觉刻意值豁免记档不强制收编。 */
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px;
+  --sp-0: 2px; --sp-1h: 6px; --sp-2h: 10px;
+  /* 内容最大宽度（§9 附 B）：≥1920 视口下 .page 用 padding 居中，表格密度页可豁免 */
+  --page-maxw: 1600px;
+  /* 阴影三档（大厂体系：控件微阴影 / 悬浮层 / 弹窗） */
+  --shadow-s: 0 1px 2px rgba(0, 0, 0, .25);
+  --shadow-m: 0 4px 12px rgba(0, 0, 0, .35), 0 1px 3px rgba(0, 0, 0, .3);
+  --shadow-pop: 0 8px 28px rgba(0, 0, 0, .45), 0 2px 8px rgba(0, 0, 0, .35);
+  /* W8 glow 档（只含几何不含色）：收纳散落的活体点辉光（SideNav .dot / OverviewView .ov-alerts-dot 等
+     现状 0 0 6px var(--err)）。消费方追加语义色组合：
+     `box-shadow: var(--glow-m) var(--err)`；裸用（不带色）时 box-shadow 自动落 currentColor，仍合法。
+     退役小档 --glow-s（「备而未收」储备，三周零消费；deadTokenGuard823 防回潮） */
+  --glow-m: 0 0 6px;
+  /* v3.0.1 z 阶梯:sticky 1-10 < 抽屉 100/110 < 聚焦面 300 < 视图模态 1000 < 局部浮层 1150 < 确认弹窗 1300 < 回执 1310 < naive 动态 2000+ < 全屏遮罩 10000+(登录/向导)
+     确认壳层例外:ModalShell 开层把 mask 注册进 naive 同款计数器(后开者胜),静态档仅首帧兜底——从 naive 弹层内触发的确认不再被宿主弹层盖住 */
+  --z-drawer-mask: 250; --z-drawer: 251; --z-focus: 300; --z-modal-view: 1000; --z-popover: 1150; --z-confirm: 1300; --z-receipt: 1310;
+  /* 确认弹窗宽度档 --dlg-w 四档约定：small 340 / info 460 / confirm 560 / large 640。
+     现散值：ModalShell 默认 460（info 档）/ GuardedActionButton 480（confirm 档散值，待收编）；
+     后续批次经 ModalShell width prop 收编消费端（本批只立档不迁移任何消费端） */
+  /* W8 z 补档（取阶梯空档，不动既有值）：--z-ctx 1200=表格浮层 chip 档；
+     --z-ctx-top 10001=右键菜单顶档（必须高于 Picker 浮岛 9000 与全屏 10000，
+     否则从字段候选里右键时菜单会被浮岛盖住）；
+     （夹在局部浮层 1150 与确认弹窗 1300 之间；下一波收编 RT/QRT/CellContextMenu 的 .xx-pop）；
+     --z-island 9000=Picker 浮岛档（naive 模态内可用依赖，禁降档——低于 naive 动态 2000+ 会被模态压住）；
+     --z-fullscreen 10000=全屏门禁档（登录/安装向导，盖过全部业务浮层与 naive 动态）；
+     --z-routebar 9999=路由进度条档（App.vue .route-bar 顶部 ind-bar；夹在浮岛 9000 与全屏门禁 10000 之间；
+     W7 注：任务书原拟名 --z-receipt 已被 v3.0.1 阶梯占用（1310 回执 toast 档，GuardedActionButton 在消费），
+     同名重复定义会让回执静默跳 9999，故改用专名 --z-routebar，route-bar 数值零变化） */
+  --z-ctx: 1200; --z-ctx-top: 10001; --z-island: 9000; --z-routebar: 9999; --z-fullscreen: 10000;
+  /* 按钮内高光（顶部 1px 提亮，塑造立体感；浅色主题自动削弱） */
+  --btn-gloss: inset 0 1px 0 rgba(255, 255, 255, .06);
+  /* 遮罩两档（弹窗蒙层 / 全屏门禁），浅色主题自动减重避免糊成黑布 */
+  --mask: rgba(6, 7, 10, .62);
+  --mask-heavy: rgba(10, 11, 14, .8);
+  --tr: 140ms cubic-bezier(.2, .7, .3, 1);
+  --nav-tr: 240ms cubic-bezier(.2, .7, .3, 1);   /* 侧边导航收展：比通用 --tr 慢一档，位移类动画需要更长缓冲 */
+  /* 时长三档 + 位移缓动 + 编排间隔（622 稿 P2 §3.5/§10；纯令牌追加，不加任何媒体查询与动效降级块） */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);     /* 出场/位移缓动（seg 滑动 pill 等，比 --tr 更有「落点」感） */
+  --dur-fast: 160ms;   /* 微交互：hover/active/pill 滑动 */
+  --dur-base: 320ms;   /* 常规过渡 */
+  --stagger: 60ms;     /* 入场编排的逐项间隔 */
+  /* 高亮叠层（hover/选中的半透明底，浅色主题下自动换成黑色系叠层） */
+  --hl-soft: rgba(255, 255, 255, .05);
+  --hl: rgba(255, 255, 255, .08);
+  --hl-strong: rgba(255, 255, 255, .15);
+  /* ── 兼容别名：历史视图散用过的旧变量名，统一映射回正版 token ──
+     定义之后 var(--panel, #1a2129) 这类带深色 fallback 的写法会走别名而非 fallback，
+     浅色主题下随 --bg1/--line/--tx0 自动切换，不再出现"白底黑块"割裂。 */
+  --panel: var(--bg1);
+  --card: var(--bg1);
+  --bg-alt: var(--bg2);
+  --border: var(--line);
+  --border-subtle: var(--line);
+  --text: var(--tx0);
+  --fg: var(--tx0);
+  --text-muted: var(--tx2);
+  --bg: var(--bg0);
+  --bd: var(--line);
+  --border-soft: var(--line);
+  --panel-2: var(--bg2);
+  --hover: var(--bg2);
+  --card-bg: var(--bg1);
+  --code-bg: var(--bg2);
+  --brand: var(--ac);
+  --accent: var(--ac);
+  --acc: var(--ac);
+  --muted: var(--tx2);
+  --tx3: var(--tx2);
+  --success: var(--ok);
+  --danger: var(--err);
+  --warning: var(--warn);
+  --wn: var(--warn);
+  --font-mono: var(--mono);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; height: 100%; }
+body {
+  background: var(--bg0);
+  color: var(--tx0);
+  font: 13px/1.5 var(--font);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* Inter 的 cv05/cv11 替换字形更近 Linear 的中性气质；tabular-nums 全局兼顾中文无副作用 */
+  font-feature-settings: "cv05", "cv11";
+}
+#app { height: 100%; }
+
+/* 数字等宽：指标/计数/表格数值列不再跳动错位（大厂表格标配）；补 QRT 表格 */
+.num, .tbl td, .qrt-tbl td, .idx-meta, .pill, .chip, .kbd { font-variant-numeric: tabular-nums; }
+/* 数字单一语言：meta 串里的数值 b=mono+tabular（亮色/字重由各 .meta 系视图自管） */
+.meta-num b { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+::selection { background: color-mix(in srgb, var(--ac) 30%, transparent); }
+
+/* 细滚动条 */
+:root { --scroll-thumb: #2c2f38; --scroll-thumb-hover: #3a3d47; }
+/* 表格滚动容器 hover 时 thumb 增亮（dbx 质感——平时低调、悬停清晰） */
+.rt-wrap:hover::-webkit-scrollbar-thumb, .qrt-wrap:hover::-webkit-scrollbar-thumb,
+.rt-wrap:hover *::-webkit-scrollbar-thumb, .qrt-wrap:hover *::-webkit-scrollbar-thumb { background: var(--scroll-thumb-hover); }
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: var(--r-s); border: 2px solid var(--bg0); }
+::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); }
+/* 双向滚动容器右下角：不设的话深色主题下是一块白色死角 */
+::-webkit-scrollbar-corner { background: transparent; }
+* { scrollbar-width: thin; scrollbar-color: var(--scroll-thumb) transparent; }
+
+a { color: var(--ac-hi); text-decoration: none; }
+/* 裸 b 字重全局兜底——themeDiscipline525 立法 font-weight 上限 650，但浏览器对
+   裸 <b> 的默认 bold≈700 不产生字面、组件无局部规则时越线（全站 105 处裸 <b>）；一行兜底全站
+   收口。组件局部显式 650/600 规则特异性更高不受影响（themeDiscipline525 五个典型位断言不回退）。 */
+b { font-weight: 650; }
+code, pre, .mono { font-family: var(--mono); }
+
+/* ═══ ：表单控件元素级基线（零特异度 :where）═══
+   全站扫描：80+ 个局部输入类各自为政、21 个视图存在裸 input/select、
+   .ipt 等别名从未被定义——深色主题里漏出原生白底黑字是最大质感塔。
+   where() 特异度为 0：任何视图局部类都能无痛覆盖，但没写样式的控件
+   从此有与设计系统一致的底盘。排除：自绘 checkbox/radio、range/file/color、
+   naive-ui 内部（n-*）、monaco 输入代理（.inputarea）。 */
+:where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([class^="n-"]):not(.inputarea),
+       textarea:not([class^="n-"]):not(.inputarea),
+       select) {
+  background: var(--bg2);
+  border: 1px solid var(--line);
+  color: var(--tx0);
+  border-radius: var(--r-s);
+  padding: 5px 9px;
+  font-size: var(--fs-sm);
+  font-family: var(--font);
+  outline: none;
+  transition: border-color var(--tr), box-shadow var(--tr), background var(--tr);
+}
+:where(textarea:not([class^="n-"]):not(.inputarea)) {
+  font-family: var(--mono); resize: vertical; min-height: 60px; line-height: 1.5;
+}
+/* 交互态同样零特异度且同批排除（:not 写在 :where 内部才不抬特异度，
+   否则会压过自绘 checkbox 的 hover 态） */
+:where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([class^="n-"]):not(.inputarea):not(:disabled):not(:focus),
+       textarea:not([class^="n-"]):not(.inputarea):not(:disabled):not(:focus),
+       select:not(:disabled):not(:focus)):hover { border-color: var(--line-strong); }
+:where(input:not([type="checkbox"]):not([type="radio"]):not([class^="n-"]):not(.inputarea),
+       textarea:not([class^="n-"]):not(.inputarea),
+       select):focus {
+  border-color: var(--ac-line); box-shadow: var(--focus-ring);
+}
+:where(input:not([type="checkbox"]):not([type="radio"]):not([class^="n-"]),
+       textarea:not([class^="n-"]),
+       select):disabled { opacity: .5; cursor: not-allowed; }
+:where(input, textarea)::placeholder { color: var(--tx2); opacity: .85; }
+/* 插入符品牌色（Linear/Vercel 同款细节）：零特异度，局部可盖 */
+:where(input, textarea) { caret-color: var(--ac); }
+/* Chrome 自动填充在深色主题里打黄白底——超长内阴影盖回输入底色，
+   focus 时叠回品牌焦点环（登录/安装向导的账号密码框真实会被浏览器记住） */
+input:-webkit-autofill, input:-webkit-autofill:hover {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg2) inset;
+  -webkit-text-fill-color: var(--tx0);
+  caret-color: var(--tx0);
+  transition: background-color 99999s ease-out 0s;
+}
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: var(--focus-ring), 0 0 0 1000px var(--bg2) inset;
+  -webkit-text-fill-color: var(--tx0);
+}
+/* Edge 密码「眼睛」按钮默认黑图标，深色底下看不见 */
+input::-ms-reveal { filter: invert(.75); }
+
+/* 按钮元素级基线——全站 30+ 局部按钮类（ja-btn/cm-role-btn/qh-task…）里
+   总有漏写 font-family/cursor/transition 的：系统字体 + 箭头光标 + 瞬变态
+   是裸按钮三大廉价泄露点。零特异度，任何局部类都能盖。 */
+:where(button:not([class^="n-"])) {
+  font-family: var(--font); cursor: pointer;
+  transition: background var(--tr), border-color var(--tr), color var(--tr), opacity var(--tr), box-shadow var(--tr);
+}
+:where(button:disabled) { cursor: not-allowed; opacity: .55; }
+
+/* 二期：交互态穿透——全站 80+ 个局部 scoped 输入类（0,1,0）会盖掉零特异度
+   基线的 hover/focus（.sv-input:focus 只换边框无焦点环、.pt-ii 根本没 hover）。
+   底盘外观（尺寸/字体/圆角）仍归各视图，但 hover 描边加深与 3px 品牌焦点环
+   是全站唯一的交互语言，用 #app 前缀（1,x,x）提到不可被随手覆盖的高度。 */
+#app :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([class^="n-"]):not(.inputarea),
+            textarea:not([class^="n-"]):not(.inputarea),
+            select):hover:not(:focus):not(:disabled) { border-color: var(--line-strong); }
+#app :where(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([class^="n-"]):not(.inputarea),
+            textarea:not([class^="n-"]):not(.inputarea),
+            select):focus {
+  border-color: var(--ac-line); box-shadow: var(--focus-ring); outline: none;
+}
+/* number 的原生 spinner 在深色主题下是一块白色异物（键盘 ↑↓ 步进仍可用） */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+
+/* 自绘勾选框/单选：原生控件在 Windows 上质感参差，accent-color 只换色不换质感，
+   是「非大厂感」最大的细节泄露点——自绘后两套主题、全部视图一次统一 */
+input[type="checkbox"], input[type="radio"] {
+  appearance: none; -webkit-appearance: none;
+  width: 15px; height: 15px; margin: 0; flex: none;
+  background: var(--bg1); border: 1.5px solid var(--line-strong);
+  cursor: pointer; transition: all var(--tr); position: relative; vertical-align: -2px;
+}
+input[type="checkbox"] { border-radius: var(--r-xs); }
+input[type="radio"] { border-radius: 50%; }
+input[type="checkbox"]:hover, input[type="radio"]:hover { border-color: var(--ac-line); }
+input[type="checkbox"]:checked, input[type="radio"]:checked,
+input[type="checkbox"]:indeterminate { background: var(--ac); border-color: var(--ac); }
+/* 勾与按钮同语言：深色主题深勾（同 .btn.pri 文字），浅色主题白勾 */
+input[type="checkbox"]:checked::after {
+  content: ''; position: absolute; left: 3.5px; top: 0.5px; width: 4px; height: 8px;
+  border: solid #04211d; border-width: 0 2px 2px 0; transform: rotate(45deg);
+}
+input[type="checkbox"]:indeterminate::after {
+  content: ''; position: absolute; left: 2.5px; right: 2.5px; top: 5.5px; height: 2px;
+  border-radius: 1px; background: #04211d;
+}
+input[type="radio"]:checked::after {
+  content: ''; position: absolute; inset: 3px; border-radius: 50%; background: #04211d;
+}
+input[type="checkbox"]:focus-visible, input[type="radio"]:focus-visible {
+  outline: none; box-shadow: var(--focus-ring);
+}
+input[type="checkbox"]:disabled, input[type="radio"]:disabled { opacity: .4; cursor: not-allowed; }
+
+/* 开关变体（checkbox 加 .tgl）——「模式切换」语义用胶囊开关而非方框勾选，
+   复用自绘 checkbox 的全部交互态（hover/focus 环/disabled），只换壳与旋钮 */
+input[type="checkbox"].tgl { width: 30px; height: 17px; border-radius: 99px; }
+input[type="checkbox"].tgl::after {
+  content: ''; position: absolute; top: 1.5px; left: 1.5px; width: 11px; height: 11px;
+  border: 0; border-radius: 50%; background: var(--tx2); transform: none;
+  transition: left var(--tr), background var(--tr);
+}
+input[type="checkbox"].tgl:checked::after {
+  left: 14.5px; width: 11px; height: 11px; border: 0; border-radius: 50%;
+  background: #04211d; transform: none;
+}
+
+/* range 滑杆自绘——accent-color 只换色不换质感（Windows 灰槽白点），
+   与自绘 checkbox 同理，track/thumb 双引擎自绘，hover/active 渐进放大 */
+input[type="range"] {
+  appearance: none; -webkit-appearance: none;
+  height: 16px; padding: 0; margin: 0; background: transparent; border: 0;
+  cursor: pointer; outline: none;
+}
+input[type="range"]::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: var(--line-strong); }
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px; margin-top: -5px; border-radius: 50%;
+  background: var(--ac); border: 2.5px solid var(--bg1); box-shadow: var(--shadow-s);
+  transition: transform var(--tr), box-shadow var(--tr);
+}
+input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.12); }
+input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.2); }
+input[type="range"]:focus-visible::-webkit-slider-thumb { box-shadow: var(--focus-ring); }
+input[type="range"]::-moz-range-track { height: 4px; border-radius: 2px; background: var(--line-strong); }
+input[type="range"]::-moz-range-progress { height: 4px; border-radius: 2px; background: var(--ac); }
+input[type="range"]::-moz-range-thumb { width: 9px; height: 9px; border-radius: 50%; background: var(--ac); border: 2.5px solid var(--bg1); box-shadow: var(--shadow-s); }
+input[type="range"]:disabled { opacity: .5; cursor: not-allowed; }
+
+/* 原生 select 自绘——全站 25+ 处下拉散落在 20 个视图，原生箭头/系统字体/白底弹层
+   是深色控制台里最刺眼的「非大厂感」泄露点。background-* 用 !important 是必要之恶：
+   各视图 scoped 类（.ra-i/.is-input/.pl-sel…）用 background 简写会把箭头图重置掉，
+   而颜色/边框仍由各自类掌控，只强制箭头三件套。：去掉 [class] 限定，裸 select 一并自绘。 */
+select {
+  appearance: none; -webkit-appearance: none;
+  padding-right: 26px !important;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 8px center !important;
+  transition: border-color var(--tr), box-shadow var(--tr);
+}
+select:hover { border-color: var(--line-hover); }
+select:focus, select:focus-visible {
+  outline: none; border-color: var(--ac-line); box-shadow: var(--focus-ring);
+}
+select:disabled { opacity: .5; cursor: not-allowed; }
+/* 弹层选项跟随主题（Windows Chrome 生效），避免深色页面弹出刺眼白框 */
+select option { background: var(--bg1); color: var(--tx0); }
+
+/* ═══ 通用组件（跨视图复用，不依赖 naive 的皮肤层） ═══ */
+
+.card {
+  background: var(--bg1);
+  border: 1px solid var(--line);
+  border-radius: var(--r-l);
+  padding: 14px var(--sp-4); /* 14px 垂直留白为视觉刻意值豁免保字面（--sp 梯无 14 档） */
+}
+/* 卡片标题必须压过正文（13px）：主文本色 + 更重字重，修复层级倒挂 */
+.card-t { font-size: var(--fs-md); font-weight: 650; color: var(--tx0); letter-spacing: var(--ls-tight); margin-bottom: var(--sp-2h); display: flex; align-items: center; gap: var(--sp-2); }
+/* 卡头第二档（SecurityView .card-title.sm 同值升档）——卡内分节标题（改密/新建用户等） */
+.card-t.sm { font-size: var(--fs-sm); font-weight: 600; margin: var(--sp-3) 0 var(--sp-2); }
+/* 区块标题两档制的第二档：卡头（.card-t 13px/650）之下的页内分节标题，无下划线 */
+.sec-t { font-size: var(--fs-sm); font-weight: 600; color: var(--tx1); }
+
+/* §7 页头已统一为 components/PageHeader.vue(.ph 系列);全局 .page-head/.hd-ic/.sub 已退役删除(pageHeaderSingleTrack 看守) */
+
+/* 表格基底 */
+/* 【字阶守卫】全站 font-size 档位（半点值 9.5/10.5/11.5/12.5/13.5 已全站归并整点，禁止回流）：
+   正文 11/12px ｜ 表格 .tbl 12px（表头 11px）｜ 卡头 .card-t 13px/650 ｜ 分节 .sec-t 12px/600 ｜
+   页头 .ph-tt 16px（PageHeader） ｜ 大数字展示档 --fs-num 21 / --fs-num-l 28 / --fs-num-xl 44（立 token，
+   消费端如 .be-result-num/.hr-score-n，后续批迁移）。
+   展示数字消费守卫：一律 650 字重 + var(--mono) + tabular-nums（数字档是「数据可读」语义，
+   比例字体会让多位数宽度抖动；650 为全站字重上限，展示数字不得回 700/800）。
+   配套字重档：400 正文 / 500 控件强调(.chip/.btn) / 600 分节·按钮·表头 / 650 卡头·标题·展示数字
+   （650 为全站字重上限：700/800 一律归并到 650，更高字重在暗色小字号下发糊且无档位归属）。 */
+.tbl { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+.tbl th {
+  text-align: left; font-weight: 600; color: var(--tx2); font-size: var(--fs-xs);
+  letter-spacing: var(--ls-wide);
+  /* 档位精确等值 px 收 var(--sp-*)（混合刻值与逐字锁行豁免台账见 adaptive556.spec） */
+  padding: var(--sp-2) var(--sp-2h); border-bottom: 1px solid var(--line-strong);
+  /* 表头与表体底色分离（大厂表格的层次感来源），吹不动 sticky
+     （：底色换 --tbl-th 专用档=分层浓度克制增强，行 hover 仍回 --bg2） */
+  position: sticky; top: 0; background: var(--tbl-th); z-index: 2; user-select: none; white-space: nowrap;
+}
+.tbl th:first-child { border-top-left-radius: var(--r-s); }
+.tbl th:last-child { border-top-right-radius: var(--r-s); }
+.tbl td { padding: 7px var(--sp-2h); border-bottom: 1px solid var(--line); vertical-align: top; }
+.tbl tbody tr { transition: background var(--tr), box-shadow var(--tr); }
+.tbl tbody tr:hover { background: var(--bg2); box-shadow: inset 3px 0 0 var(--ac-hi); }
+.tbl tbody tr:last-child td { border-bottom: 0; }
+.tbl .num { font-family: var(--mono); text-align: right; }
+/* 斑马纹（可选 .zebra）：长表扫读不串行，强度控制在仅可感知
+   （：换 --tbl-zebra 专用档，升自 hl-soft 一档=克制增强） */
+.tbl.zebra tbody tr:nth-child(even) { background: var(--tbl-zebra); }
+.tbl.zebra tbody tr:hover { background: var(--bg2); }
+
+/* 弱化文字/微缩文字实用类收编（Adhoc/Security/Diag/System 等视图重复定义收口）。
+   同批收编的可排序表头增强规则随「可排序表头族」整族退役——全站 th 挂
+   sortable 的只有 QRT（根类 .qrt-tbl，scoped 自带 cursor/hover/on/图标四态，
+   内核化），其余 .tbl 渲染源（RT .rt-th/裸表）均无排序表头，该族选择器恒空匹配；
+   v3.0.0 的键盘可达委托（th.sortable 挂 Enter/Space/tabindex）在 App.vue JS 域，与
+   CSS 族无关。看守=themeDeadFamilies783.spec（死因链与其史志在彼处） */
+.dim { color: var(--tx2); font-size: var(--fs-sm); }
+.sm-txt { font-size: var(--fs-xs); font-weight: 400; }
+
+/* chip / 徽标 */
+.chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: var(--sp-0) 9px; border-radius: 99px; font-size: var(--fs-xs); font-weight: 500;
+  background: var(--bg2); border: 1px solid var(--line); color: var(--tx1);
+  cursor: pointer; transition: all var(--tr); user-select: none; white-space: nowrap;
+}
+.chip:hover { border-color: var(--line-strong); color: var(--tx0); }
+.chip.on { background: var(--ac-soft); border-color: var(--ac-line); color: var(--ac-hi); }
+/* 非交互 chip（状态徽标等）：去掉 .chip 默认的 pointer 手型，避免误导可点 */
+.chip.static { cursor: default; }
+.chip .dot { width: 6px; height: 6px; border-radius: 50%; }
+/* 迷你档（SnapshotsView 时间线索引 chip 等密集场景；原各页 padding:1px 6px 散写收编） */
+.chip.xs { padding: 1px 6px; border-radius: var(--r-s); }
+
+/* 状态 pill */
+.pill { display: inline-flex; align-items: center; gap: 5px; padding: 1.5px var(--sp-2); border-radius: 99px; font-size: var(--fs-xs); font-weight: 600; }
+.pill.g { background: var(--ok-soft); color: var(--ok); }
+.pill.y { background: var(--warn-soft); color: var(--warn); }
+.pill.r { background: var(--err-soft); color: var(--err); }
+.pill.b { background: var(--info-soft); color: var(--info); }
+/* 语义别名档（W3 ConfigValidator/ConfigDrift 等待消费）——色值与 r/y/b 同源同 token；
+   写侧统一 --ok/--err/--warn，--danger/--warning 为等值别名 deprecated，不再新增消费 */
+.pill.err { background: var(--err-soft); color: var(--err); }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.pill.info { background: var(--info-soft); color: var(--info); }
+.pill.n { background: var(--bg2); color: var(--tx1); }
+/* （轨5）：6px 精确等值收 --sp-1h（1px 微衬刻意值保字面，wt-act 554 判例同款） */
+.pill.xs { font-size: var(--fs-2xs); padding: 1px var(--sp-1h); }
+.pill.sm { font-size: var(--fs-2xs); padding: 1.5px 7px; }
+/* 结果「已过期」芯片（DSL/Lucene/索引工作区共用形态）：表格工具行里不许被压缩换行 */
+.stale-chip { flex: none; white-space: nowrap; }
+.pill.cyan { background: var(--dv-cyan-soft); color: var(--cyan); }
+.pill.blue { background: var(--dv-blue-soft); color: var(--blue); }
+.pill.violet { background: var(--dv-violet-soft); color: var(--violet); }
+.pill.purple { background: var(--dv-purple-soft); color: var(--purple); }
+.pill.pink { background: var(--dv-pink-soft); color: var(--pink); }
+.pill { transition: background .15s, color .15s; }
+/* pill 是纯状态徽标(全仓无 @click 可点场景),不做 hover 描边以免误导可点 */
+
+/* 通用按钮（与 naive 并存，用于轻量场景）：内高光 + 微阴影塑造立体感，告别平面色块 */
+.btn {
+  display: inline-flex; align-items: center; gap: var(--sp-1h);
+  padding: 5px var(--sp-3); border-radius: var(--r-s); font-size: var(--fs-sm); font-weight: 500;
+  background: var(--bg2); border: 1px solid var(--line-strong); color: var(--tx0);
+  cursor: pointer; transition: all var(--tr); font-family: var(--font); white-space: nowrap;
+  box-shadow: var(--btn-gloss), var(--shadow-s);
+}
+.btn:hover { background: var(--bg3); border-color: var(--line-hover); }
+.btn:active { transform: scale(.96); opacity: .9; box-shadow: none; }
+.btn:disabled { opacity: .45; cursor: not-allowed; box-shadow: none; }
+/* .primary 是 .pri 的历史并行别名——登录/安装向导/12+ 视图的主 CTA 在用，
+   审计发现它从未被定义过（同 .ipt 旧病），主按钮一直渲染成灰色普通按钮，这里收编 */
+.btn.pri, .btn.primary {
+  background: linear-gradient(180deg, var(--ac-hi), var(--ac));
+  border-color: var(--ac); color: #04211d; font-weight: 600;
+  /* 高光/投影都压到仅可感知：过亮的内高光+品牌色泛光是「油腻感」来源 */
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .15), 0 1px 4px color-mix(in srgb, var(--ac) 22%, transparent);
+}
+.btn.pri:hover, .btn.primary:hover { filter: brightness(1.08); border-color: var(--ac-hi); }
+.btn.danger { color: var(--err); }
+.btn.danger:hover { background: var(--err-soft); border-color: rgba(248,113,113,.4); }
+/* 危险行动实底按钮（delete_by_query 等）：红底红字统一危险视觉，不与品牌主色叠底自相矛盾 */
+.btn.danger-solid { background: var(--err-soft); border-color: color-mix(in srgb, var(--err) 40%, var(--line)); color: var(--err); font-weight: 600; }
+.btn.danger-solid:hover { background: var(--err-soft); border-color: var(--err); }
+/* 警示色行动按钮——污染警示条的「去零停机重建」CTA 等警告语境专用 */
+.btn.warn { color: var(--warn); }
+.btn.warn:hover { background: var(--warn-soft); border-color: color-mix(in srgb, var(--warn) 45%, var(--line)); }
+.btn.ghost { background: transparent; border-color: transparent; color: var(--tx1); box-shadow: none; }
+.btn.ghost:hover { background: var(--bg2); color: var(--tx0); }
+.btn.sm { padding: 3px var(--sp-2); font-size: var(--fs-xs); }
+/* .xs 也是多视图在用的未定义尺寸档（仅 ReindexAdvanced 局部定义过），全局收编 */
+.btn.xs { padding: var(--sp-0) var(--sp-1h); font-size: var(--fs-xs); }
+/* v3.0.0：.xxs 微档收编——此前 ClusterSettingsView(18px)/ReindexPreviewView(20px) 各自
+   本地定义且尺寸不一，同页不同权；统一 20px 档位（18px 过挤，20px 视觉基线） */
+.btn.xxs { padding: 0 var(--sp-1h); height: 20px; font-size: var(--fs-xs); line-height: 20px; }
+
+/* 输入（.ipt 是历史并行别名：安全中心/登录浮层/安装向导/集群切换器等 24 处在用，
+    审计发现它从未被定义过——深色主题里一直是原生白底黑字，这里统一收编） */
+.inp, .ipt {
+  width: 100%; padding: var(--sp-1h) var(--sp-2h); border-radius: var(--r-s); font-size: var(--fs-sm);
+  background: var(--bg2); border: 1px solid var(--line); color: var(--tx0);
+  outline: none; transition: border var(--tr), box-shadow var(--tr); font-family: var(--font);
+}
+.inp:focus, .ipt:focus { border-color: var(--ac-line); box-shadow: var(--focus-ring); }
+.inp::placeholder, .ipt::placeholder { color: var(--tx2); }
+
+/* 分段选择器 */
+.seg { display: inline-flex; flex-wrap: wrap; row-gap: var(--sp-0); background: var(--bg2); border: 1px solid var(--line); border-radius: var(--r-m); padding: var(--sp-0); gap: var(--sp-0); }
+.seg button {
+  padding: var(--sp-1) var(--sp-3); border: 0; border-radius: var(--r-s); background: transparent;
+  color: var(--tx1); font-size: var(--fs-sm); font-weight: 500; cursor: pointer; transition: all var(--tr); font-family: var(--font);
+  /* ·实报「排版乱了」:窄容器压缩下 seg 钮文字逐字断行(表/格、卡/片)——
+     按钮文字永不断行是组件级正确性;容器宽度不足由外层滚动承接 */
+  white-space: nowrap;
+}
+.seg button:hover { color: var(--tx0); }
+.seg button.on { background: var(--bg3); color: var(--tx0); box-shadow: 0 1px 3px rgba(0,0,0,.3); }
+
+/* kbd */
+.kbd {
+  display: inline-flex; align-items: center; justify-content: center; min-width: 18px;
+  padding: 1px 5px; border-radius: var(--r-xs); font: 600 11px var(--mono);
+  background: var(--bg2); border: 1px solid var(--line-strong); border-bottom-width: 2px; color: var(--tx1);
+}
+/* 按钮内快捷键提示：随按钮同色系半透明贴片，不再是嵌进按钮的深色补丁（键帽样式只留给独立场景） */
+.btn .kbd {
+  background: rgba(0, 0, 0, .14); border: 0; color: inherit; opacity: .8;
+  font-size: var(--fs-2xs); padding: 1px 5px; min-width: 16px;
+}
+
+/* details/summary 基线——8 处视图散用，原生黑三角/箭头光标各自为政，
+   手型 + 禁选 + 弱化 marker 是全站统一的展开语言（focus 环由全局 :focus-visible 兑付） */
+summary { cursor: pointer; user-select: none; transition: color var(--tr); }
+summary::marker { color: var(--tx2); }
+
+/* 空态 / 加载 */
+/* padding 与 components/EmptyState.vue 的 .empty-state 对齐（34px 16px）：本类被 17 个 view 直接引用，
+   与 EmptyState 组件并列构成全站两条空态渲染路径；两边留白必须同值，否则同一「暂无数据」语义
+   在不同页面呈现两种留白，且原 48px 正落在「空间很大却大片留白」的症状档位（40–80px）。
+   全站空态留白只认这一个数：改这里必须同步改组件，反之亦然。 */
+/* 存量旧范式，遗留清零批后仅剩 5 个文件在用（DocDiffModal/AliasesView/BrowserView/DslQueryView/IndexHubView），勿新增 */
+.empty { padding: 34px var(--sp-4); text-align: center; color: var(--tx2); font-size: var(--fs-sm); display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); }
+.empty::before { content: '○'; font-size: 22px; opacity: .4; }
+/* -A2：页面级加载失败条——三态契约统一失败态容器（错误文案 + 重试按钮），46 个 view 复用 */
+.err-bar { display: flex; align-items: center; gap: var(--sp-2h); padding: var(--sp-2h) 14px; margin-bottom: var(--sp-2h); font-size: var(--fs-sm); color: var(--err); background: var(--err-soft); border: 1px solid var(--err-line); border-radius: var(--r-s); word-break: break-all; }
+.err-bar .btn { flex-shrink: 0; margin-left: auto; }
+/* lint 体检提示条单源立法——全站 ≥8 份同构私有规则（RestView .rt-lint/SystemView .sy-lint/
+   AliasesView .alv-lint/MatchMatrixView .mm-lint/SearchSandboxView .ss-lint/ReindexAdvancedView .ra-lint/
+   DevToolsView .dt-lint/DslQueryView .dq-lint-fallback）收编至此，形态与  .sy-lint 逐字同构。
+   warn/err 双档；err-bar 是操作失败反馈（role=alert 语义边框），lint-bar 是表单/结果体检提示（soft 底无边框），语义分件勿混用。 */
+.lint-bar { display: flex; flex-direction: column; gap: var(--sp-0); margin-top: var(--sp-2); padding: var(--sp-2) var(--sp-3); border-radius: var(--r-s); font-size: var(--fs-xs); line-height: 1.5; }
+.lint-bar-warn { background: var(--warn-soft); color: var(--warn); }
+.lint-bar-err { background: var(--err-soft); color: var(--err); }
+/* ux2 useInputLint 行内提示条：字段级紧凑形态（.err-bar 全宽条对字段过重）。
+   双级别共享 --err/--warn 变量，全仓单一出处防各页漂移（spec §6 风险行） */
+.il-hint { margin-top: var(--sp-1); font-size: var(--fs-xs); line-height: 1.35; }
+.il-hint.il-err { color: var(--err); }
+.il-hint.il-warn { color: var(--warn); }
+/* ux2  布局适配：行内 flex 容器内提示条折行占满整行（margin-top 生效），纵 flex 触点（PitScroll/UBQ）零影响。
+   禁止给 .il-hint 全局 flex-basis——纵 flex 主轴=高度，会把提示条撑成容器等高 */
+.cv-rp-act, .tv2-newname, .st-card-hd, .pl-editor-hd, .rt-resp-bar { flex-wrap: wrap; }
+/* order 沉底：DOM 上提示条紧跟 input 保模板统一，布局序排到最后——真机实证无 order 时 flex-basis:100% 会把保存/复制等后续兄弟按钮挤折行 */
+.cv-rp-act > .il-hint, .tv2-newname > .il-hint, .st-card-hd > .il-hint, .pl-editor-hd > .il-hint, .rt-resp-bar > .il-hint { flex-basis: 100%; order: 1; }
+/* .is-row 三列 grid：提示条与 input 同列、钉死第二行——真机实证单挂 grid-column 会把既有 .is-hint 说明带离首行；
+   限宽 >900px：窄屏单列媒体查询（IndexSettingsView L528-532）下 grid-column:2 会炸出幽灵列 */
+@media (min-width: 901px) {
+.is-row > .il-hint { grid-column: 2; grid-row: 2; }
+}
+/* 元素限定 span：各组件普遍给 svg 图标加裸 .spin 做旋转，不限定会把圆环边框/14px 尺寸强加到图标上 */
+/* 旋转速度统一 1s（.7s 与 .spinning 1s 双速残留收口） */
+span.spin { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line-strong); border-top-color: var(--ac); border-radius: 50%; animation: rot 1s linear infinite; }
+@keyframes rot { to { transform: rotate(360deg); } }
+/* 图标旋转全局类（类名统一 spinning）——此前各视图本地重复定义
+   .spin/.spinning 与 ahr-rot/cv-spin/sp 等同名 keyframes 至少五份 */
+.spinning { animation: rot 1s linear infinite; }
+/* 执行主按钮锁宽——busy 态「执行中 X.Xs」文字变长不推挤相邻布局（CLS 治理） */
+.btn-run-lock { min-width: 9.5em; }
+/* 执行进度条定位（415 五视图重复定义收编单一出处） */
+.pg-progress { position: absolute; top: 0; left: 0; right: 0; color: var(--ac); }
+/* 聚焦面内工具行（449/450 聚焦态操作可达） */
+.focus-tools { display: flex; gap: 8px; align-items: center; justify-content: flex-end; margin-bottom: 8px; }
+
+/* W8 浮层基类（下一波八处 .xx-pop 收编目标）：fixed 定位 + --z-island 浮岛档 + 统一壳
+   （bg1 底/强描边/弹窗投影/r-m 圆角）。各 .xx-pop 收编后只补坐标（top/left/…）与尺寸，
+   不再自带壳样式；naive 模态内可用依赖，z 档禁降（低于 naive 动态 2000+ 会被压住） */
+.float-pop { position: fixed; z-index: var(--z-island); background: var(--bg1); border: 1px solid var(--line-strong); box-shadow: var(--shadow-pop); border-radius: var(--r-m); }
+/* inplace 基座档——aliases(.alv-pop)/health(.hr-pop) 两份 scoped 逐字拷贝的共用底座，
+   消费方（usePopupList Teleport 关闭的就地模式）只留坐标外裁切/字号等私有差异。
+   不带 z-index：就地态回落 .float-pop 的 --z-island 档（inplace 多发生在 naive 模态/容器内，
+   按浮岛档纪律禁降；原 scoped 拷贝的局部 10 由档位纪律收编） */
+.float-pop.inplace { position: absolute; top: 100%; left: 0; min-width: 100%; }
+
+/* 弹层淡入（pop）。离场期间一律 pointer-events:none：离场中的遮罩/浮层是「视觉残影」，
+   绝不允许拦截点击（后台标签页 transition 被节流冻结时，隐形遮罩会永久挡住整页——真实踩坑）。
+   fade 过渡族三规则退役（ 路由过渡孤儿；全站 transition name=
+   {pop/hk-fade/sw-fade/ga-slide}，无裸 fade，前缀类整 token 不匹配） */
+.pop-enter-active { transition: opacity 160ms ease-out, transform 160ms ease-out; }
+.pop-enter-from { opacity: 0; transform: translateY(-6px) scale(.98); }
+.pop-leave-active { transition: opacity 120ms ease-in; pointer-events: none; }
+.pop-leave-to { opacity: 0; }
+
+/* 耗时条 */
+.took-bar { height: 3px; border-radius: 2px; background: var(--bg2); overflow: hidden; }
+.took-bar > i { display: block; height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--ok), var(--warn)); transition: width 300ms ease-out; }
+
+/* JSON 高亮（自渲染） */
+.j-key { color: #93c5fd; }
+.j-str { color: #86efac; }
+.j-num { color: #fbbf24; }
+.j-bool { color: #f472b6; }
+.j-null { color: var(--tx2); }
+/* DSL 语义键档（jsonc.highlightDslJson 输出，query/bool/term/aggs 等语义表键）——
+   色走 --acc 语义色（暗 #1fc8b4 / 浅 #0d9488 双主题自适应），与 j-key 蓝、j-num 琥珀三向区分；
+   只增不删（semanticTiers500 既有四档锁零触） */
+.j-clause { color: var(--acc); font-weight: 600; }
+/* break-all 会在行尾无差别拦腰断词；anywhere 优先找天然断点（空格/标点），实在放不下才段内断，零溢出且可读 */
+pre.json-view { margin: 0; font: var(--fs-sm)/1.6 var(--mono); white-space: pre-wrap; word-break: normal; overflow-wrap: anywhere; }
+
+/* 滚动容器 */
+.scroll-y { overflow-y: auto; }
+
+/* naive-ui 主题微调：融入 token */
+.n-config-provider { height: 100%; }
+
+/* ═══ 微交互 / 动效（互联网产品级质感） ═══ */
+.card { transition: border-color var(--tr), box-shadow var(--tr); }
+:focus-visible { outline: 2px solid var(--ac); outline-offset: 2px; }
+/* Naive UI Select：键盘焦点落在内层 .n-base-selection-label（tabindex=0），库样式清掉 outline；
+   外框按 :has(:focus-visible) 兑付可见聚焦环（鼠标打开不亮环）。 */
+.n-base-selection:has(.n-base-selection-label:focus-visible) {
+  border-color: var(--ac-line); box-shadow: var(--focus-ring);
+}
+/* Monaco：键盘焦点落在隐藏 textarea（.inputarea），编辑器外框补可见环；鼠标点击不亮环。 */
+.monaco-editor:has(textarea.inputarea:focus-visible) {
+  outline: 2px solid var(--ac); outline-offset: 2px;
+}
+
+/* 读屏专用视觉隐藏（aria-live 播报区）——display:none 对辅助技术静默，
+   必须保留可访问性树节点而视觉不可见 */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+/* 骨架屏 */
+.sk { position: relative; overflow: hidden; background: var(--bg2); border-radius: var(--r-s); }
+.sk::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.07), transparent);
+  animation: sk-slide 1.2s ease-in-out infinite;
+}
+@keyframes sk-slide { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+
+/* 行入场（列表 stagger） */
+@keyframes rise-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.rise { animation: rise-in .3s cubic-bezier(.2,.7,.3,1) both; }
+
+/* 点击复制（v3.0.0：键盘可达基线——tabindex/keydown 由使用点补，这里统一焦点视觉） */
+.cpy { cursor: copy; }
+.cpy:hover { color: var(--ac-hi); text-decoration: underline dotted; }
+.cpy:focus-visible { outline: none; box-shadow: var(--focus-ring); border-radius: 2px; }
+
+/* 活体脉冲点（RUNNING/LIVE） */
+.dot-pulse { position: relative; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.dot-pulse::after { content: ''; position: absolute; inset: -3px; border-radius: 50%; border: 1.5px solid currentColor; animation: pulse-ring 1.6s ease-out infinite; opacity: 0; box-sizing: border-box; }
+@keyframes pulse-ring { 0% { transform: scale(.5); opacity: .9; } 100% { transform: scale(2); opacity: 0; } }
+
+/* Toast 撤销按钮 */
+.toast-undo { margin-left: var(--sp-3); background: transparent; border: 1px solid var(--line-strong); color: var(--ac-hi); font-weight: 600; font-size: var(--fs-xs); padding: var(--sp-0) var(--sp-2h); border-radius: var(--r-s); cursor: pointer; transition: all var(--tr); font-family: var(--font); }
+.toast-undo:hover { background: var(--ac-soft); border-color: var(--ac-line); }
+/* 多动作按钮容器（错误 toast「查看诊断」+「复制原始」并存） */
+.toast-acts { display: inline-flex; align-items: center; gap: var(--sp-2); margin-left: var(--sp-3); }
+.toast-acts .toast-undo { margin-left: 0; }
+
+/* Toast 不吞页面点击（：实测 SQL 结果栏「下一页」在右下角，分页失败 toast 停留
+   6s 期间重试点击被 toast 内容层吃掉）。toast 是「瞥一眼」的瞬时层，正文与底色
+   一律穿透，只有动作按钮（撤销/继续上次/复制原始）与关闭钮保留可点；完整消息
+   回看走通知中心，屏幕阅读器走 App.vue 的 sr-only live region。 */
+.n-notification-container, .n-notification { pointer-events: none !important; }
+.n-notification .toast-acts,
+.n-notification .toast-acts *,
+.n-notification .n-notification-close,
+.n-notification .n-notification-close * { pointer-events: auto !important; }
+
+/* 密度切换：compact */
+[data-density="compact"] .tbl th { padding: var(--sp-1) var(--sp-2); font-size: var(--fs-xs); }
+[data-density="compact"] .tbl td { padding: 3px var(--sp-2); font-size: var(--fs-sm); }
+[data-density="compact"] .card { padding: var(--sp-2h) var(--sp-3); }
+[data-density="compact"] .card-t { margin-bottom: var(--sp-1h); }
+[data-density="compact"] .btn.sm { padding: var(--sp-0) var(--sp-1h); font-size: var(--fs-xs); }
+
+/* mono 长值截断 + hover 全值（配合 title） */
+.mono-trunc { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: middle; }
+
+/* 应用内密码框（非登录）：type=text + 圆点遮罩，避免浏览器密码管理器误识别自动填充 */
+.pw-mask { -webkit-text-security: disc; }
+
+/* 尊重系统减弱动效偏好。transition-property 必须一并钉 none：只缩 duration 时
+   transition-property 隐式取初始值 all，布局属性（flex/height/min-height）变化仍会
+   创建过渡对象，在渲染冻结/节流环境（后台标签）下停在起点值形成面板塌缩假象；
+   显式无过渡后属性变化即时落定。 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; transition-property: none !important; }
+}
+
+/* 亮色主题（:root[data-theme="light"] 启用） */
+:root[data-theme="light"] {
+  --bg0: #ffffff;
+  --bg1: #fbfbfd;
+  --bg2: #f2f4f7;
+  --bg3: #e8ebf0;
+  /* 表格分层浓度档（浅色侧，暗区同批成对） */
+  --tbl-th: #edf0f4;     /* 表头底（比 bg2 深一档） */
+  --tbl-zebra: rgba(15, 23, 42, .05);  /* 斑马罩（升自 hl-soft .04） */
+  --line: #e4e7ec;
+  --line-strong: #cbd0d9;
+  --line-hover: #a8afbc;
+  --tx0: #1a1d24;
+  --tx1: #4a5060;
+  --tx2: #76808f;   /* ：加深 2.91→3.63（bg2 输入/悬浮背景上过 WCAG 3:1 辅助线） */
+  --tx-on-strong: #ffffff;  /* 浅色下彩色底变深，配白字 */
+  /* 浅色下品牌色加深一档：青绿在白底需更低明度才够对比 */
+  --ac: #0d9488;
+  --ac-hi: #0f766e;
+  --ac-soft: color-mix(in srgb, var(--ac) 10%, transparent);
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--ac) 15%, transparent);
+    /* 浅色下分类色板加深一档保对比 */
+    --dv-blue: #2563eb;
+    --dv-indigo: #4f46e5;
+    --dv-violet: #7c3aed;
+    --dv-purple: #9333ea;
+    --dv-cyan: #0891b2;
+    --dv-pink: #db2777;
+    --dv-slate: #64748b;
+    --dv-orange: #ea580c;
+    --dv-sky: #0284c7;
+    --dv-yellow: #ca8a04;
+    --dv-lime: #65a30d;
+    /* 深底档：白字（--tx-on-strong）配底需 ≥4.5:1，主档 #ea580c/#ca8a04/#0891b2 仅 2.6~3.6:1
+       ——orange-800/yellow-800/cyan-800/blue-800 实测 7.0/5.6/6.0/8.4:1 */
+    --dv-orange-deep: #9a3412;
+    --dv-yellow-deep: #854d0e;
+    --dv-blue-deep: #1e40af;
+    --dv-cyan-deep: #155e75;
+  --ac-line: color-mix(in srgb, var(--ac) 40%, transparent);
+  --ok-soft: rgba(4, 120, 87, .10);
+  --warn-soft: rgba(180, 83, 9, .10);
+  --err-soft: rgba(190, 24, 30, .10);
+  --info-soft: rgba(29, 78, 216, .10);
+  /* x3 双主题扫描：浅色彩色文字加深到与各自 soft 底合成后 ≥4.5:1（原 #059669/#b45309/#dc2626/#2563eb
+     在 10% soft 底上仅 3.2-4.3，pill.g/SUCCESS 徽标/e-prod 角标等 10-11px 状态字不达标） */
+  --ok: #047857;
+  --warn: #a04a08;
+  --err: #b91c1c;
+  --info: #1d4ed8;
+  --cyan: #06b6d4; --blue: #3b82f6; --violet: #8b5cf6; --purple: #a855f7; --pink: #ec4899;
+  --dv-cyan-soft: color-mix(in srgb, var(--cyan) 10%, transparent);
+  --dv-blue-soft: color-mix(in srgb, var(--blue) 10%, transparent);
+  --dv-violet-soft: color-mix(in srgb, var(--violet) 10%, transparent);
+  --dv-purple-soft: color-mix(in srgb, var(--purple) 10%, transparent);
+  --dv-pink-soft: color-mix(in srgb, var(--pink) 10%, transparent);
+  --ok-line: color-mix(in srgb, var(--ok) 40%, transparent);
+  --warn-line: color-mix(in srgb, var(--warn) 40%, transparent);
+  --err-line: color-mix(in srgb, var(--err) 40%, transparent);
+  --info-line: color-mix(in srgb, var(--info) 40%, transparent);
+  /*  v4b 条件树语义色（亮色段）：must=品牌青深档（白底 4.6:1）；
+     filter/should/exclude 为深档文字色，浅 soft 底上均 ≥4.5:1 */
+  --c-must: #0b7c71; --c-must-bg: rgba(13, 148, 136, .08);
+  --c-filter: #2a5fd4; --c-filter-bg: #edf2fd;
+  --c-should: #6d43d6; --c-should-bg: #f2eefe;
+  --c-exclude: #c22f39; --c-exclude-bg: #fdedee;
+  --violet-line: color-mix(in srgb, var(--violet) 40%, transparent);
+  --brand-soft: color-mix(in srgb, var(--ac) 10%, transparent);
+  --shadow-s: 0 1px 2px rgba(15, 23, 42, .06);
+  --shadow-m: 0 4px 12px rgba(15, 23, 42, .08), 0 1px 3px rgba(15, 23, 42, .05);
+  --shadow-pop: 0 8px 28px rgba(15, 23, 42, .10), 0 2px 8px rgba(15, 23, 42, .06);
+  --mask: rgba(15, 23, 42, .35);
+  --mask-heavy: rgba(241, 243, 247, .82);
+  --btn-gloss: inset 0 1px 0 rgba(255, 255, 255, .8);
+  /* 浅色下高亮叠层换黑色系，白色叠层在白底不可见 */
+  --hl-soft: rgba(15, 23, 42, .04);
+  --hl: rgba(15, 23, 42, .06);
+  --hl-strong: rgba(15, 23, 42, .12);
+}
+:root[data-theme="light"] body { background: #f7f8fa; color: var(--tx0); }
+:root[data-theme="light"] { --scroll-thumb: #cbd0d9; --scroll-thumb-hover: #a8afbc; }
+:root[data-theme="light"] ::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-color: #f7f8fa; }
+:root[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: var(--scroll-thumb-hover); }
+:root[data-theme="light"] * { scrollbar-color: #cbd0d9 transparent; }
+:root[data-theme="light"] ::selection { background: color-mix(in srgb, var(--ac) 20%, transparent); }
+:root[data-theme="light"] .j-key { color: #0369a1; }
+:root[data-theme="light"] .j-str { color: #15803d; }
+:root[data-theme="light"] .j-num { color: #b45309; }
+:root[data-theme="light"] .j-bool { color: #be185d; }
+:root[data-theme="light"] .btn.pri, :root[data-theme="light"] .btn.primary {
+  color: #fff;
+  /* 浅色下 ac-hi 比 ac 深，反转渐变方向保持「上浅下深」立体感 */
+  background: linear-gradient(180deg, var(--ac), var(--ac-hi));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25), 0 1px 6px rgba(13, 148, 136, .25);
+}
+/* Edge 密码眼睛：浅色主题恢复原色 */
+:root[data-theme="light"] input::-ms-reveal { filter: none; }
+:root[data-theme="light"] .kbd { background: #fff; }
+/* 浅色下勾选控件：白勾（同浅色 .btn.pri 白字），按钮内 kbd 贴片换白色叠层 */
+:root[data-theme="light"] input[type="checkbox"]:checked::after { border-color: #fff; }
+:root[data-theme="light"] input[type="checkbox"]:indeterminate::after { background: #fff; }
+:root[data-theme="light"] input[type="radio"]:checked::after { background: #fff; }
+:root[data-theme="light"] input[type="checkbox"].tgl:checked::after { background: #fff; }
+:root[data-theme="light"] .btn.pri .kbd, :root[data-theme="light"] .btn.primary .kbd { background: rgba(255, 255, 255, .22); }
+/* kbd.inline（行内弱化键位提示）与 .kbd-mini（微缩键位）收编——
+   此前 Lucene/SqlBridge/SqlConsole 三视图逐字重复 .kbd.inline，IndexHub 本地 .kbd-mini */
+.kbd.inline { display: inline-block; padding: 1px 4px; font-size: var(--fs-xs); background: var(--hl); border-radius: 2px; margin-left: 3px; }
+.kbd-mini { font-family: var(--mono); font-size: var(--fs-2xs); padding: 0 var(--sp-1); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 3px; background: var(--bg2); color: var(--tx1); }
+:root[data-theme="light"] .seg button.on { background: #fff; box-shadow: 0 1px 3px rgba(15, 23, 42, .08); }
+:root[data-theme="light"] .sk::after { background: linear-gradient(90deg, transparent, rgba(15, 23, 42, .06), transparent); }
+:root[data-theme="light"] .took-bar { background: var(--bg3); }
+/* 浅色下 select 箭头需更深灰才够对比（：同步去掉 [class] 限定覆盖裸 select） */
+:root[data-theme="light"] select {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%234a5060' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>") !important;
+}
+
+/*  窄容器（iframe 宿主实测 866px）响应式区块整体退役：横滚兜底两规则
+   （tbl-wrap 横滚/card 直插裸表降级）全站零命中——裸 tbl-wrap 无模板挂载（av-tk-/lc-/
+   ddm-tbl-wrap 是复合类名整 token 不匹配）、裸 .tbl 直插 card 零（注释点名的审计流水
+   已换 QRT 壳）；窄容器表横滚由表格内核（QRT/RT 自带）承担。看守与死因链=
+   themeDeadFamilies783.spec */
+
+/* ── 设计系统骨架(单轨收敛,消费方 class 并挂;indBarSingleTrack/lrBarSingleTrack 看守) ── */
+/* 不确定进度条骨架: 定位(fixed/absolute)与颜色(--ind-fill 或 currentColor)由消费方提供 */
+.ind-bar { height: 2px; opacity: 0; overflow: hidden; }
+.ind-bar.on { opacity: 1; }
+.ind-bar::after {
+  content: ''; display: block; height: 100%; width: 35%; border-radius: 2px;
+  background: linear-gradient(90deg, transparent, currentColor, transparent);
+  animation: ind-slide 1s ease-in-out infinite;
+}
+@keyframes ind-slide { from { transform: translateX(-100%); } to { transform: translateX(400%); } }
+@media (prefers-reduced-motion: reduce) { .ind-bar::after { animation: none; } }
+/* 工具条左右分栏骨架: 左可压缩(min-width:0)、右不可压缩(shrink:0);
+   wrap + row-gap 兜 866px 窄容器(iframe 宿主)下两侧溢出时换行不重叠 */
+.lr-bar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--sp-2); row-gap: var(--sp-2); }
+.lr-bar-l { display: flex; min-width: 0; align-items: center; gap: var(--sp-2); }
+.lr-bar-r { display: flex; flex-shrink: 0; align-items: center; gap: var(--sp-2); }
+/* 1034：页级工具行冻结（冻结首行全站推广——1023 qh-top/1027 ih-hd 同语义收口单源）。
+   挂 freeze 的页级工具行长页滚动时恒悬可视区顶：检索参数/执行/过滤永远可达。
+   负边距拉满 .page 内容宽（上/侧同 App .page padding sp-4/sp-5），实底防内容缝隙滚过；
+   z-index 20 压内容让位弹层（float-pop 层级更高，1023 同款）。
+   高度链页（.dq-fill 等）无页面滚动时 sticky 惰性=零开销。 */
+.lr-bar.freeze { position: sticky; top: 0; z-index: 20;
+  margin: calc(-1 * var(--sp-4)) calc(-1 * var(--sp-5)) var(--sp-2);
+  padding: var(--sp-4) var(--sp-5) var(--sp-2);
+  background: var(--bg0); }
+
+/* ── ES 字段类型色卡(高亮区分: mapping 字段类型一眼可辨) ──
+   文本=蓝 关键词=紫 整数=青 浮点=黄 日期=橙 布尔=粉 对象=灰 IP=紫红 地理=绿 */
+.mft-type[data-t="text"], .mft-type[data-t="match_only_text"], .mft-type[data-t="annotated_text"],
+.mft-type[data-t="search_as_you_type"], .mft-type[data-t="token_count"] {
+  color: var(--info); background: var(--info-soft); border: 1px solid var(--info-line);
+}
+.mft-type[data-t="keyword"], .mft-type[data-t="constant_keyword"], .mft-type[data-t="wildcard"],
+.mft-type[data-t="version"] {
+  color: var(--violet); background: var(--dv-violet-soft); border: 1px solid var(--violet-line, var(--violet));
+}
+.mft-type[data-t="integer"], .mft-type[data-t="long"], .mft-type[data-t="short"],
+.mft-type[data-t="byte"], .mft-type[data-t="unsigned_long"] {
+  color: var(--cyan); background: color-mix(in srgb, var(--cyan) 12%, transparent); border: 1px solid color-mix(in srgb, var(--cyan) 30%, transparent);
+}
+.mft-type[data-t="double"], .mft-type[data-t="float"], .mft-type[data-t="half_float"],
+.mft-type[data-t="scaled_float"] {
+  color: var(--warn); background: var(--warn-soft); border: 1px solid var(--warn-line);
+}
+.mft-type[data-t="date"], .mft-type[data-t="date_nanos"], .mft-type[data-t="date_range"] {
+  color: var(--pink); background: color-mix(in srgb, var(--pink) 12%, transparent); border: 1px solid color-mix(in srgb, var(--pink) 30%, transparent);
+}
+.mft-type[data-t="boolean"] {
+  color: var(--pink); background: color-mix(in srgb, var(--pink) 12%, transparent); border: 1px solid color-mix(in srgb, var(--pink) 30%, transparent);
+}
+.mft-type[data-t="nested"], .mft-type[data-t="object"], .mft-type[data-t="flat_object"],
+.mft-type[data-t="flattened"], .mft-type[data-t="join"] {
+  color: var(--muted); background: var(--bg2); border: 1px solid var(--line);
+}
+.mft-type[data-t="ip"], .mft-type[data-t="ip_range"] {
+  color: var(--purple); background: color-mix(in srgb, var(--purple) 12%, transparent); border: 1px solid color-mix(in srgb, var(--purple) 30%, transparent);
+}
+.mft-type[data-t="geo_point"], .mft-type[data-t="geo_shape"], .mft-type[data-t="point"],
+.mft-type[data-t="shape"], .mft-type[data-t="geo"] {
+  color: var(--ok); background: var(--ok-soft); border: 1px solid var(--ok-line);
+}
+.mft-type[data-t="completion"], .mft-type[data-t="dense_vector"], .mft-type[data-t="sparse_vector"],
+.mft-type[data-t="rank_feature"], .mft-type[data-t="rank_features"], .mft-type[data-t="percolator"] {
+  color: var(--brand); background: var(--brand-soft); border: 1px solid var(--brand-soft);
+}
+/* 详情页签类型色: 文档/查询/Mapping/Settings/分片/运维 */
+.seg button.ih-t-docs.on { color: var(--info); }
+.seg button.ih-t-query.on { color: var(--ok); }
+.seg button.ih-t-mapping.on { color: var(--violet); }
+.seg button.ih-t-settings.on { color: var(--cyan); }
+.seg button.ih-t-shards.on { color: var(--warn); }
+.seg button.ih-t-ops.on { color: var(--err); }
+
+/* ═══ 语义高亮轮追加（查询工作台）：只增不改，既有规则零触碰 ═══ */
+
+/* ① 搜索命中 <mark> 全局基线。此前全站 mark 只在组件内零散定义（rt-mark/jt-mark/j-mark/
+   mt-mark/li-name mark），裸 <mark> 会漏到 UA 默认亮黄底黑字——深色主题下刺眼且口径不一。
+   统一走命中语义档：warn 琥珀底 + 彩底深字（同 rt-mark/jt-mark 口径）。
+   组件级 class 版本特异度更高，视觉不变；只兜住漏网的裸 mark。双主题随 token 自适应 */
+mark { background: var(--warn); color: var(--tx-on-strong); border-radius: 2px; padding: 0 1px; }
+
+/* ② 结果表列头类型徽标（ResultTable .rt-th-type）对齐全站 fieldTypes 色卡（.mft-type 同档）。
+   此前 rt-ty-* 是另一套色（数值=info/日期=warn/布尔=ok/文本=tx1/keyword=品牌青），同一字段
+   类型在 mapping 页与结果表头两种颜色，违反「数值类型徽标用既有 fieldTypes 色系」全站口径。
+   对齐后：整数=青 浮点同档=黄(经 rt-ty-num) 日期/布尔=粉 文本=蓝 keyword=紫。
+   #app 前缀（1,x,x）压过组件 scoped 的 .rt-th-type.rt-ty-x[data-v]（0,3,0）——组件源文件
+   不在本次可改清单，只能在主题层覆盖 */
+#app .rt-th-type.rt-ty-num { color: var(--cyan); }
+#app .rt-th-type.rt-ty-date { color: var(--pink); }
+#app .rt-th-type.rt-ty-bool { color: var(--pink); }
+#app .rt-th-type.rt-ty-text { color: var(--info); }
+#app .rt-th-type.rt-ty-kw { color: var(--violet); }
+
+/* ═══ HTTP 方法语义色轮（DevToolsView .dt-method.m-* 色值原样提升为全局类）═══
+   纯 color 档：底座（select/chip/td/mono 字段）由使用方自带，本组只管方法语义色。
+   GET 绿 / POST 黄 / PUT 紫 / DELETE 红 / HEAD 蓝；浅色主题随 token 各自加深档自适应 */
+.m-get { color: var(--ok); }
+.m-post { color: var(--warn); }
+.m-put { color: var(--dv-purple); }
+.m-delete { color: var(--err); }
+.m-head { color: var(--info); }
+
+/* ═══ 工具行（DevToolsView .dt-actions 形态收编）：窄容器整行换行不叠字 ═══
+   子项 nowrap/flex-shrink:0 防逐字断行是按钮行专属语义（focusSurface401 看守），不在全局兜 */
+.toolrow { display: flex; gap: var(--sp-1h); align-items: center; flex-wrap: wrap; row-gap: var(--sp-1); }
+
+/* ═══ meta 行内文本语义档（：7 视图 :style="x ? 'color:var(--warn)':''" 手写模式收口）═══
+   元信息串里的条件告警/错误着色统一挂类，禁止再写内联三元色（token 漂移与主题切换失明双病灶） */
+.meta-warn { color: var(--warn); }
+.meta-err { color: var(--err); }
+.meta-ok { color: var(--ok); }
+
+/* ═══ Monaco 编辑器右缘降噪（裁决「全局去切割线」：DevTools 实报编辑器右缘
+   概览标尺与 SplitHandle 分隔线并排成「两条线」）═══
+   decorationsOverviewRuler=Monaco 右缘常驻装饰 canvas，与分隔柄相距 2px 双线并排；
+   全站所有 Monaco 实例统一隐藏（SearchSandbox/SqlBridge×3/SqlConsole/DevTools/
+   PainlessLab/Synonyms/Rest/DslQuery/IndexHub 文档弹窗/Analyze 等全覆盖）。
+   lint 语义主通道=行内波浪线（setMarkers），ruler 侧标退役记档；滚动条 slider 本体
+   保留（透明轨道，可滚动时才现）。SplitHandle 单线不动（「可拖拽感知」立法）。 */
+.monaco-editor .decorationsOverviewRuler { display: none !important; }
+.monaco-editor .monaco-scrollable-element > .scrollbar.vertical > .slider {
+  border-radius: 3px;
+}
+
+/* 1024：CurrentIdxChip 所在行冻结（Excel 冻结窗格语义，全站 26 视图推广）——
+   组件挂载时注入本类；sticky 吸附 .page 滚动容器顶，实底+横向负边距拉满内容宽
+   （token 与 .page padding 同源）防内容从缝隙滚过；z-index 压内容让位弹层。 */
+.cic-row-sticky {
+  position: sticky; top: 0; z-index: 20;
+  margin: 0 calc(-1 * var(--sp-5));
+  padding: var(--sp-1h) var(--sp-5) var(--sp-2);
+  background: var(--bg0);
+}

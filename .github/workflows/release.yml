@@ -1,0 +1,157 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "8"
+          cache: maven
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Validate tag against project versions
+        run: |
+          VERSION=$(python3 - <<'PY'
+          import re
+          pom = open("pom.xml", encoding="utf-8").read()
+          start = pom.index("<artifactId>esquerystudio</artifactId>")
+          print(re.search(r"<version>([^<]+)</version>", pom[start:]).group(1))
+          PY
+          )
+          python3 - "$VERSION" <<'PY'
+          import json, re, sys
+          version = sys.argv[1]
+          for path in ("ui/package.json",):
+              declared = json.load(open(path, encoding="utf-8"))["version"]
+              if declared != version:
+                  raise SystemExit(f"{path}: {declared} != {version}")
+          citation = open("CITATION.cff", encoding="utf-8").read()
+          declared = re.search(r"^version:\s*(\S+)\s*$", citation, re.MULTILINE).group(1)
+          if declared != version:
+              raise SystemExit(f"CITATION.cff: {declared} != {version}")
+          print(f"version {version}")
+          PY
+          if [ "$GITHUB_REF_NAME" != "v$VERSION" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match project version v$VERSION" >&2
+            exit 1
+          fi
+
+      - name: Build UI
+        working-directory: ui
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+          npm run build:extension
+          npm run build:static
+
+      - name: Verify Chrome extension
+        run: node scripts/verify-extension.mjs
+
+      - name: Build Maven release artifacts and SBOM
+        run: mvn -B -P release -DskipTests -Dconsole.build.skip=true verify
+
+      - name: Collect release assets
+        run: |
+          VERSION=$(python3 - <<'PY'
+          import re
+          pom = open("pom.xml", encoding="utf-8").read()
+          start = pom.index("<artifactId>esquerystudio</artifactId>")
+          print(re.search(r"<version>([^<]+)</version>", pom[start:]).group(1))
+          PY
+          )
+          mkdir -p dist
+          cp "apps/server/target/esquerystudio-server-${VERSION}.jar" dist/
+          cp "platform/target/esquerystudio-platform-${VERSION}.jar" dist/
+          cp "modules/console/target/esquerystudio-console-${VERSION}.jar" dist/
+          for f in platform/target/esquerystudio-platform-${VERSION}-sources.jar \
+                   platform/target/esquerystudio-platform-${VERSION}-javadoc.jar \
+                   modules/console/target/esquerystudio-console-${VERSION}-sources.jar \
+                   modules/console/target/esquerystudio-console-${VERSION}-javadoc.jar; do
+            if [ -f "$f" ]; then cp "$f" dist/; fi
+          done
+          cp target/esquerystudio-sbom.json dist/
+          # 用仓库的确定性打包脚本剔除 README/store 开发文件，再以发布资产名落盘。
+          bash extensions/chrome/package-for-store.sh
+          cp "dist/esquerystudio-extension-${VERSION}.zip" "dist/esquerystudio-chrome-${VERSION}.zip"
+          if [ -f "dist/esquerystudio-static.zip" ]; then cp "dist/esquerystudio-static.zip" "dist/esquerystudio-static-${VERSION}.zip"; fi
+
+      - name: Checksums
+        working-directory: dist
+        # dist/ 里除资产外还有 build-static 产出的 esquerystudio-static/ 目录；
+        # sha256sum * 遇目录会以 "Is a directory" 退出 1，只对文件求和并排除输出自身。
+        run: find . -maxdepth 1 -type f ! -name 'SHA256SUMS' -printf '%P\0' | sort -z | xargs -0 sha256sum > SHA256SUMS
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          # 只对文件做证明；dist/ 里的 esquerystudio-static/ 目录不可作 subject。
+          subject-path: |
+            dist/*.jar
+            dist/*.zip
+            dist/esquerystudio-sbom.json
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TITLE="ESQueryStudio 查询工作台 · 初版（滚动更新）"
+          # dist/ 内另有 build-static 产出的目录，上传只圈资产文件。
+          ASSETS=(dist/*.jar dist/*.zip dist/esquerystudio-sbom.json dist/SHA256SUMS)
+          # GitHub API 偶发 502：重试创建；若已建则按唯一事实源覆盖标题/正文并补传资产。
+          for attempt in 1 2 3; do
+            if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+              echo "Release exists; refreshing metadata from docs/release-body.md and assets."
+              gh release edit "$GITHUB_REF_NAME" --title "$TITLE" --notes-file docs/release-body.md && \
+                gh release upload "$GITHUB_REF_NAME" "${ASSETS[@]}" --clobber && exit 0
+            elif gh release create "$GITHUB_REF_NAME" "${ASSETS[@]}" --verify-tag --notes-file docs/release-body.md --title "$TITLE"; then
+              exit 0
+            fi
+            echo "Release publish attempt $attempt failed; retrying in 15s..." >&2
+            sleep 15
+          done
+          echo "Release publish failed after 3 attempts." >&2
+          exit 1
+
+      - name: Verify release metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          NAME="$(gh release view "$GITHUB_REF_NAME" --json name --jq .name)"
+          test "$NAME" = "ESQueryStudio 查询工作台 · 初版（滚动更新）"
+          BODY="$(gh release view "$GITHUB_REF_NAME" --json body --jq .body)"
+          printf '%s' "$BODY" | grep -q 'X-Request-Id'
+
+      - name: Upload release artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-dist
+          path: dist
+          retention-days: 7

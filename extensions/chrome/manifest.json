@@ -1,0 +1,36 @@
+{
+  "manifest_version": 3,
+  "name": "ESQueryStudio — Elasticsearch Query Workbench",
+  "short_name": "ESQueryStudio",
+  "version": "1.0.64",
+  "description": "Elasticsearch query workbench: DSL, Lucene, SQL, PIT, explain and live monitoring. Connect directly to your cluster, no backend.",
+  "homepage_url": "https://github.com/dengmeiluan/esquerystudio",
+  "action": {
+    "default_title": "Open ESQueryStudio",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "storage",
+    "contextMenus",
+    "alarms"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "optional_host_permissions": [
+    "http://*/*",
+    "https://*/*"
+  ]
+}

@@ -1,0 +1,1 @@
+import{r as a,c as o}from"./vendor-DCu7J7Gg.js";function s(u,n,t){return t&&n!==null&&u!==n}function f(u,n){const t=a(null),e=o(()=>s(u(),t.value,n()));function l(r){t.value=r??u()}return{stale:e,lastRun:t,markRun:l}}export{f as u};

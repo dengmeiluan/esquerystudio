@@ -1,0 +1,13 @@
+ESQueryStudio
+Copyright 2026 Meiluan Deng
+
+This product is licensed under the Apache License, Version 2.0. You may obtain a copy of
+the License at:
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+ESQueryStudio bundles or depends on third-party open-source software. Each dependency remains
+under its own license and copyright; see the generated SBOM and the dependency metadata in
+the Maven and npm lockfiles for the complete list and versions.
+
+Project home: https://github.com/dengmeiluan/esquerystudio

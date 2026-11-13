@@ -1,0 +1,1 @@
+const o={heap:{warn:80,bad:85},cpu:{warn:75,bad:90},disk:{warn:80,bad:90}};function e(r,n){const t=o[r],a=Number(n);return isFinite(a)?a>=t.bad?"bad":a>=t.warn?"warn":"ok":"ok"}const i={ok:"var(--ok)",warn:"var(--warn)",bad:"var(--err)"};function c(r,n){return i[e(r,n)]}export{o as M,e as a,c as m};

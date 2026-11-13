@@ -1,0 +1,45 @@
+# Version-update PRs are paused for the 1.x release train so the repository stays
+# clean; Dependabot security updates remain enabled at the repository level.
+# Re-enable with a non-zero open-pull-requests-limit when the dependency batch is planned.
+version: 2
+updates:
+  - package-ecosystem: maven
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "03:00"
+    open-pull-requests-limit: 0
+    groups:
+      maven-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+    ignore:
+      # ESQueryStudio targets Java 8 and Spring Boot 2.3.x; major upgrades are planned work.
+      - dependency-name: "org.springframework.boot:*"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "org.elasticsearch*"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: npm
+    directory: "/ui"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "03:15"
+    open-pull-requests-limit: 0
+    groups:
+      ui-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "03:30"
+    open-pull-requests-limit: 0
+    groups:
+      actions:
+        patterns: ["*"]

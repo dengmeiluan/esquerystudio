@@ -1,0 +1,1 @@
+function u(t){return t.key==="ContextMenu"||t.key==="F10"&&t.shiftKey}function o(t,r=12){var n;const e=(n=t.currentTarget)==null?void 0:n.getBoundingClientRect();return e?{x:e.left+r,y:e.bottom}:{x:0,y:0}}export{u as i,o as m};

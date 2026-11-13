@@ -1,0 +1,20 @@
+[
+  {
+    "action": "indices:data/write/reindex",
+    "taskId": "node-1:101",
+    "type": "transport",
+    "startTimeInMillis": 1760000000000,
+    "runningTimeNanos": 5200000000,
+    "description": "reindex from [research_report] to [research_report_v2]",
+    "node": "node-1"
+  },
+  {
+    "action": "indices:data/read/search",
+    "taskId": "node-1:102",
+    "type": "direct",
+    "startTimeInMillis": 1760000100000,
+    "runningTimeNanos": 120000000,
+    "description": "search research_report",
+    "node": "node-1"
+  }
+]

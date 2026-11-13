@@ -1,0 +1,4 @@
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
+io.github.dengmeiluan.esquerystudio.console.config.ESQueryStudioConsoleAutoConfiguration,\
+io.github.dengmeiluan.esquerystudio.console.compat.EsDateCompatAutoConfiguration
+

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="zh-CN" style="background:#0d0e12">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%2314b8a6'/%3E%3Cpath d='M8 10h16M8 16h10M8 22h13' stroke='%230d1718' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <title>ESQueryStudio</title>
+  <!-- 防白闪兜底用 style 属性而非内联 <style>：vite 的 html-proxy 在 Windows 下对盘符大小写敏感，
+       maven exec 以 D:\ 大写盘符进入时内联 <style> 会直接构建失败；正式样式在 theme.css。
+       注意：style 属性优先级高于样式表，浅色主题必须在首帧前翻转（下方经典内联 script，
+       非 module 不经 vite html-proxy），运行时热切换由 app store 的 applyTheme 同步改写。 -->
+  <script src="./boot.js"></script>
+  <script type="module" crossorigin src="./assets/index-Be6PRRUV.js"></script>
+  <link rel="modulepreload" crossorigin href="./assets/vendor-DCu7J7Gg.js">
+  <link rel="stylesheet" crossorigin href="./assets/index-DWhDfpd7.css">
+</head>
+<body style="margin:0">
+  <div id="app"></div>
+</body>
+</html>

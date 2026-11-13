@@ -1,0 +1,27 @@
+cff-version: 1.2.0
+message: "If you use ESQueryStudio in research or production, cite this project."
+title: ESQueryStudio
+abstract: >-
+  The Elasticsearch query workbench built for Spring Boot: six query modes, mapping-aware
+  completion and lint, relevance labs, 52 pages in 11 feature packs, and host integration SPIs.
+type: software
+authors:
+  - family-names: Deng
+    given-names: Meiluan
+    website: https://github.com/dengmeiluan
+repository-code: https://github.com/dengmeiluan/esquerystudio
+url: https://github.com/dengmeiluan/esquerystudio
+license: Apache-2.0
+version: 1.0.64
+date-released: 2026-11-09
+keywords:
+  - elasticsearch
+  - query-workbench
+  - dsl
+  - sql
+  - relevance
+  - observability
+  - operations
+  - search
+  - spring-boot
+  - vue

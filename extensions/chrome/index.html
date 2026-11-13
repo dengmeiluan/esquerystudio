@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ESQueryStudio — Elasticsearch Query Workbench</title>
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#1fc8b4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="1" width="22" height="22" rx="6" fill="#0f1718" stroke="none"/><path d="m12 3 8 4.5-8 4.5-8-4.5L12 3Z"/><path d="m4 12 8 4.5 8-4.5"/><path d="m4 16.5 8 4.5 8-4.5"/></svg>
+      </span>
+      <span class="brand-name">ESQueryStudio</span>
+      <span class="brand-sub">Chrome · Direct ES</span>
+    </div>
+    <div class="top-center">
+      <span id="topCluster" class="top-chip">未连接</span>
+      <span id="topIndex" class="top-chip dim">未选择索引</span>
+      <span id="topDocs" class="top-chip dim">— docs</span>
+      <span id="topHealth" class="health-pill">—</span>
+    </div>
+    <div class="top-right">
+      <span id="connPill" class="pill off">未连接</span>
+      <button id="openConsoleBtn" class="btn ghost sm" title="加载真实 52 页控制台">完整控制台</button>
+      <button id="openOptionsBtn" class="btn ghost sm" title="连接设置">连接设置</button>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="sidebar">
+      <section class="side-card">
+        <div class="side-hd"><span>连接</span><button id="toggleConnBtn" class="icon-btn" title="收起">−</button></div>
+        <div id="connBox" class="side-body hidden">
+          <label class="field">已保存连接
+            <select id="profileSelect"><option value="">新建连接…</option></select>
+          </label>
+          <div class="profile-actions">
+            <button id="saveProfileBtn" class="btn ghost xs">保存</button>
+            <button id="deleteProfileBtn" class="btn ghost xs">删除</button>
+          </div>
+          <label class="field">集群地址
+            <input id="baseUrl" type="url" placeholder="https://es.example.com:9200" autocomplete="off" />
+          </label>
+          <label class="field">认证
+            <select id="authMode">
+              <option value="none">无认证</option>
+              <option value="basic">Basic Auth</option>
+              <option value="apikey">API Key</option>
+            </select>
+          </label>
+          <div id="basicFields" class="auth-fields">
+            <input id="username" placeholder="用户名" autocomplete="username" />
+            <input id="password" type="password" placeholder="密码" autocomplete="current-password" />
+          </div>
+          <div id="apiKeyFields" class="auth-fields hidden">
+            <input id="apiKey" placeholder="Base64 API Key" autocomplete="off" />
+          </div>
+          <label class="check"><input id="remember" type="checkbox" checked /> 在本机记住凭据</label>
+          <button id="connectBtn" class="btn primary block">连接并检查</button>
+          <div id="connMsg" class="hint" role="status"></div>
+        </div>
+      </section>
+
+      <div class="nav-search"><input id="navSearch" placeholder="搜索功能 /" autocomplete="off" /></div>
+      <section class="side-card">
+        <div class="side-hd"><span>索引</span><span id="indexCount" class="dim">0</span></div>
+        <div class="side-body">
+          <input id="indexFilter" class="filter" placeholder="过滤索引..." autocomplete="off" />
+          <select id="indexSelect" class="index-list" size="9"></select>
+          <div id="indexMeta" class="index-meta">选择索引后加载 mapping</div>
+        </div>
+      </section>
+
+      <section class="side-card">
+        <div class="side-hd"><span>工作区</span></div>
+        <div class="nav-group-label">查询与检索 <span>2</span></div>
+        <nav class="nav">
+          <button class="nav-item on" data-view="query"><span>查询工作台</span><kbd>1</kbd></button>
+          <button class="nav-item" data-view="monitor"><span>实时监控</span><kbd>2</kbd></button>
+        </nav>
+        <div class="nav-group-label">数据与资产 <span>2</span></div>
+        <nav class="nav">
+          <button class="nav-item" data-view="history"><span>历史与收藏</span><kbd>3</kbd></button>
+          <button class="nav-item" data-view="reindex"><span>Reindex 重建</span><kbd>6</kbd></button>
+        </nav>
+        <div class="nav-group-label">开发者工具 <span>2</span></div>
+        <nav class="nav">
+          <button class="nav-item" data-view="rest"><span>REST 控制台</span><kbd>5</kbd></button>
+        </nav>
+        <div class="nav-group-label">帮助 <span>1</span></div>
+        <nav class="nav">
+          <button class="nav-item" data-view="about"><span>能力与边界</span><kbd>4</kbd></button>
+        </nav>
+      </section>
+      <div class="side-foot">
+        <span class="dot" id="sideDot"></span>
+        <span id="sideStatus">等待连接</span>
+        <span class="dim">v1.0.0</span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section id="view-query" class="view">
+        <div class="view-hd">
+          <div>
+            <h1>查询工作台</h1>
+            <p class="sub">直连 Elasticsearch：DSL · Lucene · ES-SQL · PIT · Explain</p>
+          </div>
+          <div class="mode-tabs" role="tablist" aria-label="查询模式">
+            <button class="mode-tab on" data-mode="dsl" role="tab" aria-selected="true">DSL</button>
+            <button class="mode-tab" data-mode="lucene" role="tab" aria-selected="false">Lucene</button>
+            <button class="mode-tab" data-mode="sql" role="tab" aria-selected="false">ES-SQL</button>
+            <button class="mode-tab" data-mode="pit" role="tab" aria-selected="false">PIT 分页</button>
+          </div>
+        </div>
+
+        <div class="query-grid">
+          <div class="editor-card">
+            <div class="card-hd">
+              <span id="editorTitle">Query DSL</span>
+              <div class="card-actions">
+                <span id="fieldHint" class="chip">未选择索引</span>
+                <select id="fieldSelect" class="field-select" title="从 mapping 插入字段"><option value="">字段…</option></select>
+                <button id="formatBtn" class="btn ghost xs" title="格式化 JSON">格式化</button>
+                <button id="exampleBtn" class="btn ghost xs" title="插入示例">示例</button>
+              </div>
+            </div>
+            <textarea id="queryInput" spellcheck="false" aria-label="查询输入"></textarea>
+            <div id="dslSummary" class="dsl-summary" aria-live="polite">等待查询</div>
+            <details class="tree-wrap" open><summary>条件树 <span id="treeCount" class="dim">0</span></summary><div id="dslTree" class="dsl-tree"></div></details>
+            <div id="lintBar" class="lint-bar hidden" role="alert"></div>
+            <div class="editor-foot">
+              <span id="queryHint" class="hint">选择索引后执行查询</span>
+              <div class="run-group">
+                <button id="profileToggle" class="btn ghost sm" aria-pressed="false" title="带 profile:true 执行">Profile</button>
+                <button id="runBtn" class="btn primary sm">执行 <kbd>Ctrl+↵</kbd></button>
+              </div>
+            </div>
+          </div>
+
+          <div class="result-card">
+            <div class="result-hd">
+              <div class="result-stats" id="resultStats">尚无结果</div>
+              <div class="result-actions">
+                <button id="viewTableBtn" class="btn ghost xs on">表格</button>
+                <button id="viewJsonBtn" class="btn ghost xs">JSON</button>
+                <button id="exportCsvBtn" class="btn ghost xs">CSV</button>
+                <button id="exportJsonBtn" class="btn ghost xs">JSON 导出</button>
+                <button id="clearResultBtn" class="btn ghost xs">清空</button>
+              </div>
+            </div>
+            <div id="resultArea" class="result-area">
+              <div class="empty">
+                <div class="empty-icon">⌕</div>
+                <div>执行查询后，结果会出现在这里</div>
+                <div class="dim">提示：Ctrl/⌘ + Enter 直接执行</div>
+              </div>
+            </div>
+            <div id="pitBar" class="pit-bar hidden">
+              <span id="pitInfo">PIT 未开启</span>
+              <button id="pitNextBtn" class="btn sm">下一页</button>
+              <button id="pitCloseBtn" class="btn ghost sm">关闭 PIT</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="quick-row">
+          <span class="dim">快速模板</span>
+          <button class="chip-btn" data-template="match_all">match_all</button>
+          <button class="chip-btn" data-template="term">term</button>
+          <button class="chip-btn" data-template="range">range</button>
+          <button class="chip-btn" data-template="bool">bool 组合</button>
+          <button class="chip-btn" data-template="agg">terms 聚合</button>
+          <button class="chip-btn" data-template="highlight">高亮</button>
+        </div>
+      </section>
+
+      <section id="view-monitor" class="view hidden">
+        <div class="view-hd">
+          <div>
+            <h1>实时监控</h1>
+            <p class="sub">每 5 秒直连采集 · 仅保留本页 120 个采样点（约 10 分钟，不落盘）</p>
+          </div>
+          <div class="live-actions">
+            <span id="livePill" class="pill off">LIVE 停止</span>
+            <select id="monitorInterval" class="field-select" title="采样间隔"><option value="3000">3s</option><option value="5000" selected>5s</option><option value="10000">10s</option><option value="30000">30s</option></select>
+            <select id="monitorCap" class="field-select" title="历史点数上限"><option value="60">60 点</option><option value="120" selected>120 点</option><option value="240">240 点</option></select>
+            <button id="monitorToggleBtn" class="btn primary sm">开始采集</button>
+            <button id="monitorClearBtn" class="btn ghost sm">清空采样</button>
+          </div>
+        </div>
+        <div class="metric-grid">
+          <div class="metric-card"><span class="metric-label">集群状态</span><strong id="mStatus">—</strong><span class="metric-sub" id="mCluster">未连接</span></div>
+          <div class="metric-card"><span class="metric-label">搜索 QPS</span><strong id="mQps">—</strong><span class="metric-sub" id="mQpsSub">query_total 增量</span></div>
+          <div class="metric-card"><span class="metric-label">写入速率</span><strong id="mIndexRate">—</strong><span class="metric-sub">index_total 增量</span></div>
+          <div class="metric-card"><span class="metric-label">Heap 使用</span><strong id="mHeap">—</strong><span class="metric-sub" id="mHeapSub">节点均值</span></div>
+          <div class="metric-card"><span class="metric-label">CPU</span><strong id="mCpu">—</strong><span class="metric-sub">节点均值</span></div>
+          <div class="metric-card"><span class="metric-label">分片</span><strong id="mShards">—</strong><span class="metric-sub" id="mShardsSub">active / unassigned</span></div>
+        </div>
+        <div class="chart-card">
+          <div class="card-hd"><span>QPS / 写入速率</span><span id="sampleCount" class="dim">0 / 120</span></div>
+          <canvas id="monitorChart" width="1200" height="180" aria-label="QPS 趋势图"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="card-hd"><span>最近采样</span><span class="dim">内存环形缓冲 · 不写入扩展存储</span></div>
+          <div class="table-wrap"><table id="monitorTable"><thead><tr><th>时间</th><th>状态</th><th>QPS</th><th>写入/s</th><th>Heap</th><th>CPU</th><th>分片</th></tr></thead><tbody></tbody></table></div>
+        </div>
+      </section>
+
+      <section id="view-history" class="view hidden">
+        <div class="view-hd">
+          <div>
+            <h1>历史与收藏</h1>
+            <p class="sub">查询历史保留最近 100 条，收藏保留 50 条；均为本机扩展存储，可一键清空</p>
+          </div>
+          <div class="live-actions">
+            <span id="historySize" class="chip">0 KB</span>
+            <button id="clearHistoryBtn" class="btn ghost sm">清空历史</button>
+            <button id="clearFavoritesBtn" class="btn ghost sm">清空收藏</button>
+          </div>
+        </div>
+        <div class="split">
+          <div class="chart-card">
+            <div class="card-hd"><span>查询历史</span><span id="historyCount" class="dim">0</span></div>
+            <div id="historyList" class="list"></div>
+          </div>
+          <div class="chart-card">
+            <div class="card-hd"><span>收藏</span><span id="favoriteCount" class="dim">0</span></div>
+            <div id="favoriteList" class="list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-rest" class="view hidden">
+        <div class="view-hd">
+          <div><h1>REST 控制台</h1><p class="sub">直连任意 Elasticsearch API · reindex / tasks / snapshots 等操作由使用者自行承担风险</p></div>
+          <span id="restStatus" class="chip">—</span>
+        </div>
+        <div class="chart-card">
+          <div class="card-hd"><span>请求</span><span class="dim">仅 http/https · 扩展 service worker 转发</span></div>
+          <div class="rest-bar">
+            <select id="restMethod"><option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option><option>HEAD</option></select>
+            <input id="restPath" placeholder="/_cluster/health" value="/_cluster/health" />
+            <button id="restSend" class="btn primary sm">发送</button>
+          </div>
+          <textarea id="restBody" spellcheck="false" placeholder='{"source":{"index":"old"},"dest":{"index":"new"}}'></textarea>
+          <div class="quick-row">
+            <span class="dim">预设</span>
+            <button class="chip-btn" data-rest-preset="health">cluster health</button>
+            <button class="chip-btn" data-rest-preset="indices">cat indices</button>
+            <button class="chip-btn" data-rest-preset="reindex">reindex 模板</button>
+            <button class="chip-btn" data-rest-preset="tasks">tasks</button>
+            <button class="chip-btn" data-rest-preset="snapshots">snapshots</button>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="card-hd"><span>响应</span><span id="restMeta" class="dim">—</span></div>
+          <pre id="restResult" class="json-view rest-result">等待请求…</pre>
+        </div>
+      </section>
+
+      <section id="view-reindex" class="view hidden">
+        <div class="view-hd">
+          <div><h1>Reindex 重建</h1><p class="sub">直连 _reindex · 支持 query / slices / 异步 task 轮询与取消</p></div>
+          <span id="reindexState" class="chip">待执行</span>
+        </div>
+        <div class="chart-card">
+          <div class="card-hd"><span>源与目标</span><span class="dim">源索引 → 目标索引（不会自动删除源）</span></div>
+          <div class="reindex-grid">
+            <label class="field">源索引<input id="reindexSource" placeholder="old-index" /></label>
+            <label class="field">目标索引<input id="reindexDest" placeholder="new-index" /></label>
+            <label class="field">slices<select id="reindexSlices"><option value="auto">auto</option><option value="1">1</option><option value="2">2</option><option value="4">4</option><option value="8">8</option></select></label>
+            <label class="check"><input id="reindexAsync" type="checkbox" checked /> 异步执行（轮询 task）</label>
+          </div>
+          <div class="card-hd"><span>可选 query / script</span><span class="dim">JSON；留空=全量复制</span></div>
+          <textarea id="reindexQuery" spellcheck="false" placeholder='{"query":{"range":{"publish_time":{"gte":"now-30d"}}}}'></textarea>
+          <div class="quick-row">
+            <button id="reindexRun" class="btn primary sm">开始 Reindex</button>
+            <button id="reindexCancel" class="btn ghost sm hidden">取消 task</button>
+            <span id="reindexMeta" class="dim"></span>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="card-hd"><span>响应 / 进度</span><span class="dim">GET _tasks/&lt;id&gt;</span></div>
+          <pre id="reindexResult" class="json-view rest-result">等待执行…</pre>
+        </div>
+      </section>
+
+      <section id="view-about" class="view hidden">
+        <div class="view-hd"><div><h1>能力与边界</h1><p class="sub">前端直连版做了什么、砍了什么、数据留在哪里</p></div></div>
+        <div class="about-grid">
+          <div class="chart-card">
+            <div class="card-hd"><span>已落地</span></div>
+            <ul class="bullet good">
+              <li>DSL / Lucene / ES-SQL 直查，结果表、JSON、CSV 导出</li>
+              <li>PIT 深分页（open → search_after → close）</li>
+              <li>单文档 <code>_explain</code> 打分树；DSL 可带 profile</li>
+              <li>实时集群监控：health + nodes stats 每 5s 采样，QPS/写入/Heap/CPU/分片</li>
+              <li>查询历史、收藏、本地凭据；不经过任何第三方服务</li>
+              <li>请求经扩展 service worker 转发，绕开页面 CORS 限制</li>
+            </ul>
+          </div>
+          <div class="chart-card">
+            <div class="card-hd"><span>刻意砍掉（需要后端/宿主）</span></div>
+            <ul class="bullet cut">
+              <li>REST 控制台已直连任意 ES API：reindex、tasks、snapshots、settings 等都可自行发起</li>
+              <li>不提供额外账号/角色/页面权限；ES 侧权限与审计由集群自身承担</li>
+              <li>不提供作业 SQLite/JDBC 持久化、定时调度与 52 页完整运维面</li>
+              <li>宿主菜单、SSO 委托与功能包裁剪仍由 Spring Boot 宿主负责</li>
+            </ul>
+          </div>
+          <div class="chart-card">
+            <div class="card-hd"><span>数据与安全</span></div>
+            <ul class="bullet">
+              <li>凭据默认只存本机 <code>chrome.storage.local</code>；取消勾选“记住凭据”则仅当前页面内存持有</li>
+              <li>连接时只请求用户填写的 ES 地址的 host 授权；拒绝授权则不会发起请求，也不加载远程脚本</li>
+              <li>浏览器直连受集群 CORS/TLS/网络策略约束；需要网关白名单时请让管理员放行扩展来源</li>
+              <li>监控采样仅在本页内存，刷新即清空，避免把历史数据悄悄落盘</li>
+            </ul>
+          </div>
+          <div class="chart-card">
+            <div class="card-hd"><span>版本</span></div>
+            <p class="about-version">ESQueryStudio Chrome Extension <strong>1.0.0</strong></p>
+            <p class="dim">与 ESQueryStudio 1.0.0 同源设计；后端能力请使用 Spring Boot starter 或独立 server。</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast hidden" role="status"></div>
+  <dialog id="jsonDialog" class="dialog">
+    <div class="dialog-hd"><span id="dialogTitle">JSON</span><button id="dialogClose" class="icon-btn">×</button></div>
+    <pre id="dialogBody"></pre>
+  </dialog>
+
+  <script src="core.js"></script>
+  <script src="query.js"></script>
+  <script src="monitor.js"></script>
+  <script src="rest.js"></script>
+  <script src="reindex.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

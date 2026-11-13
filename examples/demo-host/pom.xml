@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.3.12.RELEASE</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>io.github.dengmeiluan.example</groupId>
+    <artifactId>demo-host</artifactId>
+    <version>1.0.0</version>
+    <name>demo-host</name>
+    <description>Minimal embedded host for the ESQueryStudio console: one @Document entity, the full
+        ops console, zero extra wiring. Build the starter first (mvn install at the repository
+        root), then run this module.</description>
+    <url>https://github.com/dengmeiluan/esquerystudio</url>
+
+    <properties>
+        <java.version>1.8</java.version>
+    </properties>
+
+    <dependencies>
+        <!-- 被演示的主角：starter（先在仓库根 mvn install 安装到本地仓） -->
+        <dependency>
+            <groupId>io.github.dengmeiluan</groupId>
+            <artifactId>esquerystudio-console</artifactId>
+            <!-- 需要含完整委托 SPI（hasCredential/tokenOf/revoke）的版本；
+                 1.0.39 只有 authenticate，照抄参考实现会编译失败。 -->
+            <version>1.0.0</version>
+        </dependency>
+        <!-- 嵌入式宿主自带的运行时栈（starter 对这三件是 provided——版本决定权在宿主） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-high-level-client</artifactId>
+        </dependency>
+        <!-- sqlite 档：作业+审计落本地库文件 -->
+        <dependency>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.42.0.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
