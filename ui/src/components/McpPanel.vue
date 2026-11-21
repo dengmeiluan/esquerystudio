@@ -1839,8 +1839,8 @@ function withSurface(url: string) {
 }
 const onboardingUrl = computed(() => withSurface(endpoint.value));
 watch(onboardingClient, id => {
-  /* claude-desktop 无 --local 注入语义：它的配置本身就是 stdio 桥 */
-  if (['local', 'stdio', 'browser', 'deepseek-harness', 'dbx', 'claude-desktop'].includes(id)) onboardingLocal.value = false;
+  /* claude-desktop / jetbrains 无 --local 注入语义：它们的配置本身就是 stdio 桥 */
+  if (['local', 'stdio', 'browser', 'deepseek-harness', 'dbx', 'claude-desktop', 'jetbrains'].includes(id)) onboardingLocal.value = false;
 });
 const onboardingCopied = ref(false);
 const installCopied = ref(false);
@@ -1871,6 +1871,8 @@ const onboardingClients = [
   { id: 'zed', label: 'Zed' },
   { id: 'continue', label: 'Continue' },
   { id: 'amp', label: 'Amp' },
+  { id: 'crush', label: 'Crush (Charm)' },
+  { id: 'jetbrains', label: 'JetBrains AI Assistant' },
   { id: 'dbx', label: 'DBX（MCP Server）' },
   { id: 'stdio', label: 'stdio 桥' },
   { id: 'local', label: '本地 Node' },
@@ -1893,8 +1895,8 @@ function onboardingKind(id: string) {
   if (['local'].includes(id)) return '本机直连 / stdio';
   if (['stdio'].includes(id)) return 'stdio 桥';
   if (['browser'].includes(id)) return '页面内桥';
-  if (['claude-code', 'codebuddy', 'codex', 'deepseek-harness', 'opencode', 'qoder', 'zcode', 'trae', 'gemini-cli', 'copilot-cli', 'amp'].includes(id)) return 'CLI 可写入';
-  if (['cursor', 'vscode', 'windsurf', 'pi', 'antigravity', 'cline', 'roo-code', 'kilo-code', 'zed', 'continue'].includes(id)) return 'IDE / 配置文件';
+  if (['claude-code', 'codebuddy', 'codex', 'crush', 'deepseek-harness', 'opencode', 'qoder', 'zcode', 'trae', 'gemini-cli', 'copilot-cli', 'amp'].includes(id)) return 'CLI 可写入';
+  if (['cursor', 'vscode', 'windsurf', 'pi', 'antigravity', 'cline', 'roo-code', 'kilo-code', 'zed', 'continue', 'jetbrains'].includes(id)) return 'IDE / 配置文件';
   if (['cherry-studio', 'workbuddy', 'claude-desktop'].includes(id)) return '桌面 GUI';
   return '通用远程 MCP';
 }
@@ -1916,14 +1918,16 @@ const onboardingNotes: Record<string, string> = {
   workbuddy: '写入 ~/.workbuddy/mcp.json 的 mcpServers 段（type=http）。',
   antigravity: '写入 ~/.gemini/config/mcp_config.json 的 mcpServers 段。',
   'claude-desktop': 'Claude Desktop 只支持 stdio，本配置写入的是 stdio 桥；Windows 位于 %APPDATA%\\Claude\\claude_desktop_config.json，macOS 位于 ~/Library/Application Support/Claude/claude_desktop_config.json。',
-  cline: '写入 VS Code globalStorage 的 cline_mcp_settings.json（扩展 saoudrizwan.claude-dev 目录）；远程 server 添加后默认 disabled，需在 Cline 的 MCP 面板手动启用。',
-  'roo-code': '写入 VS Code globalStorage 的 cline_mcp_settings.json（扩展 rooveterinaryinc.roo-cline 目录）；远程 server 添加后默认 disabled，需在 Roo Code 的 MCP 面板手动启用。',
-  'kilo-code': '写入 VS Code globalStorage 的 cline_mcp_settings.json（扩展 kilocode.kilo-code 目录）；远程 server 添加后默认 disabled，需在 Kilo Code 的 MCP 面板手动启用。',
+  cline: '写入 VS Code globalStorage 的 cline_mcp_settings.json（扩展 saoudrizwan.claude-dev 目录）；Linux 下位于 ~/.config/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json；远程 server 添加后默认 disabled，需在 Cline 的 MCP 面板手动启用。',
+  'roo-code': '写入 VS Code globalStorage 的 cline_mcp_settings.json（扩展 rooveterinaryinc.roo-cline 目录）；Linux 下位于 ~/.config/Code/User/globalStorage/rooveterinaryinc.roo-cline/settings/cline_mcp_settings.json；远程 server 添加后默认 disabled，需在 Roo Code 的 MCP 面板手动启用。',
+  'kilo-code': '写入 VS Code globalStorage 的 cline_mcp_settings.json（扩展 kilocode.kilo-code 目录）；Linux 下位于 ~/.config/Code/User/globalStorage/kilocode.kilo-code/settings/cline_mcp_settings.json；远程 server 添加后默认 disabled，需在 Kilo Code 的 MCP 面板手动启用。',
   'gemini-cli': '写入 ~/.gemini/settings.json 的 mcpServers 段，远程地址用 httpUrl 键；也可用「复制安装命令」直接注册。',
   'copilot-cli': '写入 ~/.copilot/mcp-config.json 的 mcpServers 段（type=http）；也可用「复制安装命令」直接注册。',
   zed: '写入 Zed settings.json（~/.config/zed/settings.json）的 context_servers 段；该文件混有用户其它配置，手动合并时只动 context_servers.esquerystudio 节点。',
   continue: '写入 ~/.continue/config.yaml 的 mcpServers 段（YAML 文本，下载得到 .yml 文件）。',
   amp: '可用「复制安装命令」直接注册（amp mcp add）；远程配置写入 amp 的 mcpServers 设置，type 用 http。',
+  crush: '写入 Charm Crush 的 config.toml（~/.config/charm/crush/config.toml）的 [mcp_servers.esquerystudio] 段（TOML，type 是必需键）；Crush 无官方 mcp add 命令，直接合并配置即可。',
+  jetbrains: 'IntelliJ/GoLand/PyCharm 2025.2+ 读项目级 .idea/mcp.xml（McpServer 组件节点），旧版需安装 MCP Proxy 插件；本配置恒为 stdio 桥形态（env 注入端点与 key），保存后重启 IDE 生效。',
   dbx: 'DBX 0.6+ 是 MCP Server（提供 DBX 数据库连接给 AI 客户端），不消费外部 MCP server；不能把本端点装进 DBX。要在同一个 Agent 里同时使用，请并列注册两个 server。',
   stdio: '供仅支持命令启动的客户端使用，桥接面板签发的 key。',
   local: '本地 Node MCP 直连 Elasticsearch，配置包含连接凭据。',
@@ -1932,6 +1936,11 @@ const onboardingNotes: Record<string, string> = {
 const onboardingClientNote = computed(() => onboardingNotes[onboardingClient.value]
   || '在客户端「MCP / 集成」设置中添加远程 HTTP 服务，粘贴下方配置。');
 function tomlString(value: any) { return JSON.stringify(String(value == null ? '' : value)); }
+function xmlEscape(value: any) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+}
 const onboardingInstallCommand = computed(() => {
   if (isBrowserMode || isDemoMode) return '';
   const id = onboardingClient.value;
@@ -1974,6 +1983,11 @@ const onboardingConfig = computed(() => {
       mcpServers: { esquerystudio: { type: 'stdio', command: 'node', args: [script, '--config', config] } },
     }, null, 2);
     if (id === 'codex') return '[mcp_servers.esquerystudio]\n'
+      + 'command = ' + tomlString('node') + '\n'
+      + 'args = [' + tomlString(script) + ', ' + tomlString('--config') + ', ' + tomlString(config) + ']\n';
+    /* Crush 的 --local 变体：type=stdio 的 command/args TOML 形态 */
+    if (id === 'crush') return '[mcp_servers.esquerystudio]\n'
+      + 'type = ' + tomlString('stdio') + '\n'
       + 'command = ' + tomlString('node') + '\n'
       + 'args = [' + tomlString(script) + ', ' + tomlString('--config') + ', ' + tomlString(config) + ']\n';
     if (id === 'vscode') return JSON.stringify({
@@ -2027,10 +2041,34 @@ const onboardingConfig = computed(() => {
       },
     }, null, 2);
   }
+  /* JetBrains AI Assistant 同 Claude Desktop 策略：恒给 stdio 桥形态的项目级 .idea/mcp.xml */
+  if (onboardingClient.value === 'jetbrains') {
+    return '<project version="4">\n'
+      + '  <component name="McpServer">\n'
+      + '    <mcpServers>\n'
+      + '      <mcpServer name="esquerystudio">\n'
+      + '        <command>node</command>\n'
+      + '        <args>/path/to/esquerystudio/mcp/esquerystudio-mcp-stdio.mjs</args>\n'
+      + '        <env>\n'
+      + `          <option name="ESQ_MCP_URL" value="${xmlEscape(onboardingUrl.value)}" />\n`
+      + `          <option name="ESQ_MCP_TOKEN" value="${xmlEscape(onboardingToken.value || '<esq_mcp_key>')}" />\n`
+      + '        </env>\n'
+      + '      </mcpServer>\n'
+      + '    </mcpServers>\n'
+      + '  </component>\n'
+      + '</project>\n';
+  }
   if (onboardingClient.value === 'codex') {
     return '[mcp_servers.esquerystudio]\n'
       + 'url = ' + tomlString(onboardingUrl.value) + '\n'
       + 'http_headers = { Authorization = ' + tomlString('Bearer ' + (onboardingToken.value || '<esq_mcp_key>')) + ' }\n';
+  }
+  /* Crush（Charm）的 TOML 方言：键名是 url + headers（type 是必需键），与 Codex 的 http_headers 不同 */
+  if (onboardingClient.value === 'crush') {
+    return '[mcp_servers.esquerystudio]\n'
+      + 'type = ' + tomlString('http') + '\n'
+      + 'url = ' + tomlString(onboardingUrl.value) + '\n'
+      + 'headers = { Authorization = ' + tomlString('Bearer ' + (onboardingToken.value || '<esq_mcp_key>')) + ' }\n';
   }
   if (onboardingClient.value === 'vscode') {
     return JSON.stringify({
@@ -3164,10 +3202,12 @@ function downloadOnboardingConfig() {
   const suffix = onboardingClient.value === 'browser'
     ? 'js'
     : ['deepseek-harness', 'continue'].includes(onboardingClient.value) ? 'yml'
-      : onboardingClient.value === 'codex' ? 'toml' : 'json';
+      : onboardingClient.value === 'jetbrains' ? 'xml'
+        : ['codex', 'crush'].includes(onboardingClient.value) ? 'toml' : 'json';
   const mime = suffix === 'json' ? 'application/json'
     : suffix === 'yml' ? 'text/yaml'
-      : suffix === 'toml' ? 'text/plain' : 'text/javascript';
+      : suffix === 'toml' ? 'text/plain'
+        : suffix === 'xml' ? 'application/xml' : 'text/javascript';
   const blob = new Blob([onboardingConfig.value], { type: mime });
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');

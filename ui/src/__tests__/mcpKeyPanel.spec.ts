@@ -329,7 +329,7 @@ describe('MCP 接入管理面', () => {
     expect(panel, '防回潮：兼容调试文案不得回流').not.toContain('兼容调试');
   });
 
-  it('客户端矩阵扩容到 24 家品牌：新 9 家方言锚齐备', () => {
+  it('客户端矩阵扩容到 26 家品牌：新 11 家方言锚齐备', () => {
     /* 锁结构不锁品牌排序：四锚分别覆盖 Claude Desktop / Gemini CLI / Zed / Gemini 方言键 */
     expect(panel).toContain("'claude-desktop'");
     expect(panel).toContain("'gemini-cli'");
@@ -340,9 +340,14 @@ describe('MCP 接入管理面', () => {
     expect(matrix, 'onboardingClients 数组应存在').toBeTruthy();
     const ids = Array.from(matrix![1].matchAll(/\{ id: '([^']+)'/g), (m) => m[1]);
     const brands = ids.filter((id) => !['http', 'stdio', 'local', 'browser', 'dbx'].includes(id));
-    expect(brands, '客户端品牌数应为 24').toHaveLength(24);
-    for (const id of ['claude-desktop', 'cline', 'roo-code', 'kilo-code', 'gemini-cli', 'copilot-cli', 'zed', 'continue', 'amp']) {
+    expect(brands, '客户端品牌数应为 26').toHaveLength(26);
+    for (const id of ['claude-desktop', 'cline', 'roo-code', 'kilo-code', 'gemini-cli', 'copilot-cli', 'zed', 'continue', 'amp', 'crush', 'jetbrains']) {
       expect(brands).toContain(id);
     }
+    /* Crush 走 TOML（url + headers 方言）、JetBrains 走项目级 .idea/mcp.xml 的 stdio 桥 XML */
+    expect(panel).toContain("'crush'");
+    expect(panel).toContain("onboardingClient.value === 'jetbrains'");
+    expect(panel).toContain('<component name="McpServer">');
+    expect(panel).toContain('headers = { Authorization = ');
   });
 });

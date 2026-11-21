@@ -690,6 +690,16 @@
         <div class="xm-tip" style="margin:0 0 var(--sp-2)">
           作业 <b class="mono">{{ verifyJob?.jobId }}</b>（{{ verifyJob?.sourceIndex }} → {{ verifyJob?.destIndex }}）
         </div>
+        <!-- 可选聚合对比入口：聚合字段输入 + 带聚合重跑（同一加载/防重入/错误态链路刷新本弹层）。
+             输入只记在弹层会话（组件态，不落盘）；空值禁用；行入口/详情 footer 默认不带 aggField -->
+        <div class="xm-verify-agg-bar">
+          <input v-model="verifyAggField" data-test="xm-verify-agg-field" class="inp mono xm-verify-agg-inp"
+            spellcheck="false" autocomplete="off" placeholder="聚合字段（可选，如 status）"
+            :disabled="verifyLoading" @keydown.enter="rerunVerifyWithAgg" />
+          <button class="btn sm ghost" data-test="xm-verify-agg-rerun" :disabled="verifyLoading || !verifyAggField.trim()"
+            v-tip="'带 terms 聚合对比重跑等价验证：双侧同字段桶计数对比（仅源有/仅目标有/计数差）'"
+            @click="rerunVerifyWithAgg">带聚合重跑</button>
+        </div>
         <div v-if="verifyLoading" class="dim" data-test="xm-verify-loading">等价验证中…（双侧 _count + 抽样逐 _id 内容摘要比对）</div>
         <div v-else-if="verifyErr" role="alert" class="xm-detail-rc-err" data-test="xm-verify-err">
           <span class="xm-verify-err-txt">{{ verifyErr }}</span>
@@ -721,6 +731,42 @@
               <li v-for="(m, i) in verifySample.mismatched" :key="i" class="mono">{{ m.id }}<span class="xm-sync-why"> —— {{ m.reason }}</span></li>
             </ul>
             <div v-if="!verifySample.missingInDest.length && !verifySample.mismatched.length" class="dim xm-detail-none">样本全部匹配（无缺失、无内容不一致）</div>
+          </div>
+          <!-- 聚合对比区（aggregation 非 null 才渲染——仅带 aggField 的请求返回）：match 徽标（绿/红）+
+               字段与桶数 + 计数差表（差异行红显）+ 仅源有/仅目标有分列小节 + 无差异正面态文案 -->
+          <div v-if="verifyAgg.present" class="xm-verify-sec" data-test="xm-verify-agg">
+            <div class="sec-t xm-verify-agg-t">
+              <span>聚合对比 <span class="dim">（字段 <b class="mono">{{ verifyAgg.field }}</b>，桶 {{ verifyAgg.sourceBucketCount }}/{{ verifyAgg.destBucketCount }}，请求 {{ verifyAgg.requestedSize }}）</span></span>
+              <StatusPill :tone="verifyAgg.match ? 'g' : 'r'" :label="verifyAgg.match ? '聚合一致' : '聚合不一致'" />
+            </div>
+            <table v-if="verifyAgg.countDiffs.length" class="xm-verify-agg-tbl" data-test="xm-verify-agg-diffs">
+              <thead><tr><th>key</th><th>源计数</th><th aria-hidden="true"></th><th>目标计数</th></tr></thead>
+              <tbody>
+                <tr v-for="d in verifyAgg.countDiffs" :key="d.key" class="xm-verify-agg-diff">
+                  <td class="mono">{{ d.key }}</td>
+                  <td class="mono">{{ d.sourceCount }}</td>
+                  <td aria-hidden="true">→</td>
+                  <td class="mono">{{ d.destCount }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <div v-if="verifyAgg.onlyInSource.length || verifyAgg.onlyInDest.length" class="xm-verify-agg-only">
+              <div v-if="verifyAgg.onlyInSource.length" data-test="xm-verify-agg-only-src">
+                <div class="xm-verify-list-t">仅源有（{{ verifyAgg.onlyInSource.length }}）</div>
+                <ul class="xm-detail-list">
+                  <li v-for="b in verifyAgg.onlyInSource" :key="'s' + b.key" class="mono">{{ b.key }}<span class="xm-sync-why"> × {{ b.count }}</span></li>
+                </ul>
+              </div>
+              <div v-if="verifyAgg.onlyInDest.length" data-test="xm-verify-agg-only-dst">
+                <div class="xm-verify-list-t">仅目标有（{{ verifyAgg.onlyInDest.length }}）</div>
+                <ul class="xm-detail-list">
+                  <li v-for="b in verifyAgg.onlyInDest" :key="'d' + b.key" class="mono">{{ b.key }}<span class="xm-sync-why"> × {{ b.count }}</span></li>
+                </ul>
+              </div>
+            </div>
+            <div v-if="verifyAgg.match && !verifyAgg.countDiffs.length && !verifyAgg.onlyInSource.length && !verifyAgg.onlyInDest.length" class="dim xm-detail-none">
+              聚合完全一致（双侧均为 {{ verifyAgg.sourceBucketCount }} 个桶，无仅单侧桶、无计数差）
+            </div>
           </div>
           <div v-if="(verifyResult.warnings || []).length" class="xm-verify-sec" data-test="xm-verify-warnings">
             <div class="sec-t">警告 <span class="dim">（{{ verifyResult.warnings.length }} 条）</span></div>
@@ -1790,10 +1836,15 @@ function readWorkbench(): XmWorkbench {
     }
   }
   if (!wb) return {};
-  /* 掩埋值视为空：redactDraft 落盘的 "***"（password/token 等）读回置空让用户重填 */
+  /* 掩埋值视为空：redactDraft 落盘的 "***"（password/token 等）读回置空让用户重填。
+     深遍历对象与数组两层——数组元素（batch 段勾选行等扩展形态里的对象/字符串）同样
+     递归置空，不再因数组层不遍历而残留掩埋串。取舍：只精确匹配掩埋哨兵串 "***"，用户
+     合法输入恰好等于 "***" 的极端场景无法与掩埋值区分，一并置空（宁可重填不回填掩埋串，
+     与既有对象层口径一致），不做键名启发式判别 */
   const unmask = (v: any): any => {
     if (v === '***') return '';
-    if (v && typeof v === 'object' && !Array.isArray(v)) {
+    if (Array.isArray(v)) return v.map(unmask);
+    if (v && typeof v === 'object') {
       const o: Record<string, any> = {};
       for (const [k, val] of Object.entries(v)) o[k] = unmask(val);
       return o;
@@ -3902,17 +3953,56 @@ const verifySample = computed(() => {
     mismatchTruncated: !!s?.mismatchTruncated,
   };
 });
-async function openVerify(j: any) {
+/* 聚合对比区归一：aggregation 缺席（未带 aggField 的请求/旧后端）present=false 不渲染；
+   段内形态防御同样本区——坏段回落空集，显示层不炸不冒充。返回形状统一（present=false
+   分支同样给全字段空值），模板取值不经联合类型收窄 */
+interface VerifyAggView {
+  present: boolean; field: string; requestedSize: number; match: boolean;
+  sourceBucketCount: number; destBucketCount: number;
+  countDiffs: { key: string; sourceCount: number; destCount: number }[];
+  onlyInSource: { key: string; count: number }[]; onlyInDest: { key: string; count: number }[];
+}
+const verifyAgg = computed<VerifyAggView>(() => {
+  const a = verifyResult.value?.aggregation;
+  if (!a) return { present: false, field: '', requestedSize: 0, match: false, sourceBucketCount: 0, destBucketCount: 0, countDiffs: [], onlyInSource: [], onlyInDest: [] };
+  const buckets = (x: any) => (Array.isArray(x) ? x : []);
+  return {
+    present: true,
+    field: String(a.field ?? '—'),
+    requestedSize: Number(a.requestedSize ?? 0) || 0,
+    match: a.match === true,
+    sourceBucketCount: buckets(a.sourceBuckets).length,
+    destBucketCount: buckets(a.destBuckets).length,
+    countDiffs: buckets(a.countDiffs).map((d: any) => ({
+      key: String(d?.key ?? ''), sourceCount: Number(d?.sourceCount ?? 0) || 0, destCount: Number(d?.destCount ?? 0) || 0,
+    })),
+    onlyInSource: buckets(a.onlyInSource).map((b: any) => ({ key: String(b?.key ?? ''), count: Number(b?.count ?? 0) || 0 })),
+    onlyInDest: buckets(a.onlyInDest).map((b: any) => ({ key: String(b?.key ?? ''), count: Number(b?.count ?? 0) || 0 })),
+  };
+});
+/* 聚合字段输入：弹层会话记忆（组件态，不落盘）——重开弹层保留，清浏览器态即失 */
+const verifyAggField = ref('');
+/* 带聚合重跑：以输入字段重发等价验证（openVerify 同一加载/防重入/错误态链路，弹层原位刷新）；
+   空值按钮本就禁用，此处双保险直接 return */
+function rerunVerifyWithAgg() {
+  const f = verifyAggField.value.trim();
+  if (!f || !verifyJob.value) return;
+  void openVerify(verifyJob.value, f);
+}
+async function openVerify(j: any, aggField?: string) {
   const jobId = String(j?.jobId ?? '');
   if (!jobId || !j?.destIndex) { store.notify('warning', '仅迁移完成且有目标索引的作业可做等价验证'); return; }
-  if (verifyLoading.value) return; /* 防重入：在途验证未落定前不重复发起 */
+  if (verifyLoading.value) { store.notify('warning', '等价验证进行中，请稍候'); return; /* 防重入：在途验证未落定前不重复发起（toast 反馈替代静默丢弃） */ }
   verifyJob.value = j;
   verifyLoading.value = true;
   verifyErr.value = '';
   verifyResult.value = null;
   verifyOpen.value = true;
   try {
-    verifyResult.value = await api.xb.verifyEquivalence({ jobId, sampleSize: 100 }, j?.srcConnId || undefined);
+    /* aggField 只在用户显式输入时携带（行入口/详情 footer 默认不带，既有请求契约不变） */
+    const req: Record<string, any> = { jobId, sampleSize: 100 };
+    if (aggField) req.aggField = aggField;
+    verifyResult.value = await api.xb.verifyEquivalence(req, j?.srcConnId || undefined);
     /* 验证结论落事件线：浏览器模式由 browserXmigrate 台账环内落 VERIFY；服务端模式
        写本会话稿（recordVerifyEvent 内分流）。详情弹窗开着本作业时事件线随拍刷新 */
     recordVerifyEvent(j, verifyResult.value);
@@ -4319,6 +4409,16 @@ useModalEnter(resumeOpen, doResume, () => !resuming.value && canJobOps(actJob.va
 .xm-verify-counts { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; font-size: var(--fs-xs); }
 .xm-verify-sec { display: flex; flex-direction: column; gap: var(--sp-1); border-top: 1px solid var(--line); padding-top: var(--sp-2); }
 .xm-verify-list-t { font-size: var(--fs-2xs); color: var(--tx2); }
+/* ── 1122 聚合对比：弹层头部轻输入行 + 计数差表（差异行红显）+ 仅单侧桶分列 ── */
+.xm-verify-agg-bar { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-2); }
+.xm-verify-agg-inp { flex: 1; min-width: 0; font-size: var(--fs-xs); padding: 2px var(--sp-1h); }
+.xm-verify-agg-t { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
+.xm-verify-agg-tbl { width: 100%; border-collapse: collapse; font-size: var(--fs-xs); }
+.xm-verify-agg-tbl th { text-align: left; font-weight: 400; color: var(--tx2); font-size: var(--fs-2xs); padding: 2px var(--sp-1h); }
+.xm-verify-agg-tbl td { padding: 2px var(--sp-1h); border-top: 1px solid var(--line); }
+.xm-verify-agg-diff td { color: var(--err); }
+.xm-verify-agg-only { display: flex; gap: var(--sp-3); flex-wrap: wrap; }
+.xm-verify-agg-only > div { flex: 1 1 45%; min-width: 0; display: flex; flex-direction: column; gap: var(--sp-1); }
 .xm-verify-err-txt { word-break: break-all; }
 /* G3-C2： 标准断点——双栏（表单/配置预览）堆叠为单栏 */
 @media (max-width: 1100px) {

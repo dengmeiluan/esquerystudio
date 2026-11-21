@@ -268,7 +268,7 @@ One tool contract (read-only by default; admins can issue write-scoped keys), th
 - **Browser mode**: the browser build installs `window.ESQueryStudioMCP`, so in-page agents can call `handle` / `callTool` directly. A browser tab cannot listen on TCP; external process clients should use server mode or the local Node mode.
 - **Local Node mode**: `node mcp/esquerystudio-local-mcp.mjs --config ~/.esquerystudio/mcp.json` (or `cd mcp && npm install -g .` then `esquerystudio-mcp`) on Node 18+ with no third-party dependencies; it talks directly to one or more ES connections. Browser mode can export its profiles as the Node MCP config, so Claude Desktop / Cursor need neither Spring Boot nor a browser.
 - **Management surface**: server-mode **Dev Tools → MCP → Keys & usage** creates/revokes keys and shows request counts and quotas; browser/demo modes state the honest HTTP-key boundary.
-- **Client onboarding**: a client chip row in the panel plus `esquerystudio-mcp-cli` (`list` / `detect --json` / `config` / `install`) covers Claude Code, Cursor, CodeBuddy Code CLI, ZCode, TRAE, VS Code, Windsurf, Codex, DeepSeek Harness, OpenCode, Pi, Cherry Studio, Qoder, WorkBuddy and Antigravity; Cursor / VS Code / Windsurf / OpenCode / Qoder / TRAE / CodeBuddy / ZCode / WorkBuddy / Pi / Antigravity are merged safely, the rest emit paste-ready config or an executable command. System-management tools can only be issued to and invoked by ADMIN-role keys. `detect --json` reports `commandFound` / `configFound` / `installed`, and `--local` points any client at the local Node stdio bridge without Spring Boot.
+- **Client onboarding**: a client chip row in the panel plus `esquerystudio-mcp-cli` (`list` / `detect --json` / `config` / `install`) covers Claude Code, Claude Desktop, Cursor, CodeBuddy Code CLI, ZCode, TRAE, VS Code, Windsurf, Codex, DeepSeek Harness, OpenCode, Pi, Cherry Studio, Qoder, WorkBuddy, Antigravity, Cline, Roo Code, Kilo Code, Gemini CLI, GitHub Copilot CLI, Zed, Continue, Amp, Crush and JetBrains AI Assistant; Cursor / VS Code / Windsurf / OpenCode / Qoder / TRAE / CodeBuddy / ZCode / WorkBuddy / Pi / Antigravity / Cline / Roo Code / Kilo Code are merged safely, the rest emit paste-ready config or an executable command (Crush gets a TOML section for `~/.config/charm/crush/config.toml`; JetBrains gets a stdio-bridge XML for the project-level `.idea/mcp.xml`, native since IDE 2025.2). System-management tools can only be issued to and invoked by ADMIN-role keys. `detect --json` reports `commandFound` / `configFound` / `installed`, and `--local` points any client at the local Node stdio bridge without Spring Boot.
 
 Shortest setup, Claude/Cursor config, per-connection grants and a 30-second check: **[MCP quickstart](docs/mcp.md#快速开始)**. Full configuration, tool table and honest boundaries follow in the same doc. The server UI exposes all three surfaces under **Dev Tools → MCP**.
 
@@ -305,7 +305,7 @@ Browser-mode capability matrix and honest limits: [docs/browser-mode.md](docs/br
 <dependency>
     <groupId>io.github.dengmeiluan</groupId>
     <artifactId>esquerystudio-console</artifactId>
-    <version>1.0.80</version>
+    <version>1.0.81</version>
 </dependency>
 ```
 

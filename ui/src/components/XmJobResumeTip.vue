@@ -106,14 +106,21 @@ function goDetail() {
 watch(() => !!tip.value, v => emit('active-change', v), { immediate: true });
 
 if (isBrowserMode) {
-  /* 纯浏览器模式：台账就在本机 localStorage，进站读一次即可（浏览器作业是页面级搬运，
-     无后台进度可轮询，绝不为此起定时器）；用户已在迁移页时页面自身就是现场，不隔页喊话 */
-  onMounted(() => {
-    if (dismissed.value || router.currentRoute.value.path === '/xmigrate') return;
+  /* 纯浏览器模式：台账就在本机 localStorage（浏览器作业是页面级搬运，无后台进度可
+     轮询，绝不为此起定时器）。判定与服务端 watch 同拍对称——进站判一次，此后路由
+     每变重判：进了 /xmigrate 页面自身就是现场，收起不隔页喊话；离开再回按台账重判
+     （sessionStorage 防重语义不变，已记忆的作业不重复弹、新作业照常提示） */
+  const readLedgerJobs = (): TipJob[] => {
     let rows: any[] = [];
     try { const a = JSON.parse(localStorage.getItem(XM_JOBS_KEY) || '[]'); rows = Array.isArray(a) ? a : []; } catch { rows = []; }
-    offer(pickTip(rows.map(fromLedger)));
-  });
+    return rows.map(fromLedger);
+  };
+  const rejudge = () => {
+    if (dismissed.value || router.currentRoute.value.path === '/xmigrate') { job.value = null; return; }
+    offer(pickTip(readLedgerJobs()));
+  };
+  onMounted(rejudge);
+  watch(() => router.currentRoute.value.path, rejudge);
 } else {
   /* 服务端模式：数据经 jobTracker（常驻轮询已在跑），此处只观察不发起请求；
      probed 未落地前不渲染——进站静默等首拍，不闪空壳 */

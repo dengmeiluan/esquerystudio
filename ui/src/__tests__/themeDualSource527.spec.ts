@@ -23,6 +23,15 @@ const monaco = readFileSync(join(__dirname, '../components/MonacoEditor.vue'), '
 const bg0Dark = theme.match(/--bg0:\s*(#[0-9a-fA-F]{3,8})/)?.[1] ?? '';
 const bg0Light = theme.match(/:root\[data-theme="light"\]\s*\{[^}]*?--bg0:\s*(#[0-9a-fA-F]{3,8})/s)?.[1] ?? '';
 
+/* 气泡底/字色双档提取（--bg2/--tx1，同 --bg0 的 dark 首个 + light 块内两段式）：
+   NTooltip（Tip.vue 薄封装）走 naive themeOverrides 只认字面量，v-tip 指令气泡
+   （theme.css .vt-pop）走 CSS var——同一页面两种气泡必须同源，否则亮色主题下
+   naive 默认 tooltip 是白底叠 85% 黑的暗底气泡，与 --bg2 亮底 v-tip 一暗一亮混排 */
+const bg2Dark = theme.match(/--bg2:\s*(#[0-9a-fA-F]{3,8})/)?.[1] ?? '';
+const bg2Light = theme.match(/:root\[data-theme="light"\]\s*\{[^}]*?--bg2:\s*(#[0-9a-fA-F]{3,8})/s)?.[1] ?? '';
+const tx1Dark = theme.match(/--tx1:\s*(#[0-9a-fA-F]{3,8})/)?.[1] ?? '';
+const tx1Light = theme.match(/:root\[data-theme="light"\]\s*\{[^}]*?--tx1:\s*(#[0-9a-fA-F]{3,8})/s)?.[1] ?? '';
+
 describe('五百二十七批：底色双源锚（theme.css --bg0 ⇄ 字面量消费端）', () => {
   it('防空跑：theme.css 两档 --bg0 都提取到', () => {
     expect(bg0Dark).toMatch(/^#[0-9a-fA-F]{6}$/);
@@ -42,5 +51,30 @@ describe('五百二十七批：底色双源锚（theme.css --bg0 ⇄ 字面量�
        若 theme 归属方裁决收敛/再调色，请连同本断言与文件头备案一起更新。 */
     expect(monaco).toMatch(/'editor.background':\s*['"]#101116['"]/);
     expect(bg0Dark).not.toBe('#101116');
+  });
+});
+
+describe('气泡双源锚（NTooltip themeOverrides 字面量 ⇄ theme.css 气泡 token ⇄ .vt-pop）', () => {
+  it('防空跑：--bg2/--tx1 两档都提取到', () => {
+    for (const v of [bg2Dark, bg2Light, tx1Dark, tx1Light]) expect(v).toMatch(/^#[0-9a-fA-F]{6}$/);
+  });
+
+  it('v-tip 气泡底/字色取自 --bg2/--tx1 token（单一来源，无字面量旁路）', () => {
+    expect(theme).toMatch(/\.vt-pop\s*\{[^}]*background:\s*var\(--bg2\)/);
+    expect(theme).toMatch(/\.vt-pop\s*\{[^}]*color:\s*var\(--tx1\)/);
+  });
+
+  it('App.vue light 档 Tooltip color/textColor 与亮色 --bg2/--tx1 逐一 equal', () => {
+    const m = app.match(/const lightOverrides[^=]*=[\s\S]*?const darkOverrides/);
+    expect(m, 'lightOverrides 块必须在场').toBeTruthy();
+    expect(m![0]).toMatch(new RegExp(`Tooltip:\\s*\\{[^}]*color:\\s*['"]${bg2Light}['"]`));
+    expect(m![0]).toMatch(new RegExp(`Tooltip:\\s*\\{[^}]*textColor:\\s*['"]${tx1Light}['"]`));
+  });
+
+  it('App.vue dark 档 Tooltip color/textColor 与暗色 --bg2/--tx1 逐一 equal', () => {
+    const m = app.match(/const darkOverrides[^=]*=[\s\S]*?\/\* 通知消费组件/);
+    expect(m, 'darkOverrides 块必须在场').toBeTruthy();
+    expect(m![0]).toMatch(new RegExp(`Tooltip:\\s*\\{[^}]*color:\\s*['"]${bg2Dark}['"]`));
+    expect(m![0]).toMatch(new RegExp(`Tooltip:\\s*\\{[^}]*textColor:\\s*['"]${tx1Dark}['"]`));
   });
 });

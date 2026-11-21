@@ -14,8 +14,8 @@ const LOCAL_MCP = join(ROOT, 'mcp/esquerystudio-local-mcp.mjs');
 const URL_VALUE = 'http://localhost:5601/mcp';
 const TOKEN = 'esq_mcp_test.token';
 
-function run(args, env) {
-  const result = spawnSync(process.execPath, [CLI, ...args], { encoding: 'utf8', env: env || process.env });
+function run(args, env, cwd) {
+  const result = spawnSync(process.execPath, [CLI, ...args], { encoding: 'utf8', env: env || process.env, cwd: cwd || process.cwd() });
   assert.equal(result.status, 0, `${args.join(' ')} failed: ${result.stderr}`);
   return result.stdout;
 }
@@ -31,16 +31,20 @@ const list = run(['list']);
 for (const client of ['claude-code', 'cursor', 'vscode', 'windsurf', 'trae', 'codex', 'qoder',
   'codebuddy', 'zcode', 'deepseek-harness', 'opencode', 'pi', 'cherry-studio', 'workbuddy', 'antigravity',
   'claude-desktop', 'cline', 'roo-code', 'kilo-code', 'gemini-cli', 'copilot-cli', 'zed', 'continue', 'amp',
-  'dbx', 'local']) {
+  'crush', 'jetbrains', 'dbx', 'local']) {
   assert.ok(list.includes(client), `client list missing ${client}`);
 }
+/* Cline 系的 Linux 候选路径：list 的 configPath 提示必须带 ~/.config/Code 形态。 */
+assert.ok(list.includes('.config/Code'), 'cline 系 list 提示应包含 Linux 候选路径');
 
 const detected = JSON.parse(run(['detect', '--json']));
-assert.equal(detected.length, 26);
+assert.equal(detected.length, 28);
 assert.ok(detected.every((row) => 'commandFound' in row && 'configFound' in row
   && 'installed' in row && 'mode' in row && Array.isArray(row.commandCandidates)));
 assert.equal(detected.find((row) => row.id === 'cherry-studio').mode, 'gui');
 assert.equal(detected.find((row) => row.id === 'cursor').mode, 'cli');
+assert.equal(detected.find((row) => row.id === 'crush').mode, 'cli');
+assert.equal(detected.find((row) => row.id === 'jetbrains').mode, 'gui');
 assert.equal(detected.find((row) => row.id === 'dbx').role, 'server');
 const dbx = run(['config', '--client', 'dbx']);
 assert.ok(dbx.includes('MCP Server') && dbx.includes('不是 MCP 客户端'));
@@ -151,6 +155,35 @@ assert.equal(ampJson.mcpServers.esquerystudio.type, 'http');
 const amp = run(['install', '--client', 'amp', '--url', URL_VALUE, '--token', TOKEN]);
 assert.ok(amp.includes('amp mcp add') && amp.includes('-H "Authorization: Bearer ' + TOKEN + '"'));
 
+/* Crush（Charm）官方配置是 ~/.config/charm/crush/config.toml：TOML 用 url + headers 键（type 必需），
+   --write 按 Codex TOML 先例拒绝。 */
+const crush = run(['config', '--client', 'crush', '--url', URL_VALUE, '--token', TOKEN]);
+assert.ok(crush.includes('[mcp_servers.esquerystudio]'));
+assert.ok(crush.includes('type = "http"'));
+assert.ok(crush.includes('url = ' + JSON.stringify(URL_VALUE)));
+assert.ok(crush.includes('headers = { Authorization = "Bearer ' + TOKEN + '" }'));
+const crushLocal = run(['config', '--client', 'crush', '--local']);
+assert.ok(crushLocal.includes('type = "stdio"') && crushLocal.includes('esquerystudio-local-mcp.mjs'));
+const crushWriteRejected = runFail(['install', '--client', 'crush', '--url', URL_VALUE, '--token', TOKEN, '--write']);
+assert.ok(crushWriteRejected.includes('--write 不适用'), 'crush TOML --write 须拒绝: ' + crushWriteRejected);
+
+/* JetBrains AI Assistant：项目级 .idea/mcp.xml 的 McpServer 组件节点，恒为 stdio 桥（env 注入端点与 key），
+   XML 不落盘、installedState 读不懂返回 unknown。 */
+const jb = run(['config', '--client', 'jetbrains', '--url', URL_VALUE, '--token', TOKEN]);
+assert.ok(jb.includes('<component name="McpServer">'));
+assert.ok(jb.includes('esquerystudio-mcp-stdio.mjs'));
+assert.ok(jb.includes('ESQ_MCP_URL') && jb.includes(URL_VALUE));
+assert.ok(jb.includes('ESQ_MCP_TOKEN') && jb.includes(TOKEN));
+const jbWriteRejected = runFail(['install', '--client', 'jetbrains', '--url', URL_VALUE, '--token', TOKEN, '--write']);
+assert.ok(jbWriteRejected.includes('--write 不适用'), 'jetbrains XML --write 须拒绝: ' + jbWriteRejected);
+/* .idea/mcp.xml 是项目级相对路径：在临时 cwd 造一个 XML，installedState 读不懂必须如实返回 null（unknown）。 */
+const jbDir = mkdtempSync(join(tmpdir(), 'esq-mcp-jb-'));
+mkdirSync(join(jbDir, '.idea'), { recursive: true });
+writeFileSync(join(jbDir, '.idea', 'mcp.xml'), '<project version="4"></project>', 'utf8');
+const jbDetected = JSON.parse(run(['detect', '--json'], undefined, jbDir));
+assert.equal(jbDetected.find((row) => row.id === 'jetbrains').installed, null);
+rmSync(jbDir, { recursive: true, force: true });
+
 const local = JSON.parse(run(['config', '--client', 'local']));
 assert.equal(local.defaultConnection, 'prod');
 assert.ok(Array.isArray(local.connections));
@@ -226,7 +259,7 @@ mock.close();
 assert.ok(probeOutput.includes('[probe] OK') && probeOutput.includes('tools     1'), probeOutput);
 assert.ok(probeOutput.includes('OPERATOR'), probeOutput);
 
-console.log('[mcp-cli] OK — client list, HTTP/Local/stdio configs, stdio bridge handshake, Qoder/CodeBuddy/ZCode/WorkBuddy/OpenCode/DeepSeekHarness, safe merge, probe');
+console.log('[mcp-cli] OK — client list, HTTP/Local/stdio configs, stdio bridge handshake, Qoder/CodeBuddy/ZCode/WorkBuddy/OpenCode/DeepSeekHarness/Crush/JetBrains, safe merge, probe');
 } finally {
   rmSync(dir, { recursive: true, force: true });
 }

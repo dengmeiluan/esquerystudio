@@ -2,6 +2,13 @@
 
 **为 Spring Boot 而生的 Elasticsearch 查询工作台。** 一套原生 Vue 控制台，两种 transport：Spring Boot 服务端模式与 Chrome MV3 扩展浏览器模式。
 
+### 1.0.81 本轮
+
+- **MCP 客户端接入面 24→26 品牌**：新增 Crush（Charm TOML）与 JetBrains AI Assistant（`.idea/mcp.xml` XML，IntelliJ/GoLand/PyCharm 2025.2+，stdio 桥自动配置）；Cline / Roo Code / Kilo Code 补 Linux 路径探测。
+- **等价验证弹层聚合对比**：verify_equivalence 的 aggregation 结果可视化（match 徽标/差异表/单侧清单）+ 可选聚合字段带聚合重跑；在途防重入 toast 提示。
+- **一致性三刀**：naive Tooltip 与 v-tip 气泡亮暗双主题显式对齐；任务级恢复提示浏览器模式路由判定对称化；草稿凭据掩埋补对象值深遍历（嵌套明文对象值此前漏掩埋）。
+- **可验证交付**：verify-mcp-cli 28 家断言绿；五门禁全绿。
+
 ### 1.0.80 本轮
 
 - **MCP 客户端接入面扩容 15→24 品牌**：新增 Claude Desktop（stdio 桥自动配置）、Cline / Roo Code / Kilo Code（VS Code 插件，安全合并写入）、Gemini CLI（httpUrl 方言+CLI 命令）、GitHub Copilot CLI、Zed（context_servers 形态）、Continue（YAML）、Amp——面板可搜索矩阵与 `esquerystudio-mcp-cli` 同批对齐，`detect --json` 跨平台路径探测；面板退役指向已 404 端点的「SSE 兼容」toggle，传输统一 streamable HTTP。
@@ -95,9 +102,9 @@
 
 ### 交付物
 
-- **Chrome 扩展** —— `esquerystudio-chrome-1.0.80.zip`：同一套 Vue 控制台在扩展内直连 ES；解压后在 `chrome://extensions` 加载已解压的扩展程序。浏览器模式保留索引 / Mapping / Setting / 别名 / 模板、快照 / ILM / SLM / Watcher、任务 / 节点 / REST / SQL / PIT / Reindex / Bulk、托管重建、跨集群迁移、配置校验、配置漂移、系统作业锁与护栏执行。
-- **独立服务端** —— `esquerystudio-server-1.0.80.jar`：JDK 8+，`java -jar` 后打开 `http://localhost:5601/esquerystudio.html`。
-- **嵌入式模块** —— `esquerystudio-console-1.0.80.jar` + `esquerystudio-platform-1.0.80.jar`：接入 Spring Boot 宿主，认证、连接目录、审计与品牌均可通过 SPI 接管。
+- **Chrome 扩展** —— `esquerystudio-chrome-1.0.81.zip`：同一套 Vue 控制台在扩展内直连 ES；解压后在 `chrome://extensions` 加载已解压的扩展程序。浏览器模式保留索引 / Mapping / Setting / 别名 / 模板、快照 / ILM / SLM / Watcher、任务 / 节点 / REST / SQL / PIT / Reindex / Bulk、托管重建、跨集群迁移、配置校验、配置漂移、系统作业锁与护栏执行。
+- **独立服务端** —— `esquerystudio-server-1.0.81.jar`：JDK 8+，`java -jar` 后打开 `http://localhost:5601/esquerystudio.html`。
+- **嵌入式模块** —— `esquerystudio-console-1.0.81.jar` + `esquerystudio-platform-1.0.81.jar`：接入 Spring Boot 宿主，认证、连接目录、审计与品牌均可通过 SPI 接管。
 - **可复现材料** —— sources / javadoc / SBOM 与 `SHA256SUMS` 一并附上；ES 客户端栈由宿主以 provided 契约自备。
 
 ### 链接

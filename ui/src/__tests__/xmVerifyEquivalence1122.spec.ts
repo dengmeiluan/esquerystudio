@@ -14,9 +14,10 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createApp, h, nextTick } from 'vue';
-import { createPinia } from 'pinia';
+import { createPinia, setActivePinia } from 'pinia';
 import { createRouter, createMemoryHistory } from 'vue-router';
 import XmigrateView from '../views/XmigrateView.vue';
+import { useAppStore } from '../stores/app';
 
 const xbJobs = vi.fn();
 const xbEvents = vi.fn();
@@ -64,6 +65,7 @@ async function settle(n = 12) {
 async function mountXm() {
   location.hash = '#/';
   const pinia = createPinia();
+  setActivePinia(pinia); /* 在途 toast 用例需在测试上下文取同一 store 实例（spy notify） */
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
@@ -82,6 +84,11 @@ async function mountXm() {
   app.mount(host);
   await settle();
   return { app, host };
+}
+
+/* setupState 直读（unmask 用例观察 batchSel/form 读回值；范式同 xmDraftPersist1122） */
+function stateOf(app: ReturnType<typeof createApp>): any {
+  return (app._instance as any)!.subTree.component.setupState;
 }
 
 beforeEach(() => {
@@ -261,6 +268,167 @@ describe('等价验证 ⑥：错误态可复制 / 加载中防重入 / 详情 fo
     await settle(4);
     expect(xbVerify).toHaveBeenCalledWith({ jobId: 'j-vf', sampleSize: 100 }, undefined);
     expect(document.querySelector('[data-test="xm-verify-verdict-EQUIVALENT"]')).toBeTruthy();
+    app.unmount();
+  }, 8000);
+});
+
+/* ═══ 1122 批三刀·任务一：aggregation 渲染段（三态）+ 带聚合重跑 ═══ */
+const AGG_BASE = (over: Record<string, any>) => ({
+  field: 'status', requestedSize: 10,
+  sourceBuckets: [{ key: 'a', count: 5 }, { key: 'b', count: 3 }],
+  destBuckets: [{ key: 'a', count: 5 }, { key: 'b', count: 3 }],
+  onlyInSource: [], onlyInDest: [], countDiffs: [],
+  ...over,
+});
+async function openWithAgg(aggregation: any) {
+  xbVerify.mockResolvedValue({
+    source: { index: 'src-vf', count: 100 }, dest: { index: 'dest-vf', count: 100 },
+    countsMatch: true,
+    sample: { requested: 100, checked: 100, matched: 100, missingInDest: [], mismatched: [] },
+    verdict: 'EQUIVALENT', warnings: [], aggregation,
+  });
+  const { app, host } = await mountXm();
+  (host.querySelector('[data-test="xm-verify-btn"]') as HTMLButtonElement).click();
+  await settle(4);
+  return app;
+}
+
+describe('等价验证·聚合对比：渲染三态', () => {
+  it('aggregation=null（默认请求）：聚合区不渲染，输入行与重跑按钮在场', async () => {
+    const app = await openWithAgg(null);
+    expect(document.querySelector('[data-test="xm-verify-agg"]'), 'null 不出聚合区').toBeNull();
+    expect(document.querySelector('[data-test="xm-verify-agg-field"]'), '聚合字段输入在场').toBeTruthy();
+    const rerun = document.querySelector('[data-test="xm-verify-agg-rerun"]') as HTMLButtonElement;
+    expect(rerun, '带聚合重跑按钮在场').toBeTruthy();
+    expect(rerun.disabled, '空值时按钮禁用').toBe(true);
+    app.unmount();
+  }, 8000);
+
+  it('match=true 有桶无差异：绿徽标 + 字段/桶数 + 正面态文案（无差异表/无仅单侧列）', async () => {
+    const app = await openWithAgg(AGG_BASE({ match: true }));
+    const sec = document.querySelector('[data-test="xm-verify-agg"]')!;
+    expect(sec, '聚合区在场').toBeTruthy();
+    const pill = sec.querySelector('.pill')!;
+    expect(pill.className, 'match=true 绿档').toContain('g');
+    expect(pill.textContent).toContain('聚合一致');
+    expect(sec.textContent).toContain('status');
+    expect(sec.textContent).toContain('桶 2/2');
+    expect(document.querySelector('[data-test="xm-verify-agg-diffs"]'), '无差异不出表').toBeNull();
+    expect(document.querySelector('[data-test="xm-verify-agg-only-src"]'), '无仅源有列').toBeNull();
+    expect(sec.textContent).toContain('聚合完全一致（双侧均为 2 个桶');
+    app.unmount();
+  }, 8000);
+
+  it('match=false：红徽标 + 计数差表（key 源→目标，差异行红显）+ 仅源有/仅目标有分列', async () => {
+    const app = await openWithAgg(AGG_BASE({
+      match: false,
+      destBuckets: [{ key: 'a', count: 4 }, { key: 'b', count: 3 }, { key: 'y', count: 1 }],
+      onlyInSource: [{ key: 'x', count: 2 }],
+      onlyInDest: [{ key: 'y', count: 1 }],
+      countDiffs: [{ key: 'a', sourceCount: 5, destCount: 4 }],
+    }));
+    const sec = document.querySelector('[data-test="xm-verify-agg"]')!;
+    const pill = sec.querySelector('.pill')!;
+    expect(pill.className, 'match=false 红档').toContain('r');
+    expect(pill.textContent).toContain('聚合不一致');
+    const tbl = document.querySelector('[data-test="xm-verify-agg-diffs"]')!;
+    const row = tbl.querySelector('tbody tr')!;
+    expect(row.className, '差异行红显类').toContain('xm-verify-agg-diff');
+    expect(row.textContent).toContain('a');
+    expect(row.textContent).toContain('5');
+    expect(row.textContent).toContain('4');
+    expect(row.textContent).toContain('→');
+    const onlySrc = document.querySelector('[data-test="xm-verify-agg-only-src"]')!;
+    expect(onlySrc.textContent).toContain('x');
+    expect(onlySrc.textContent).toContain('2');
+    const onlyDst = document.querySelector('[data-test="xm-verify-agg-only-dst"]')!;
+    expect(onlyDst.textContent).toContain('y');
+    expect(sec.textContent, '有差异不出正面态').not.toContain('聚合完全一致');
+    app.unmount();
+  }, 8000);
+
+  it('空桶 + match=true：正面态文案点名双侧 0 桶', async () => {
+    const app = await openWithAgg({
+      field: 'tags', requestedSize: 10, match: true,
+      sourceBuckets: [], destBuckets: [], onlyInSource: [], onlyInDest: [], countDiffs: [],
+    });
+    const sec = document.querySelector('[data-test="xm-verify-agg"]')!;
+    expect(sec.textContent).toContain('桶 0/0');
+    expect(sec.textContent).toContain('聚合完全一致（双侧均为 0 个桶');
+    expect(sec.querySelector('.pill')!.className).toContain('g');
+    app.unmount();
+  }, 8000);
+});
+
+describe('等价验证·带聚合重跑', () => {
+  it('默认入口不带 aggField；输入后重跑第二次调用带 aggField，弹层原位刷新出聚合区', async () => {
+    const noAgg = {
+      source: { index: 'src-vf', count: 100 }, dest: { index: 'dest-vf', count: 100 },
+      countsMatch: true,
+      sample: { requested: 100, checked: 100, matched: 100, missingInDest: [], mismatched: [] },
+      verdict: 'EQUIVALENT', warnings: [], aggregation: null,
+    };
+    xbVerify.mockResolvedValueOnce(noAgg)
+      .mockResolvedValueOnce({ ...noAgg, aggregation: AGG_BASE({ match: true }) });
+    const { app, host } = await mountXm();
+    (host.querySelector('[data-test="xm-verify-btn"]') as HTMLButtonElement).click();
+    await settle(4);
+    expect(xbVerify, '默认入口不带 aggField').toHaveBeenCalledWith({ jobId: 'j-vf', sampleSize: 100 }, undefined);
+    expect(document.querySelector('[data-test="xm-verify-agg"]'), '首跑无聚合区').toBeNull();
+    const inp = document.querySelector('[data-test="xm-verify-agg-field"]') as HTMLInputElement;
+    inp.value = 'status';
+    inp.dispatchEvent(new Event('input'));
+    await settle(2);
+    const rerun = document.querySelector('[data-test="xm-verify-agg-rerun"]') as HTMLButtonElement;
+    expect(rerun.disabled, '有输入后按钮解禁').toBe(false);
+    rerun.click();
+    await settle(4);
+    expect(xbVerify, '第二次调用带 aggField').toHaveBeenCalledTimes(2);
+    expect(xbVerify).toHaveBeenNthCalledWith(2, { jobId: 'j-vf', sampleSize: 100, aggField: 'status' }, undefined);
+    const sec = document.querySelector('[data-test="xm-verify-agg"]')!;
+    expect(sec, '重跑后弹层原位刷新出聚合区').toBeTruthy();
+    expect(sec.textContent).toContain('聚合一致');
+    app.unmount();
+  }, 8000);
+});
+
+/* ═══ 1122 批三刀·任务二：openVerify 在途防重入 toast ═══ */
+describe('等价验证·在途 toast', () => {
+  it('在途时点另一作业的等价验证：toast 提示「等价验证进行中，请稍候」，不重复发请求', async () => {
+    xbJobs.mockResolvedValue([DONE_JOB, { ...DONE_JOB, jobId: 'j-vf2', destIndex: 'dest-vf2' }]);
+    let resolveVerify: (v: any) => void = () => {};
+    xbVerify.mockReturnValue(new Promise(r => { resolveVerify = r; }));
+    const { app, host } = await mountXm();
+    const btns = [...host.querySelectorAll('[data-test="xm-verify-btn"]')] as HTMLButtonElement[];
+    expect(btns.length).toBe(2);
+    btns[0].click();
+    await settle(2);
+    const store = useAppStore();
+    const spy = vi.spyOn(store, 'notify');
+    btns[1].click();
+    await settle(2);
+    expect(spy).toHaveBeenCalledWith('warning', '等价验证进行中，请稍候');
+    expect(xbVerify, '防重入仍只发一次').toHaveBeenCalledTimes(1);
+    resolveVerify({ verdict: 'EQUIVALENT', sample: {} });
+    await settle(2);
+    app.unmount();
+  }, 8000);
+});
+
+/* ═══ 1122 批三刀·任务三：workbench unmask 数组递归 ═══ */
+describe('workbench unmask：数组层递归置空', () => {
+  it('数组内 "***" 元素与数组内对象掩埋值读回置空，其余原样保留', async () => {
+    localStorage.setItem('esquerystudio.xmigrate.workbench-v1', JSON.stringify({
+      batch: { sel: ['idx-a', '***'] },
+      form: { destIndex: 'd-keep', rows: [{ name: 'r1', token: '***', keep: 'k1' }] },
+    }));
+    const { app } = await mountXm();
+    const st = stateOf(app);
+    expect(st.batchSel, '数组元素 "***" 置空后被勾选过滤（修复前残留）').toEqual(['idx-a']);
+    expect(st.form.rows[0].token, '数组内对象掩埋值置空').toBe('');
+    expect(st.form.rows[0].name, '非掩埋字段原样').toBe('r1');
+    expect(st.form.rows[0].keep, '非掩埋字段原样').toBe('k1');
+    expect(st.form.destIndex).toBe('d-keep');
     app.unmount();
   }, 8000);
 });

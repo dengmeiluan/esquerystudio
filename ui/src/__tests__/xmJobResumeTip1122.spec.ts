@@ -22,6 +22,11 @@ import { router } from '../router';
 /* isBrowserMode 是编译期常量，靠模块 getter mock 切换两分支 */
 const bm = vi.hoisted(() => ({ mode: false }));
 vi.mock('../platform/browserApi', () => ({ get isBrowserMode() { return bm.mode; } }));
+/* 路由对称用例要真实导航全局 router（currentRoute 驱动组件 watch），而路由表的
+ XmigrateView/OverviewView 是懒加载真视图——XmigrateView 的 import 链含 monaco-editor，
+ vitest 下加载远超单测时限；mock 成空模板让导航只剩路由解析本身 */
+vi.mock('../views/XmigrateView.vue', () => ({ default: { template: '<div />' } }));
+vi.mock('../views/OverviewView.vue', () => ({ default: { template: '<div />' } }));
 
 const apps: ReturnType<typeof createApp>[] = [];
 let host: HTMLElement;
@@ -156,5 +161,33 @@ describe('1122 迁移作业恢复提示（浏览器模式，读 localStorage 台
 
     await mountTip();
     expect(host.querySelector('.xjrt')).toBeNull();
+  });
+
+  it('路由判定与服务端 watch 对称：进 /xmigrate 收起，离开重判，防重保持、新作业照常', async () => {
+    bm.mode = true;
+    /* 全局 router 单例且 '/' 重定向 /overview——归位到非迁移页起测（位移可能残留自先前用例） */
+    await router.replace('/overview');
+    const writeLedger = (jobId: string) => localStorage.setItem('esquerystudio.xmigrate.jobs', JSON.stringify([{
+      jobId, sourceIndex: 's', destIndex: 'd', status: 'RUNNING', migrated: 1, total: 10, createTime: 1,
+    }]));
+    writeLedger('bj3');
+    await mountTip();
+    expect(host.querySelector('.xjrt'), '非迁移页挂载即提示').not.toBeNull();
+
+    /* push 已被 mock（深链断言专用），真实导航走 replace：进迁移页 = 页面自身就是现场，收起不隔页喊话 */
+    await router.replace('/xmigrate');
+    for (let i = 0; i < 4; i++) await nextTick();
+    expect(host.querySelector('.xjrt'), '进 /xmigrate 后提示收起').toBeNull();
+
+    await router.replace('/overview');
+    for (let i = 0; i < 4; i++) await nextTick();
+    expect(host.querySelector('.xjrt'), '离开再回：同作业 sessionStorage 已记忆，不重复弹').toBeNull();
+
+    writeLedger('bj4'); /* 台账换成新作业：下一次路由重判要能看到 */
+    await router.replace('/xmigrate');
+    await router.replace('/overview');
+    for (let i = 0; i < 4; i++) await nextTick();
+    expect(host.querySelector('.xjrt'), '新作业（另一 jobId）重判照常提示').not.toBeNull();
+    /* 收尾停在非迁移页，不污染后续用例的挂载判定 */
   });
 });

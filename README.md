@@ -260,7 +260,7 @@ public ConsoleHostIntegration esQueryStudioHostIntegration() {
 - **纯前端模式**：browser 构建内安装 `window.ESQueryStudioMCP`，页面内 AI / Agent 可直接 `handle` / `callTool`；浏览器标签页不监听 TCP，外部进程客户端请使用服务端模式或本地 Node 模式。
 - **本地 Node 模式**：`node mcp/esquerystudio-local-mcp.mjs --config ~/.esquerystudio/mcp.json`（也可 `cd mcp && npm install -g .` 后使用 `esquerystudio-mcp`），Node 18+ 无第三方依赖，直连一个或多个 ES 连接；浏览器模式配好连接后可在 MCP 面板导出 Node MCP 配置，Claude Desktop / Cursor 无需启动 Spring Boot 或浏览器。
 - **管理面**：服务端 **Dev Tools → MCP → 密钥与用量** 可签发/撤销 key 并查看请求数与配额；纯前端/演示站如实展示不支持 HTTP key 的边界。
-- **客户端接入向导**：面板「客户端接入」标签页与 `esquerystudio-mcp-cli`（`list` / `detect --json` / `config` / `install`）覆盖 Claude Code、Claude Desktop、Cursor、CodeBuddy Code CLI、ZCode、TRAE、VS Code、Windsurf、Codex、DeepSeek Harness、OpenCode、Pi、Cherry Studio、Qoder、WorkBuddy、Antigravity、Cline、Roo Code、Kilo Code、Gemini CLI、GitHub Copilot CLI、Zed、Continue、Amp；Cursor / VS Code / Windsurf / OpenCode / Qoder / TRAE / CodeBuddy / ZCode / WorkBuddy / Pi / Antigravity / Cline / Roo Code / Kilo Code 安全合并写入，其余输出可粘贴配置或可执行命令。系统管理工具仅 ADMIN 角色的 key 可签发与调用；`detect --json` 回报 `commandFound` / `configFound` / `installed` 三态，`--local` 可把任一客户端直接指到本机 Node stdio 桥（不经过 Spring Boot）。
+- **客户端接入向导**：面板「客户端接入」标签页与 `esquerystudio-mcp-cli`（`list` / `detect --json` / `config` / `install`）覆盖 Claude Code、Claude Desktop、Cursor、CodeBuddy Code CLI、ZCode、TRAE、VS Code、Windsurf、Codex、DeepSeek Harness、OpenCode、Pi、Cherry Studio、Qoder、WorkBuddy、Antigravity、Cline、Roo Code、Kilo Code、Gemini CLI、GitHub Copilot CLI、Zed、Continue、Amp、Crush、JetBrains AI Assistant；Cursor / VS Code / Windsurf / OpenCode / Qoder / TRAE / CodeBuddy / ZCode / WorkBuddy / Pi / Antigravity / Cline / Roo Code / Kilo Code 安全合并写入，其余输出可粘贴配置或可执行命令（Crush 给 `~/.config/charm/crush/config.toml` 的 TOML 段，JetBrains 给项目级 `.idea/mcp.xml` 的 stdio 桥 XML，2025.2+ 原生支持）。系统管理工具仅 ADMIN 角色的 key 可签发与调用；`detect --json` 回报 `commandFound` / `configFound` / `installed` 三态，`--local` 可把任一客户端直接指到本机 Node stdio 桥（不经过 Spring Boot）。
 
 最短接入、Claude/Cursor 配置、连接级授权与 30 秒验收见 [docs/mcp.md](docs/mcp.md#快速开始)；完整配置、工具表和边界在同一文档。服务端 UI 的 Dev Tools → MCP 面板可查看三种接入面的端点和工具目录。
 
@@ -293,7 +293,7 @@ public ConsoleHostIntegration esQueryStudioHostIntegration() {
 <dependency>
     <groupId>io.github.dengmeiluan</groupId>
     <artifactId>esquerystudio-console</artifactId>
-    <version>1.0.80</version>
+    <version>1.0.81</version>
 </dependency>
 ```
 

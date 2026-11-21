@@ -2,6 +2,13 @@
 
 ESQueryStudio 采用「初版（滚动更新）」发布线：版本号可以递增，但仓库只保留一个初版提交、一个标签和一个滚动更新的 Release；每次发布直接覆盖，不追加历史版本。
 
+## 1.0.81 — 2026-11-22
+
+- MCP 客户端接入面继续扩容 24→26 品牌（CLI 26→28）：新增 Crush（Charm，`~/.config/charm/crush/config.toml` TOML——`[mcp_servers]` 段 `type`/`url`/`headers` 方言与 Codex 的 `http_headers` 差异化处理，--write 按格式先例拒绝，--local 变体 stdio TOML）与 JetBrains AI Assistant（项目级 `.idea/mcp.xml` XML、IntelliJ/GoLand/PyCharm 2025.2+、恒走 stdio 桥与 claude-desktop 同策略、env 注入、XML 值转义）；Cline/Roo Code/Kilo Code 补 Linux 候选路径（`~/.config/Code/User/globalStorage/<扩展id>/...`，installedState 多候选探测自动覆盖）；README_EN 客户端清单从落后 15 家补齐至与中文版同口径。
+- verify_equivalence 聚合段页面消费补全（契约遗留缺口）：等价验证弹层新增聚合对比区（match 徽标/字段与桶数/countDiffs 差异表红显/onlyInSource·onlyInDest 分列/空桶正面态）+「聚合字段」可选输入与「带聚合重跑」次级按钮（复用既有加载/防重入/错误态链路，默认入口契约不变）；在途防重入从静默 return 改为 toast 提示；workbench 草稿读回 `"***"` 掩埋哨兵置空补数组层递归（防御性修正，勾选数组内残留清零）。
+- 组件一致性三刀：naive Tooltip 主题 override 显式对齐 v-tip 气泡 token（亮色 `#f2f4f7/#4a5060`、暗色 `#172224/#a8beb8`——亮色主题一暗一亮两种气泡的分裂收敛；border 为 naive 无概念项，如实不收敛）；XmJobResumeTip 浏览器模式补路由 watch 与服务端每拍判定对称（进 /xmigrate 收起、离开重判、防重语义不变）；redactDraft 修复对象值凭据整体漏掩埋（真问题定位：嵌套明文对象值原正则不命中——改为合法 JSON 深拷贝遍历、凭据样键值无论类型一律 `"***"` 哨兵，输出恒可 parse）。
+- 测试与数字：verify-mcp-cli 28 家断言（Crush TOML 方言/JetBrains XML 桥/Cline Linux 路径）；UI 定向新增 aggregation 三态/带聚合重跑/在途 toast/unmask 递归/气泡双源锚/路由对称/对象值掩埋等 13 例；五门禁+typecheck 绿；零 Java 触面（Java 2,020 沿上版）。
+
 ## 1.0.80 — 2026-11-21
 
 - MCP 客户端接入面扩容 15→24 品牌客户端（CLI 清单 17→26）：新增 Claude Desktop（恒走 stdio 桥——其配置文件不支持远程 URL，env 注入 ESQ_MCP_URL/ESQ_MCP_TOKEN，Windows/macOS 双路径文案；文档此前只讲不配的缺口补齐）、Cline/Roo Code/Kilo Code（VS Code 插件 globalStorage 深路径，含「远程 server 默认 disabled 需手动启用」提示，安全合并写入）、Gemini CLI（httpUrl 键名方言 + gemini mcp add 命令）、GitHub Copilot CLI（copilot mcp add）、Zed（context_servers.{source:"custom",options} 嵌套形态，settings.json 手动只动该节点）、Continue（~/.continue/config.yaml YAML 片段）、Amp（amp mcp add）；CLI expandHome 支持 %APPDATA% 前缀与跨平台双候选路径探测（installedState 逐候选识别），--write 对 Claude Desktop/Zed/Continue 沿既有「格式不支持合并」先例明确拒绝；面板矩阵同批扩容（24 品牌徽标/分类/下载后缀 yml/排除表），verify-mcp-cli 冒烟 26 家断言（含 httpUrl/context_servers/stdio 桥 env/YAML 方言逐家锚）。

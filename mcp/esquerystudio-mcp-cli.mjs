@@ -42,20 +42,20 @@ const CLIENTS = [
   },
   {
     id: 'cline', label: 'Cline', transport: 'http', format: 'cline',
-    configPath: 'Windows %APPDATA%\\Code\\User\\globalStorage\\saoudrizwan.claude-dev\\settings\\cline_mcp_settings.json；macOS ~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json',
-    configPaths: ['%APPDATA%\\Code\\User\\globalStorage\\saoudrizwan.claude-dev\\settings\\cline_mcp_settings.json', '~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json'],
+    configPath: 'Windows %APPDATA%\\Code\\User\\globalStorage\\saoudrizwan.claude-dev\\settings\\cline_mcp_settings.json；macOS ~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json；Linux ~/.config/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json',
+    configPaths: ['%APPDATA%\\Code\\User\\globalStorage\\saoudrizwan.claude-dev\\settings\\cline_mcp_settings.json', '~/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json', '~/.config/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json'],
     note: '配置在 VS Code 插件目录 saoudrizwan.claude-dev 下；远程 server 添加后默认 disabled，需在 Cline 面板手动启用。',
   },
   {
     id: 'roo-code', label: 'Roo Code', transport: 'http', format: 'cline',
-    configPath: 'Windows %APPDATA%\\Code\\User\\globalStorage\\rooveterinaryinc.roo-cline\\settings\\cline_mcp_settings.json；macOS ~/Library/Application Support/Code/User/globalStorage/rooveterinaryinc.roo-cline/settings/cline_mcp_settings.json',
-    configPaths: ['%APPDATA%\\Code\\User\\globalStorage\\rooveterinaryinc.roo-cline\\settings\\cline_mcp_settings.json', '~/Library/Application Support/Code/User/globalStorage/rooveterinaryinc.roo-cline/settings/cline_mcp_settings.json'],
+    configPath: 'Windows %APPDATA%\\Code\\User\\globalStorage\\rooveterinaryinc.roo-cline\\settings\\cline_mcp_settings.json；macOS ~/Library/Application Support/Code/User/globalStorage/rooveterinaryinc.roo-cline/settings/cline_mcp_settings.json；Linux ~/.config/Code/User/globalStorage/rooveterinaryinc.roo-cline/settings/cline_mcp_settings.json',
+    configPaths: ['%APPDATA%\\Code\\User\\globalStorage\\rooveterinaryinc.roo-cline\\settings\\cline_mcp_settings.json', '~/Library/Application Support/Code/User/globalStorage/rooveterinaryinc.roo-cline/settings/cline_mcp_settings.json', '~/.config/Code/User/globalStorage/rooveterinaryinc.roo-cline/settings/cline_mcp_settings.json'],
     note: '配置在 VS Code 插件目录 rooveterinaryinc.roo-cline 下；远程 server 添加后默认 disabled，需在 Roo Code 面板手动启用。',
   },
   {
     id: 'kilo-code', label: 'Kilo Code', transport: 'http', format: 'cline',
-    configPath: 'Windows %APPDATA%\\Code\\User\\globalStorage\\kilocode.kilo-code\\settings\\cline_mcp_settings.json；macOS ~/Library/Application Support/Code/User/globalStorage/kilocode.kilo-code/settings/cline_mcp_settings.json',
-    configPaths: ['%APPDATA%\\Code\\User\\globalStorage\\kilocode.kilo-code\\settings\\cline_mcp_settings.json', '~/Library/Application Support/Code/User/globalStorage/kilocode.kilo-code/settings/cline_mcp_settings.json'],
+    configPath: 'Windows %APPDATA%\\Code\\User\\globalStorage\\kilocode.kilo-code\\settings\\cline_mcp_settings.json；macOS ~/Library/Application Support/Code/User/globalStorage/kilocode.kilo-code/settings/cline_mcp_settings.json；Linux ~/.config/Code/User/globalStorage/kilocode.kilo-code/settings/cline_mcp_settings.json',
+    configPaths: ['%APPDATA%\\Code\\User\\globalStorage\\kilocode.kilo-code\\settings\\cline_mcp_settings.json', '~/Library/Application Support/Code/User/globalStorage/kilocode.kilo-code/settings/cline_mcp_settings.json', '~/.config/Code/User/globalStorage/kilocode.kilo-code/settings/cline_mcp_settings.json'],
     note: '配置在 VS Code 插件目录 kilocode.kilo-code 下；远程 server 添加后默认 disabled，需在 Kilo Code 面板手动启用。',
   },
   {
@@ -80,6 +80,19 @@ const CLIENTS = [
     id: 'amp', label: 'Amp', transport: 'http', format: 'mcpServers', configPath: null,
     command: 'amp mcp add --transport http esquerystudio <url> -H "Authorization: Bearer <token>"',
     note: '推荐用 amp mcp add 一行添加，配置由 Amp 自行管理。',
+  },
+  /* Crush（Charm）官方配置是 TOML：与 Codex 一样只打印片段，--write 不落盘。 */
+  {
+    id: 'crush', label: 'Crush (Charm)', transport: 'http', format: 'crush',
+    configPath: '~/.config/charm/crush/config.toml',
+    note: 'Charm Crush 的 config.toml：把 [mcp_servers.esquerystudio] 段合并进 ~/.config/charm/crush/config.toml（type 是必需键）。',
+  },
+  /* JetBrains AI Assistant 的 MCP 客户端配置是项目级 XML；官方对远程 HTTP header 支持不确定，
+     与 Claude Desktop 同策略恒给 stdio 桥形态（command/args + env 注入端点与 key）。 */
+  {
+    id: 'jetbrains', label: 'JetBrains AI Assistant', transport: 'stdio', format: 'jetbrains',
+    configPath: '.idea/mcp.xml',
+    note: 'IntelliJ/GoLand/PyCharm 2025.2+ 读项目级 .idea/mcp.xml（McpServer 组件节点）；旧版需安装 MCP Proxy 插件。本配置是 stdio 桥形态，粘贴后重启 IDE 生效。',
   },
   { id: 'dbx', label: 'DBX (MCP Server)', transport: 'server', format: 'host', configPath: null },
   { id: 'local', label: 'Local Node (stdio)', transport: 'stdio', format: 'local', configPath: '~/.esquerystudio/mcp.json' },
@@ -206,6 +219,48 @@ function codexToml(url, token, localMode, connectionConfig) {
     + 'url = ' + tomlString(url) + '\n'
     + 'http_headers = { Authorization = ' + tomlString('Bearer ' + token) + ' }\n';
 }
+/* Crush（Charm）的 TOML 方言：远程 server 用 url + headers 键（type 必需），本地直连用 command/args。 */
+function crushToml(url, token, localMode, connectionConfig) {
+  if (localMode) {
+    const configPath = connectionConfig.startsWith('~/') ? expandHome(connectionConfig) : path.resolve(connectionConfig);
+    return '[mcp_servers.esquerystudio]\n'
+      + 'type = ' + tomlString('stdio') + '\n'
+      + 'command = ' + tomlString('node') + '\n'
+      + 'args = [' + tomlString(LOCAL_SCRIPT) + ', ' + tomlString('--config') + ', ' + tomlString(configPath) + ']\n';
+  }
+  return '[mcp_servers.esquerystudio]\n'
+    + 'type = ' + tomlString('http') + '\n'
+    + 'url = ' + tomlString(url) + '\n'
+    + 'headers = { Authorization = ' + tomlString('Bearer ' + token) + ' }\n';
+}
+function xmlEscape(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&apos;');
+}
+/* JetBrains XML 方言：项目级 .idea/mcp.xml 的 McpServer 组件节点；--local 时桥指向本机直连脚本。 */
+function jetbrainsXml(url, token, localMode, connectionConfig) {
+  const args = localMode
+    ? [LOCAL_SCRIPT, '--config', connectionConfig.startsWith('~/') ? expandHome(connectionConfig) : path.resolve(connectionConfig)]
+    : [BRIDGE_SCRIPT];
+  const env = localMode
+    ? ''
+    : '        <env>\n'
+      + '          <option name="ESQ_MCP_URL" value="' + xmlEscape(url) + '" />\n'
+      + '          <option name="ESQ_MCP_TOKEN" value="' + xmlEscape(token) + '" />\n'
+      + '        </env>\n';
+  return '<project version="4">\n'
+    + '  <component name="McpServer">\n'
+    + '    <mcpServers>\n'
+    + '      <mcpServer name="esquerystudio">\n'
+    + '        <command>node</command>\n'
+    + '        <args>' + xmlEscape(args.join(' ')) + '</args>\n'
+    + env
+    + '      </mcpServer>\n'
+    + '    </mcpServers>\n'
+    + '  </component>\n'
+    + '</project>\n';
+}
 /* Continue 用 YAML（~/.continue/config.yaml），沿用 DeepSeek YAML 只打印不落盘的先例。 */
 function continueYaml(url, token, localMode, connectionConfig) {
   if (localMode) {
@@ -231,6 +286,8 @@ function textFor(client, url, token, localMode = false, connectionConfig = '~/.e
   }
   if (client.format === 'local') return JSON.stringify(jsonFor(client, url, token), null, 2);
   if (client.format === 'codex') return codexToml(url, token, localMode, connectionConfig);
+  if (client.format === 'crush') return crushToml(url, token, localMode, connectionConfig);
+  if (client.format === 'jetbrains') return jetbrainsXml(url, token, localMode, connectionConfig);
   if (client.format === 'continue') return continueYaml(url, token, localMode, connectionConfig);
   if (localMode && client.format === 'command') {
     const configPath = connectionConfig.startsWith('~/') ? expandHome(connectionConfig) : path.resolve(connectionConfig);
@@ -275,6 +332,7 @@ const CLIENT_COMMANDS = {
   opencode: ['opencode'], pi: ['pi'], 'cherry-studio': [], workbuddy: [], antigravity: ['antigravity'],
   'claude-desktop': [], cline: [], 'roo-code': [], 'kilo-code': [], zed: [], continue: [],
   'gemini-cli': ['gemini'], 'copilot-cli': ['copilot'], amp: ['amp'],
+  crush: ['crush'], jetbrains: [],
   dbx: ['dbx'], local: ['node'],
 };
 function commandAvailable(command) {
@@ -458,7 +516,7 @@ if (command === 'list') {
       throw new Error('--transport must be http');
     }
 
-    if (!localMode && (client.transport === 'http' || client.format === 'claude-desktop') && (!url || !token)) {
+    if (!localMode && (client.transport === 'http' || client.format === 'claude-desktop' || client.format === 'jetbrains') && (!url || !token)) {
       throw new Error('HTTP clients require --url and --token (or set them in the generated config later)');
     }
     /* SSE 传输已退役：旧 /sse 尾 URL 直接拒绝并指路（服务端 /mcp/sse 已 404） */
@@ -481,6 +539,12 @@ if (command === 'list') {
       const file = explicit ? path.resolve(explicit) : displayConfigFile(client);
       if (has('--write') && client.format === 'codex') {
         throw new Error('Codex 使用 TOML 配置，--write 不适用；请把输出粘贴到 ~/.codex/config.toml');
+      }
+      if (has('--write') && client.format === 'crush') {
+        throw new Error('Crush 使用 TOML 配置，--write 不适用；请把输出粘贴到 ~/.config/charm/crush/config.toml');
+      }
+      if (has('--write') && client.format === 'jetbrains') {
+        throw new Error('JetBrains AI Assistant 使用项目级 XML 配置，--write 不适用；请把输出保存为项目的 .idea/mcp.xml');
       }
       if (has('--write') && client.format === 'claude-desktop') {
         throw new Error('Claude Desktop 配置路径随平台不同（Windows %APPDATA%\\Claude\\claude_desktop_config.json、macOS ~/Library/Application Support/Claude/claude_desktop_config.json），--write 不自动落盘；请把输出粘贴到对应平台的文件');
@@ -517,9 +581,9 @@ if (command === 'list') {
     + '  esquerystudio-mcp-cli install --client <id> --local [--connection-config file] [--write]\n'
     + '  esquerystudio-mcp-cli install --client local [--config file]\n\n'
     + '  --transport 仅支持 http（旧 SSE 传输已退役，统一 Streamable HTTP）；--local 始终走 stdio。\n'
-    + '  Clients (26): claude-code, cursor, vscode, windsurf, trae, codex, qoder, codebuddy, zcode,\n'
+    + '  Clients (28): claude-code, cursor, vscode, windsurf, trae, codex, qoder, codebuddy, zcode,\n'
     + '    deepseek-harness, opencode, pi, cherry-studio, workbuddy, antigravity, claude-desktop,\n'
-    + '    cline, roo-code, kilo-code, gemini-cli, copilot-cli, zed, continue, amp, dbx, local\n\n'
+    + '    cline, roo-code, kilo-code, gemini-cli, copilot-cli, zed, continue, amp, crush, jetbrains, dbx, local\n\n'
     + 'Examples:\n'
     + '  esquerystudio-mcp-cli install --client cursor --url http://localhost:5601/mcp --token esq_mcp_xxx --write\n'
     + '  esquerystudio-mcp-cli install --client cline --url http://localhost:5601/mcp --token esq_mcp_xxx --write\n'

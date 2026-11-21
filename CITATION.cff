@@ -12,8 +12,8 @@ authors:
 repository-code: https://github.com/dengmeiluan/esquerystudio
 url: https://github.com/dengmeiluan/esquerystudio
 license: Apache-2.0
-version: 1.0.80
-date-released: 2026-11-21
+version: 1.0.81
+date-released: 2026-11-22
 keywords:
   - elasticsearch
   - query-workbench

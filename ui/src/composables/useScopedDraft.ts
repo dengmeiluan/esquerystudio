@@ -29,10 +29,53 @@ const PREFIX = 'esquerystudio.draft2';
  常规键（键名含 "token" 子串≠凭据），掩埋它们会把恢复的草稿变成携带 "***" 的损坏配置 */
 const CREDENTIAL_KEY_RE = /("(?:[^"]*(?:password|passwd|secret|token(?!izer|_count|_chars|s)|api[_-]?key|authorization|auth)[^"]*)"\s*:\s*")([^"]*)(")/gi;
 
-/** 掩埋 JSON-ish 文本里的凭据值；非 JSON 原样返回（尽力而为，不保证语法安全） */
+/** 凭据样键名判定（对象遍历路径）：与上方文本正则的键名段同口径（同一交替与负向前瞻） */
+const CREDENTIAL_KEY_NAME_RE = /password|passwd|secret|token(?!izer|_count|_chars|s)|api[_-]?key|authorization|auth/i;
+
+/** 深遍历掩埋：凭据样键的值无论什么类型（对象/数组/数字/布尔）一律替换为 "***" 字符串
+ 哨兵。文本正则只命中「键名 + 冒号 + 开引号」的字符串值形态，对象值（冒号后是 "{"）整个
+ 漏掩埋——嵌在对象里的明文凭据照样落盘；而若直接在文本上掩埋对象值又会产出损坏 JSON
+ （读回失败）。parse 产物即深拷贝，替换不触碰调用方对象，stringify 后输出恒可 JSON.parse */
+function redactParsed(v: unknown): unknown {
+  if (Array.isArray(v)) return v.map(redactParsed);
+  if (v !== null && typeof v === 'object') {
+    const src = v as Record<string, unknown>;
+    const out: Record<string, unknown> = {};
+    for (const k of Object.keys(src)) out[k] = CREDENTIAL_KEY_NAME_RE.test(k) ? '***' : redactParsed(src[k]);
+    return out;
+  }
+  return v;
+}
+
+/** 凭据样键是否持有非字符串值（对象/数组/数字/布尔）——文本正则只命中字符串值形态，
+ 此类值需要结构重写才能掩埋 */
+function hasNonStringCredential(v: unknown): boolean {
+  if (Array.isArray(v)) return v.some(hasNonStringCredential);
+  if (v !== null && typeof v === 'object') {
+    const src = v as Record<string, unknown>;
+    for (const k of Object.keys(src)) {
+      if (CREDENTIAL_KEY_NAME_RE.test(k) && typeof src[k] !== 'string') return true;
+      if (hasNonStringCredential(src[k])) return true;
+    }
+  }
+  return false;
+}
+
+/** 掩埋 JSON 文本里的凭据值：常规（凭据样键持字符串值）走原文正则替换——保留用户的
+ pretty 缩进/空格（编辑框内容格式不变）；仅当存在非字符串值的凭据样键才结构重写
+ （深拷贝掩埋，输出恒可 JSON.parse，代价是该次格式紧凑化）。非 JSON 松散文本回落
+ 文本正则尽力而为（只掩埋字符串值形态，不保证语法安全） */
 export function redactDraft(raw: string): string {
   if (!raw) return raw;
-  return raw.replace(CREDENTIAL_KEY_RE, (_m, head, _v, tail) => head + '***' + tail);
+  try {
+    const parsed = JSON.parse(raw);
+    if (!hasNonStringCredential(parsed)) {
+      return raw.replace(CREDENTIAL_KEY_RE, (_m, head, _v, tail) => head + '***' + tail);
+    }
+    return JSON.stringify(redactParsed(parsed));
+  } catch {
+    return raw.replace(CREDENTIAL_KEY_RE, (_m, head, _v, tail) => head + '***' + tail);
+  }
 }
 
 export function draftStorageKey(scope: DraftScope, field: string): string {

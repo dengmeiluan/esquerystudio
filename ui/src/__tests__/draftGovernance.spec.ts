@@ -108,6 +108,25 @@ describe('草稿治理：机制级', () => {
     expect(sessionStorage.getItem('never') ?? '').toBe('');
   });
 
+  it('对象值凭据掩埋不损坏 JSON：值替换为 "***" 哨兵且输出恒可 parse', () => {
+    /* 文本正则只认「键名+冒号+开引号」的字符串值形态，对象值整个漏掩埋（嵌在
+       对象里的明文凭据照样落盘）；对象值走 parse 深拷贝替换，输出必须仍可读回。
+       外壳键用非凭据词（settings）——凭据样外壳键（auth 等）会整对象哨兵化 */
+    const out = redactDraft('{"settings":{"user":"u","password":{"plain":"p1","cipher":"c1"}},"note":"plain"}');
+    const parsed = JSON.parse(out); /* 读回失败（损坏 JSON）即此处直接抛错红灯 */
+    expect((parsed as any).settings.password).toBe('***'); /* 对象值 = 字符串哨兵，非结构破坏 */
+    expect(out).not.toContain('p1');
+    expect(out).not.toContain('c1');
+    expect((parsed as any).settings.user).toBe('u');
+    expect((parsed as any).note).toBe('plain'); /* 非凭据字段原样恢复 */
+    /* 数字/布尔值同哨兵路径：掩埋面不因值类型放行 */
+    const out2 = redactDraft('{"secret":12345,"apiKey":true,"keep":5}');
+    const parsed2 = JSON.parse(out2);
+    expect((parsed2 as any).secret).toBe('***');
+    expect((parsed2 as any).apiKey).toBe('***');
+    expect((parsed2 as any).keep).toBe(5);
+  });
+
   it('ES settings 的 tokenizer 家族键不被掩埋（token 子串≠凭据键）', () => {
     /* GET _settings 原样粘贴的 settings 含大量 *.tokenizer / token_chars 键——
        键名里出现 "token" 子串不等于凭据；掩埋它们会让恢复的草稿携带 "***"，

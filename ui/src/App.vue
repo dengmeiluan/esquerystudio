@@ -262,6 +262,7 @@ const componentOverrides: GlobalThemeOverrides = {
   Card: { borderRadius: '12px', titleFontSizeMedium: '14px', titleFontWeight: '650' },
   Dialog: { borderRadius: '12px' },
   Input: { boxShadowFocus: 'var(--focus-ring)' },
+  /* Tooltip 圆角与 theme.css --r-m 同值（8px）；底/字色分主题落在 light/dark 两档 */
   Tooltip: { borderRadius: '8px' },
   /* 下拉菜单（索引选择器等）：圆角+悬浮层阴影对齐 --shadow-pop，选项行高噪点降噪 */
   Popover: { borderRadius: '10px' },
@@ -275,6 +276,12 @@ const NAIVE_FONT_SIZE = '13px';
 /* Light 主题覆盖（只改 primary、字体、圆角，背景交给 naive default light） */
 const lightOverrides: GlobalThemeOverrides = {
   ...componentOverrides,
+  /* Tooltip 亮色档：naive light 默认 tooltip 是白底叠 85% 黑的暗底气泡（composite(baseColor,
+   rgba(0,0,0,.85))），而 v-tip 指令气泡（theme.css .vt-pop）走 --bg2 亮底——同页一暗一亮
+   两种气泡混排。此处 color/textColor 对齐 token 解析值（naive 覆盖不认 CSS var 只能字面量，
+   双源同步锚见 themeDualSource527）。border 不可对齐：naive Tooltip 主题无 border 变量
+   （无边框概念，层次靠 boxShadow），v-tip 的 1px --line 边框保持差异 */
+  Tooltip: { ...componentOverrides.Tooltip, color: '#f2f4f7', textColor: '#4a5060' },
   common: {
     primaryColor: '#0d9488', primaryColorHover: '#14b8a6', primaryColorPressed: '#0f766e', primaryColorSuppl: '#14b8a6',
     borderRadius: '6px', borderRadiusSmall: '4px', fontSize: NAIVE_FONT_SIZE,
@@ -299,6 +306,10 @@ router.afterEach((to) => { saveLastRoute(to.fullPath); });
 const themeOverrides = computed<GlobalThemeOverrides>(() => store.effectiveTheme === 'light' ? lightOverrides : darkOverrides);
 const darkOverrides: GlobalThemeOverrides = {
   ...componentOverrides,
+  /* Tooltip 暗色档：默认链路 color=common.popoverColor、textColor=common.textColor2 虽已
+   同值，但属隐式巧合——显式落字面量与 light 档成对（值同 theme.css --bg2/--tx1 暗色段，
+   双源同步锚见 themeDualSource527） */
+  Tooltip: { ...componentOverrides.Tooltip, color: '#172224', textColor: '#a8beb8' },
   common: {
     primaryColor: '#14b8a6',
     primaryColorHover: '#2dd4bf',
