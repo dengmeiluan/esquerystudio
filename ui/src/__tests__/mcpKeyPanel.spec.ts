@@ -36,7 +36,9 @@ describe('MCP 接入管理面', () => {
     expect(panel).toContain('toolBudgetWarning');
     expect(panel).toContain('trimKey');
     expect(panel).toContain('.mcp-scope-grid { grid-template-columns: 1fr; }');
-    expect(panel).toContain('onboardingTransport');
+    /* SSE toggle 已退役：传输统一 Streamable HTTP，锁退役说明与保留的 toggle 容器类（工具面开关沿用） */
+    expect(panel).toContain('旧 SSE 传输已退役，统一 streamable HTTP');
+    expect(panel).not.toContain('sseEndpoint');
     expect(panel).toContain('mcp-transport-toggle');
     expect(panel).toContain('actionGroups');
     expect(panel).toContain('openKeyGroups');
@@ -179,7 +181,9 @@ describe('MCP 接入管理面', () => {
   it('Codex 使用官方 TOML，Claude Code 使用 mcpServers 配置', () => {
     expect(panel).toContain('[mcp_servers.esquerystudio]');
     expect(panel).toContain('http_headers = { Authorization');
-    expect(panel).toContain('onboardingHttpType');
+    /* SSE 退役后 type 固定 http，不再有 onboardingHttpType 开关 */
+    expect(panel).toContain("type: 'http'");
+    expect(panel).not.toContain('onboardingHttpType');
     expect(panel).toContain('transport: ');
     expect(panel).toContain('claude mcp add --transport');
   });
@@ -323,5 +327,22 @@ describe('MCP 接入管理面', () => {
     expect(panel, '防回潮：试跑组调用开关不得回流——组调用是唯一路径').not.toContain('trialAsGroup');
     expect(panel, '防回潮：细粒度兼容入口文案不得回流').not.toContain('细粒度兼容');
     expect(panel, '防回潮：兼容调试文案不得回流').not.toContain('兼容调试');
+  });
+
+  it('客户端矩阵扩容到 24 家品牌：新 9 家方言锚齐备', () => {
+    /* 锁结构不锁品牌排序：四锚分别覆盖 Claude Desktop / Gemini CLI / Zed / Gemini 方言键 */
+    expect(panel).toContain("'claude-desktop'");
+    expect(panel).toContain("'gemini-cli'");
+    expect(panel).toContain('context_servers');
+    expect(panel).toContain('httpUrl');
+    /* 品牌计数与 onboardingClientCount 同口径：剔除接入方式（http/stdio/local/browser）与 dbx */
+    const matrix = panel.match(/const onboardingClients = \[([\s\S]*?)\n\];/);
+    expect(matrix, 'onboardingClients 数组应存在').toBeTruthy();
+    const ids = Array.from(matrix![1].matchAll(/\{ id: '([^']+)'/g), (m) => m[1]);
+    const brands = ids.filter((id) => !['http', 'stdio', 'local', 'browser', 'dbx'].includes(id));
+    expect(brands, '客户端品牌数应为 24').toHaveLength(24);
+    for (const id of ['claude-desktop', 'cline', 'roo-code', 'kilo-code', 'gemini-cli', 'copilot-cli', 'zed', 'continue', 'amp']) {
+      expect(brands).toContain(id);
+    }
   });
 });

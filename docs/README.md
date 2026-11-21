@@ -1,6 +1,6 @@
 # 文档索引
 
-按你的任务选择阅读路径。所有指南都与 ESQueryStudio 1.0.79 当前版本对齐。
+按你的任务选择阅读路径。所有指南都与 ESQueryStudio 1.0.80 当前版本对齐。
 
 > 在线演示（合成数据，点开即玩）：<https://dengmeiluan.github.io/esquerystudio/demo/>
 

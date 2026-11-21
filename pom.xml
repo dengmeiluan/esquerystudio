@@ -13,7 +13,7 @@
 
     <groupId>io.github.dengmeiluan</groupId>
     <artifactId>esquerystudio</artifactId>
-    <version>1.0.79</version>
+    <version>1.0.80</version>
     <packaging>pom</packaging>
     <name>ESQueryStudio</name>
     <description>Embeddable Elasticsearch operations platform: platform kernel, console,

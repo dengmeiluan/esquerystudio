@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "ESQueryStudio — Elasticsearch Query Workbench",
   "short_name": "ESQueryStudio",
-  "version": "1.0.79",
+  "version": "1.0.80",
   "description": "Elasticsearch query workbench: DSL, Lucene, SQL, PIT, explain and live monitoring. Connect directly to your cluster, no backend.",
   "homepage_url": "https://github.com/dengmeiluan/esquerystudio",
   "action": {

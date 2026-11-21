@@ -2,6 +2,13 @@
 
 ESQueryStudio 采用「初版（滚动更新）」发布线：版本号可以递增，但仓库只保留一个初版提交、一个标签和一个滚动更新的 Release；每次发布直接覆盖，不追加历史版本。
 
+## 1.0.80 — 2026-11-21
+
+- MCP 客户端接入面扩容 15→24 品牌客户端（CLI 清单 17→26）：新增 Claude Desktop（恒走 stdio 桥——其配置文件不支持远程 URL，env 注入 ESQ_MCP_URL/ESQ_MCP_TOKEN，Windows/macOS 双路径文案；文档此前只讲不配的缺口补齐）、Cline/Roo Code/Kilo Code（VS Code 插件 globalStorage 深路径，含「远程 server 默认 disabled 需手动启用」提示，安全合并写入）、Gemini CLI（httpUrl 键名方言 + gemini mcp add 命令）、GitHub Copilot CLI（copilot mcp add）、Zed（context_servers.{source:"custom",options} 嵌套形态，settings.json 手动只动该节点）、Continue（~/.continue/config.yaml YAML 片段）、Amp（amp mcp add）；CLI expandHome 支持 %APPDATA% 前缀与跨平台双候选路径探测（installedState 逐候选识别），--write 对 Claude Desktop/Zed/Continue 沿既有「格式不支持合并」先例明确拒绝；面板矩阵同批扩容（24 品牌徽标/分类/下载后缀 yml/排除表），verify-mcp-cli 冒烟 26 家断言（含 httpUrl/context_servers/stdio 桥 env/YAML 方言逐家锚）。
+- MCP 面板 SSE 残留收口：服务端 /mcp/sse 已 404（单轨立法）、CLI 已拒绝 SSE，但面板仍留「SSE 兼容」toggle 指向退役端点——本批退役该 toggle（传输位与协议头两处），统一「streamable HTTP」口径；安装命令 --transport http 固定；审计页保留历史 SSE 留档筛选。
+- 同步面：docs/mcp.md 三处清单（快速开始/向导矩阵/逐家写入形态总述）+README 双语客户端清单；SSE 相关 spec 锁随迁（mcpKeyPanel 两处 not.toContain 防回潮）。
+- 测试与数字：verify-mcp-cli 26 家全断言绿；check-mcp-parity 客户端面（面板↔CLI 双向对齐）绿；UI 全量 1,589 文件/12,905 例全绿 0 跳过；typecheck 零错误；本批零 Java 触面（Java 全量沿 1.0.79 的 2,020 例 BUILD SUCCESS）。
+
 ## 1.0.79 — 2026-11-21
 
 - 迁移后等价性验证 verify_equivalence（「零意外切换」收官一环，MCP 166→167 action / es_xmigrate 18→19）：双侧 `_count` 对比 + 源 `_doc` 序 id 抽样双侧 mget 后按 canonical SHA-256 前 16 hex 摘要逐 id 对比 + 可选 terms 聚合对比；`sampleFields` 投影（含点号路径，未命中字段告警）；`jobId`（复用作业登记的源/目标，owner-or-ADMIN 校验）或 `srcConnId`+`sourceIndex` 双形态；`verdict` EQUIVALENT/DIVERGENT/INCONCLUSIVE 三态诚实口径——count/样本/聚合一侧取数失败如实判 INCONCLUSIVE 不冒充比对过（三端同判）；差异清单回显 ≤20 条带截断标志；`sampleSize` 缺省 100 钳 10..500、`aggSize` 缺省 10 钳 1..50（钳制带告警，`requested` 回显钳后请求值三端同口径）；服务端 REST+MCP / 浏览器桥（jobId 形态读本机台账）/ 本地 stdio 三端同键名同语义；只读不进写/破坏性/MRTR/长任务任何清单。

@@ -73,7 +73,7 @@
         <nav class="mcp-rail mcp-tabs" role="tablist" aria-label="MCP 接入视图" @keydown="onTabKeydown">
           <button type="button" class="mcp-rail-item" :class="{ active: tab === 'access' }" role="tab"
             :aria-selected="tab === 'access'" @click="tab = 'access'">
-            <span class="mcp-rail-index">01</span><span class="mcp-rail-label">接入总览</span><em>{{ isBrowserMode ? '页面桥' : 'HTTP / SSE' }}</em>
+            <span class="mcp-rail-index">01</span><span class="mcp-rail-label">接入总览</span><em>{{ isBrowserMode ? '页面桥' : 'HTTP' }}</em>
           </button>
           <button type="button" class="mcp-rail-item" data-test="mcp-tools-tab" :class="{ active: tab === 'tools' }" role="tab"
             :aria-selected="tab === 'tools'" @click="tab = 'tools'">
@@ -122,7 +122,7 @@
                       <tbody>
                         <tr :class="{ active: serverMode }">
                           <td data-label="接入面"><b>服务端</b><span v-if="serverMode" class="mcp-mode-tag">当前</span></td>
-                          <td data-label="入口"><code>POST /mcp</code><small>Streamable HTTP · SSE 兼容</small></td>
+                          <td data-label="入口"><code>POST /mcp</code><small>Streamable HTTP</small></td>
                           <td data-label="身份 / 权限">Bearer key / service token<small>按 key 的连接 read / write 执行</small></td>
                           <td data-label="调用留档">IP · UA · HTTP · requestId<small>默认保留 30 天（最低 7 天）</small></td>
                           <td data-label="适用与边界">跨机器 Agent；需要部署与鉴权<small>宿主 Security 需放行 /mcp</small></td>
@@ -192,7 +192,7 @@
                 <template #head><span class="mcp-eyebrow">PROTOCOL BASELINE</span></template>
                 <div class="mcp-protocol-matrix">
                   <div><span>版本</span><code>2026-07-28</code><em>兼容 2025-11-25 / 2025-06-18 / 2025-03-26 / 2024-11-05</em></div>
-                  <div><span>传输</span><code>Streamable HTTP · SSE 兼容 · 页面内桥 · 本地 stdio</code></div>
+                  <div><span>传输</span><code>Streamable HTTP · 页面内桥 · 本地 stdio</code></div>
                   <div><span>核心方法</span><code>server/discover · initialize · tools · resources · prompts · completion</code></div>
                   <div><span>扩展边界</span><em>Tasks 已支持（客户端显式 opt-in）；Apps 已声明并提供 ui:// 资源与 action 工具绑定；MRTR 已支持（高危写操作 elicitation 二次确认）；subscriptions/listen 不声明；roots / sampling / logging 为 2026 已废弃/移除能力</em></div>
                 </div>
@@ -372,7 +372,7 @@
           <div class="mcp-protocol-head">
             <h3>资源与提示词</h3>
             <span class="mcp-muted">{{ MCP_STATIC_RESOURCES.length + MCP_RESOURCE_TEMPLATES.length + 1 }} 个资源（含 1 个 MCP App）· {{ MCP_PROMPTS.length }} 个引导提示词</span>
-            <span v-if="!isBrowserMode" class="mcp-muted">SSE 兼容：<code>{{ sseEndpoint }}</code></span>
+            <span v-if="!isBrowserMode" class="mcp-muted">旧 SSE 传输已退役，统一 streamable HTTP</span>
           </div>
           <div class="mcp-protocol-grid">
             <div class="mcp-protocol-col">
@@ -533,12 +533,8 @@
                 <button v-else-if="clientKeySelected" type="button" class="btn primary xs" @click="generateClientKey">轮换并带入</button>
                 <span v-else class="mcp-muted">也可以从密钥页点「接入配置」直接带入。</span>
               </div>
-              <div class="mcp-transport-toggle" role="group" aria-label="MCP 传输方式">
-                <button type="button" class="mcp-client-chip" :class="{ active: onboardingTransport === 'http' }"
-                  :aria-pressed="onboardingTransport === 'http'" @click="onboardingTransport = 'http'">Streamable HTTP</button>
-                <button type="button" class="mcp-client-chip" :class="{ active: onboardingTransport === 'sse' }"
-                  :aria-pressed="onboardingTransport === 'sse'" @click="onboardingTransport = 'sse'">SSE 兼容</button>
-                <span class="mcp-muted">{{ onboardingTransport === 'sse' ? '旧客户端只支持 SSE 时使用 /mcp/sse' : '推荐；新客户端默认 Streamable HTTP' }}</span>
+              <div class="mcp-transport-toggle">
+                <span class="mcp-muted">旧 SSE 传输已退役，统一 streamable HTTP</span>
               </div>
               <div class="mcp-transport-toggle mcp-surface-toggle" role="group" aria-label="客户端工具面">
                 <button type="button" class="mcp-client-chip" :class="{ active: onboardingSurface === 'compact' }"
@@ -547,7 +543,7 @@
                   :aria-pressed="onboardingSurface === 'full'" @click="onboardingSurface = 'full'">完整工具面</button>
                 <span class="mcp-muted">精简：<code>15 组工具 · 0 资源 · 0 prompts</code>，CodeBuddy / WorkBuddy 保留全部工具，只去掉资源/prompts 列表；完整面另含 10 资源 + 5 prompts。</span>
               </div>
-              <n-checkbox v-if="!['local', 'stdio', 'browser', 'deepseek-harness'].includes(onboardingClient)"
+              <n-checkbox v-if="!['local', 'stdio', 'browser', 'deepseek-harness', 'claude-desktop'].includes(onboardingClient)"
                 v-model:checked="onboardingLocal" size="small" class="mcp-check mcp-onboarding-local">通过本地 Node 直连（stdio，不经服务端 /mcp）</n-checkbox>
               <div class="mcp-client-head">
                 <button type="button" class="btn primary sm" @click="copyOnboardingConfig">{{ onboardingCopied ? '已复制' : '复制配置' }}</button>
@@ -572,7 +568,7 @@
                 <ol>
                   <li><code class="mcp-troubleshoot-url">{{ onboardingUrl }}</code> 必须带宿主 context-path（例如 <code>/quotehub/mcp</code>）。报 <code>Unexpected token '&lt;'</code> 说明请求打到了网页或 404，不是 MCP 端点。</li>
                   <li>报 <code>401 / MCP_KEY_REVOKED</code>：key 已撤销或已轮换，旧 key 立即失效；回「密钥」页轮换后复制新 key。列表里的前缀不是完整 key。</li>
-                  <li>WorkBuddy 写 <code>~/.workbuddy/mcp.json</code> 的 <code>mcpServers</code>，<code>type</code> 用 <code>http</code>；只支持 SSE 时把地址换成 <code>{{ sseEndpoint }}</code>。</li>
+                  <li>WorkBuddy 写 <code>~/.workbuddy/mcp.json</code> 的 <code>mcpServers</code>，<code>type</code> 用 <code>http</code>。</li>
                 </ol>
               </div>
               <div class="mcp-dbx-note">
@@ -1186,7 +1182,7 @@ const onboardingToken = computed(() => {
 /* 控制台静态入口在 /esquerystudio/ 下，MCP 端点固定在应用根路径 /mcp；
    ../mcp 同时兼容 server.servlet.context-path 前缀。 */
 const endpoint = computed(() => new URL('../mcp', document.baseURI).toString());
-const sseEndpoint = computed(() => new URL('../mcp/sse', document.baseURI).toString());
+/* 旧 SSE 传输（../mcp/sse）已退役：服务端只保留 Streamable HTTP 单轨（McpSingleTrack1120Test 锁定）。 */
 const serverMode = computed(() => !isBrowserMode && !isDemoMode);
 const checking = ref(false);
 const protocolCheck = ref<any>(null);
@@ -1269,7 +1265,7 @@ function onTabKeydown(event: KeyboardEvent) {
 const stageInfo = computed(() => ({
   access: { eyebrow: '01 / CONNECT', title: '连接 MCP', desc: '确认端点、传输方式与鉴权；同一套工具可在服务端、浏览器和本地 Node 三种形态运行。' },
   tools: { eyebrow: '02 / TOOL REGISTRY', title: '工具目录', desc: '客户端只看到 17 个 action 型工具；按组展开 151 个 action，并直接试跑。' },
-  clients: { eyebrow: '03 / ONBOARDING', title: '客户端接入', desc: '选一个 Agent，复制官方配置或安装命令；Streamable HTTP 与 SSE 都能直接落地。' },
+  clients: { eyebrow: '03 / ONBOARDING', title: '客户端接入', desc: '选一个 Agent，复制官方配置或安装命令；统一 Streamable HTTP 直连。' },
   keys: { eyebrow: '04 / CREDENTIALS', title: '密钥', desc: '按登录人、角色、连接和工具白名单签发；写权限逐连接授予，撤销立即生效。' },
   audit: { eyebrow: '05 / CALL LEDGER', title: '调用审计', desc: '每次 MCP 调用留档方法、工具、IP、UA、HTTP 与 requestId；按失败或来源快速定位。' },
 }[tab.value]));
@@ -1835,17 +1831,16 @@ function onArgComboKey(e: KeyboardEvent) {
 }
 const onboardingClient = ref<string>(isBrowserMode ? 'browser' : 'http');
 const onboardingLocal = ref(false);
-const onboardingTransport = ref<'http' | 'sse'>('http');
 /* GUI 客户端默认精简面：保留 15 个 action 组，仅隐藏 resources/prompts；完整面仍可通过 ?surface=full 或开关恢复。 */
 const onboardingSurface = ref<'compact' | 'full'>('compact');
 function withSurface(url: string) {
   if (onboardingSurface.value !== 'compact') return url;
   return url + (url.includes('?') ? '&' : '?') + 'surface=compact';
 }
-const onboardingUrl = computed(() => withSurface(onboardingTransport.value === 'sse' ? sseEndpoint.value : endpoint.value));
-const onboardingHttpType = computed(() => onboardingTransport.value === 'sse' ? 'sse' : 'http');
+const onboardingUrl = computed(() => withSurface(endpoint.value));
 watch(onboardingClient, id => {
-  if (['local', 'stdio', 'browser', 'deepseek-harness', 'dbx'].includes(id)) onboardingLocal.value = false;
+  /* claude-desktop 无 --local 注入语义：它的配置本身就是 stdio 桥 */
+  if (['local', 'stdio', 'browser', 'deepseek-harness', 'dbx', 'claude-desktop'].includes(id)) onboardingLocal.value = false;
 });
 const onboardingCopied = ref(false);
 const installCopied = ref(false);
@@ -1867,6 +1862,15 @@ const onboardingClients = [
   { id: 'qoder', label: 'Qoder' },
   { id: 'workbuddy', label: 'WorkBuddy' },
   { id: 'antigravity', label: 'Antigravity' },
+  { id: 'claude-desktop', label: 'Claude Desktop' },
+  { id: 'cline', label: 'Cline' },
+  { id: 'roo-code', label: 'Roo Code' },
+  { id: 'kilo-code', label: 'Kilo Code' },
+  { id: 'gemini-cli', label: 'Gemini CLI' },
+  { id: 'copilot-cli', label: 'GitHub Copilot CLI' },
+  { id: 'zed', label: 'Zed' },
+  { id: 'continue', label: 'Continue' },
+  { id: 'amp', label: 'Amp' },
   { id: 'dbx', label: 'DBX（MCP Server）' },
   { id: 'stdio', label: 'stdio 桥' },
   { id: 'local', label: '本地 Node' },
@@ -1889,9 +1893,9 @@ function onboardingKind(id: string) {
   if (['local'].includes(id)) return '本机直连 / stdio';
   if (['stdio'].includes(id)) return 'stdio 桥';
   if (['browser'].includes(id)) return '页面内桥';
-  if (['claude-code', 'codebuddy', 'codex', 'deepseek-harness', 'opencode', 'qoder', 'zcode', 'trae'].includes(id)) return 'CLI 可写入';
-  if (['cursor', 'vscode', 'windsurf', 'pi', 'antigravity'].includes(id)) return 'IDE / 配置文件';
-  if (['cherry-studio', 'workbuddy'].includes(id)) return '桌面 GUI';
+  if (['claude-code', 'codebuddy', 'codex', 'deepseek-harness', 'opencode', 'qoder', 'zcode', 'trae', 'gemini-cli', 'copilot-cli', 'amp'].includes(id)) return 'CLI 可写入';
+  if (['cursor', 'vscode', 'windsurf', 'pi', 'antigravity', 'cline', 'roo-code', 'kilo-code', 'zed', 'continue'].includes(id)) return 'IDE / 配置文件';
+  if (['cherry-studio', 'workbuddy', 'claude-desktop'].includes(id)) return '桌面 GUI';
   return '通用远程 MCP';
 }
 const onboardingNotes: Record<string, string> = {
@@ -1909,8 +1913,17 @@ const onboardingNotes: Record<string, string> = {
   pi: '写入 ~/.pi/agent/mcp.json 的 mcpServers 段。',
   'cherry-studio': '在设置 → MCP 服务器中添加远程服务，粘贴配置。',
   qoder: '写入 ~/.qoder/settings.json 的 mcpServers 段（type=http）。',
-  workbuddy: '写入 ~/.workbuddy/mcp.json 的 mcpServers 段（type=http）。若客户端只提供 SSE 选项，地址改用 /mcp/sse。',
+  workbuddy: '写入 ~/.workbuddy/mcp.json 的 mcpServers 段（type=http）。',
   antigravity: '写入 ~/.gemini/config/mcp_config.json 的 mcpServers 段。',
+  'claude-desktop': 'Claude Desktop 只支持 stdio，本配置写入的是 stdio 桥；Windows 位于 %APPDATA%\\Claude\\claude_desktop_config.json，macOS 位于 ~/Library/Application Support/Claude/claude_desktop_config.json。',
+  cline: '写入 VS Code globalStorage 的 cline_mcp_settings.json（扩展 saoudrizwan.claude-dev 目录）；远程 server 添加后默认 disabled，需在 Cline 的 MCP 面板手动启用。',
+  'roo-code': '写入 VS Code globalStorage 的 cline_mcp_settings.json（扩展 rooveterinaryinc.roo-cline 目录）；远程 server 添加后默认 disabled，需在 Roo Code 的 MCP 面板手动启用。',
+  'kilo-code': '写入 VS Code globalStorage 的 cline_mcp_settings.json（扩展 kilocode.kilo-code 目录）；远程 server 添加后默认 disabled，需在 Kilo Code 的 MCP 面板手动启用。',
+  'gemini-cli': '写入 ~/.gemini/settings.json 的 mcpServers 段，远程地址用 httpUrl 键；也可用「复制安装命令」直接注册。',
+  'copilot-cli': '写入 ~/.copilot/mcp-config.json 的 mcpServers 段（type=http）；也可用「复制安装命令」直接注册。',
+  zed: '写入 Zed settings.json（~/.config/zed/settings.json）的 context_servers 段；该文件混有用户其它配置，手动合并时只动 context_servers.esquerystudio 节点。',
+  continue: '写入 ~/.continue/config.yaml 的 mcpServers 段（YAML 文本，下载得到 .yml 文件）。',
+  amp: '可用「复制安装命令」直接注册（amp mcp add）；远程配置写入 amp 的 mcpServers 设置，type 用 http。',
   dbx: 'DBX 0.6+ 是 MCP Server（提供 DBX 数据库连接给 AI 客户端），不消费外部 MCP server；不能把本端点装进 DBX。要在同一个 Agent 里同时使用，请并列注册两个 server。',
   stdio: '供仅支持命令启动的客户端使用，桥接面板签发的 key。',
   local: '本地 Node MCP 直连 Elasticsearch，配置包含连接凭据。',
@@ -1927,14 +1940,24 @@ const onboardingInstallCommand = computed(() => {
   if (onboardingLocal.value && id === 'claude-code') {
     return `claude mcp add --transport stdio esquerystudio -- node mcp/esquerystudio-local-mcp.mjs --config ~/.esquerystudio/mcp.json`;
   }
-  if (onboardingLocal.value && ['cursor', 'vscode', 'windsurf', 'opencode', 'qoder', 'trae', 'codebuddy', 'zcode', 'workbuddy', 'pi', 'antigravity'].includes(id)) {
+  if (onboardingLocal.value && ['cursor', 'vscode', 'windsurf', 'opencode', 'qoder', 'trae', 'codebuddy', 'zcode', 'workbuddy', 'pi', 'antigravity', 'gemini-cli', 'copilot-cli', 'amp'].includes(id)) {
     return `node mcp/esquerystudio-mcp-cli.mjs install --client ${id} --local --write`;
   }
   if (id === 'claude-code') {
-    return `claude mcp add --transport ${onboardingTransport.value === 'sse' ? 'sse' : 'http'} esquerystudio ${onboardingUrl.value} --header "Authorization: Bearer ${token}"`;
+    return `claude mcp add --transport http esquerystudio ${onboardingUrl.value} --header "Authorization: Bearer ${token}"`;
   }
-  if (['cursor', 'vscode', 'windsurf', 'opencode', 'qoder', 'trae', 'codebuddy', 'zcode', 'workbuddy', 'pi', 'codex', 'deepseek-harness', 'cherry-studio'].includes(id)) {
-    return `node mcp/esquerystudio-mcp-cli.mjs install --client ${id} --url ${onboardingUrl.value} --token ${token}${onboardingTransport.value === 'sse' ? ' --transport sse' : ''} --write`;
+  /* gemini-cli / copilot-cli / amp 用各自原生子命令注册；--local 时回落到通用 CLI 写入（上面的 local 组已拦截） */
+  if (id === 'gemini-cli') {
+    return `gemini mcp add --transport http esquerystudio ${onboardingUrl.value} --header "Authorization: Bearer ${token}"`;
+  }
+  if (id === 'copilot-cli') {
+    return `copilot mcp add --transport http esquerystudio ${onboardingUrl.value} --header "Authorization: Bearer ${token}"`;
+  }
+  if (id === 'amp') {
+    return `amp mcp add --transport http esquerystudio ${onboardingUrl.value} -H "Authorization: Bearer ${token}"`;
+  }
+  if (['cursor', 'vscode', 'windsurf', 'opencode', 'qoder', 'trae', 'codebuddy', 'zcode', 'workbuddy', 'pi', 'codex', 'deepseek-harness', 'cherry-studio', 'gemini-cli', 'copilot-cli', 'amp'].includes(id)) {
+    return `node mcp/esquerystudio-mcp-cli.mjs install --client ${id} --url ${onboardingUrl.value} --token ${token} --write`;
   }
   return '';
 });
@@ -1963,9 +1986,20 @@ const onboardingConfig = computed(() => {
     if (id === 'zcode') return JSON.stringify({
       mcp: { servers: { esquerystudio: { type: 'stdio', command: 'node', args: [script, '--config', config] } } },
     }, null, 2);
-    if (['qoder', 'codebuddy', 'workbuddy'].includes(id)) return JSON.stringify({
+    if (['qoder', 'codebuddy', 'workbuddy', 'cline', 'roo-code', 'kilo-code'].includes(id)) return JSON.stringify({
       mcpServers: { esquerystudio: { type: 'stdio', command: 'node', args: [script, '--config', config] } },
     }, null, 2);
+    /* Zed 本地直连：context_servers 方言里 command 是 { path, args } 对象 */
+    if (id === 'zed') return JSON.stringify({
+      context_servers: { esquerystudio: { source: 'custom', options: { command: { path: 'node', args: [script, '--config', config] } } } },
+    }, null, 2);
+    if (id === 'continue') return 'mcpServers:\n'
+      + '  esquerystudio:\n'
+      + '    command: node\n'
+      + '    args:\n'
+      + `      - ${script}\n`
+      + '      - --config\n'
+      + `      - ${config}\n`;
     return JSON.stringify({
       mcpServers: { esquerystudio: { command: 'node', args: [script, '--config', config] } },
     }, null, 2);
@@ -1974,9 +2008,21 @@ const onboardingConfig = computed(() => {
     return JSON.stringify({
       mcpServers: {
         esquerystudio: {
-          type: onboardingHttpType.value,
+          type: 'http',
           url: onboardingUrl.value,
           headers: { Authorization: 'Bearer ' + (onboardingToken.value || '<esq_mcp_key>') },
+        },
+      },
+    }, null, 2);
+  }
+  /* Claude Desktop 配置文件只支持 stdio：无论 HTTP/SSE 都注入本仓库 stdio 桥 */
+  if (onboardingClient.value === 'claude-desktop') {
+    return JSON.stringify({
+      mcpServers: {
+        esquerystudio: {
+          command: 'node',
+          args: ['/path/to/esquerystudio/mcp/esquerystudio-mcp-stdio.mjs'],
+          env: { ESQ_MCP_URL: onboardingUrl.value, ESQ_MCP_TOKEN: onboardingToken.value || '<esq_mcp_key>' },
         },
       },
     }, null, 2);
@@ -1990,7 +2036,7 @@ const onboardingConfig = computed(() => {
     return JSON.stringify({
       servers: {
         esquerystudio: {
-          type: onboardingHttpType.value,
+          type: 'http',
           url: onboardingUrl.value,
           headers: { Authorization: 'Bearer ' + (onboardingToken.value || '<esq_mcp_key>') },
         },
@@ -2003,28 +2049,59 @@ const onboardingConfig = computed(() => {
       + "  name: '@deepseek-ai/dsh-mcp-client'\n"
       + "  config:\n"
       + "    serverName: esquerystudio\n"
-      + "    transport: " + (onboardingTransport.value === 'sse' ? 'sse' : 'streamable-http') + "\n"
+      + "    transport: streamable-http\n"
       + `    url: ${onboardingUrl.value}\n`
       + "    headers:\n"
       + `      Authorization: 'Bearer ${token}'\n`;
   }
-  if (onboardingClient.value === 'qoder' || onboardingClient.value === 'codebuddy' || onboardingClient.value === 'workbuddy') {
+  if (['qoder', 'codebuddy', 'workbuddy', 'cline', 'roo-code', 'kilo-code', 'copilot-cli', 'amp'].includes(onboardingClient.value)) {
     return JSON.stringify({
       mcpServers: {
         esquerystudio: {
-          type: onboardingHttpType.value,
+          type: 'http',
           url: onboardingUrl.value,
           headers: { Authorization: 'Bearer ' + (onboardingToken.value || '<esq_mcp_key>') },
         },
       },
     }, null, 2);
   }
+  /* Gemini CLI 方言：远程地址键名是 httpUrl，且不带 type 字段 */
+  if (onboardingClient.value === 'gemini-cli') {
+    return JSON.stringify({
+      mcpServers: {
+        esquerystudio: {
+          httpUrl: onboardingUrl.value,
+          headers: { Authorization: 'Bearer ' + (onboardingToken.value || '<esq_mcp_key>') },
+        },
+      },
+    }, null, 2);
+  }
+  if (onboardingClient.value === 'zed') {
+    return JSON.stringify({
+      context_servers: {
+        esquerystudio: {
+          source: 'custom',
+          options: {
+            url: onboardingUrl.value,
+            headers: { Authorization: 'Bearer ' + (onboardingToken.value || '<esq_mcp_key>') },
+          },
+        },
+      },
+    }, null, 2);
+  }
+  if (onboardingClient.value === 'continue') {
+    return 'mcpServers:\n'
+      + '  esquerystudio:\n'
+      + `    url: ${onboardingUrl.value}\n`
+      + '    headers:\n'
+      + `      Authorization: Bearer ${onboardingToken.value || '<esq_mcp_key>'}\n`;
+  }
   if (onboardingClient.value === 'zcode') {
     return JSON.stringify({
       mcp: {
         servers: {
           esquerystudio: {
-            type: onboardingHttpType.value,
+            type: 'http',
             url: onboardingUrl.value,
             headers: { Authorization: 'Bearer ' + (onboardingToken.value || '<esq_mcp_key>') },
           },
@@ -2062,7 +2139,6 @@ const onboardingConfig = computed(() => {
     return JSON.stringify({
       mcpServers: {
         esquerystudio: {
-          ...(onboardingTransport.value === 'sse' ? { type: 'sse' } : {}),
           url: onboardingUrl.value,
           headers: { Authorization: 'Bearer ' + (onboardingToken.value || '<esq_mcp_key>') },
         },
@@ -2611,9 +2687,6 @@ async function testOnboarding() {
       serverName: init?.result?.serverInfo?.name || 'MCP',
       serverVersion: init?.result?.serverInfo?.version || '',
       tools: (list?.result?.tools || []).length,
-      note: !isBrowserMode && onboardingTransport.value === 'sse'
-        ? 'HTTP 鉴权与工具清单已验证；SSE 客户端使用同一密钥建立长连接。'
-        : '',
     };
   } catch (e: any) {
     onboardingTest.value = { ok: false, message: String(e?.message || e) };
@@ -3090,7 +3163,7 @@ function downloadOnboardingConfig() {
   if (onboardingClient.value === 'dbx') return;
   const suffix = onboardingClient.value === 'browser'
     ? 'js'
-    : onboardingClient.value === 'deepseek-harness' ? 'yml'
+    : ['deepseek-harness', 'continue'].includes(onboardingClient.value) ? 'yml'
       : onboardingClient.value === 'codex' ? 'toml' : 'json';
   const mime = suffix === 'json' ? 'application/json'
     : suffix === 'yml' ? 'text/yaml'
@@ -3756,8 +3829,7 @@ async function autoPickSingleKey() {
 /* ── 权限链路（顶部贯穿五段）：客户端 → 传输 → 凭证 → 范围 → 审计 ── */
 const traceClient = computed(() => onboardingClientLabel.value);
 const traceClientSub = computed(() => `${onboardingClientCount} 个客户端可选`);
-const traceTransport = computed(() => isBrowserMode ? 'PAGE BRIDGE'
-  : onboardingTransport.value === 'sse' ? 'SSE' : 'HTTP');
+const traceTransport = computed(() => isBrowserMode ? 'PAGE BRIDGE' : 'HTTP');
 const traceTransportSub = computed(() => isBrowserMode
   ? 'window.ESQueryStudioMCP'
   : `surface=${onboardingSurface.value}`);

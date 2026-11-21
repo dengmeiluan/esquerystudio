@@ -33,9 +33,9 @@ git branch -M main
 git push --force origin main
 
 # 3. 单一标签指向同一个初版提交，强制覆盖
-#    标签必须等于 v + 项目版本（例如当前 1.0.79 → v1.0.79），否则 Release workflow 会拒绝
-git tag -f -a v1.0.79 -m "ESQueryStudio 初版（滚动更新）"
-git push --force origin refs/tags/v1.0.79
+#    标签必须等于 v + 项目版本（例如当前 1.0.80 → v1.0.80），否则 Release workflow 会拒绝
+git tag -f -a v1.0.80 -m "ESQueryStudio 初版（滚动更新）"
+git push --force origin refs/tags/v1.0.80
 ```
 
 `Release` workflow 校验标签与各项目版本一致（`$GITHUB_REF_NAME == v$VERSION`），构建 UI、Maven 产物、sources、Javadoc、SBOM，写入 `SHA256SUMS` 与 provenance attestation，并创建或更新唯一的 Release。

@@ -305,7 +305,7 @@ Browser-mode capability matrix and honest limits: [docs/browser-mode.md](docs/br
 <dependency>
     <groupId>io.github.dengmeiluan</groupId>
     <artifactId>esquerystudio-console</artifactId>
-    <version>1.0.79</version>
+    <version>1.0.80</version>
 </dependency>
 ```
 

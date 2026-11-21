@@ -32,7 +32,7 @@ esquerystudio-mcp-cli install --client cursor --url http://localhost:5601/mcp --
 
 `probe` 是接入自检：真实走 `initialize` + `tools/list`，打印协议、工具数、key 角色、连接与逐连接读写；401 / 地址错误会直接给出状态码和错误码。
 
-支持 Claude Code、Cursor、VS Code、Windsurf、TRAE、Codex、Qoder、CodeBuddy、ZCode、DeepSeek Harness、OpenCode、Pi、Cherry Studio、WorkBuddy、Antigravity；未知客户端会输出可粘贴的 `mcpServers` 片段。
+支持 Claude Code、Claude Desktop、Cursor、VS Code、Windsurf、TRAE、Codex、Qoder、CodeBuddy、ZCode、DeepSeek Harness、OpenCode、Pi、Cherry Studio、WorkBuddy、Antigravity、Cline、Roo Code、Kilo Code、Gemini CLI、GitHub Copilot CLI、Zed、Continue、Amp；未知客户端会输出可粘贴的 `mcpServers` 片段。
 `detect --json` 会逐家回报 `commandFound`（CLI 是否在 PATH）、`configFound`（官方配置路径是否存在）与 `installed`（配置里是否已有 `esquerystudio`，读不懂时为 `null`），Agent 可据此判断是「新装、覆盖还是跳过」。
 
 完整工具表、错误语义与架构见 [MCP 接入](mcp.md)。
@@ -405,7 +405,7 @@ curl -s http://localhost:5601/mcp \
 
 客户端配置默认使用 **精简工具面**（`/mcp?surface=compact` 或请求头 `X-MCP-Surface: compact`）：保留全部 17 个 action 组（167 个 action 仍按 key 白名单执行），只把 resources / prompts 列表置空，避免 CodeBuddy / WorkBuddy 被 10 个资源 + 6 个提示词铺满面板；切换「完整工具面」即恢复 17 组 + 10 资源 + 6 提示词。精简面只影响 discovery，不改变 key 已签发的工具权限。
 
-面板独立的「客户端接入」页以可搜索矩阵预置 Claude Code、Cursor、CodeBuddy Code CLI、ZCode、TRAE、VS Code、Windsurf、Codex、DeepSeek Harness、OpenCode、Pi、Cherry Studio、Qoder、WorkBuddy、Antigravity、通用 HTTP、stdio 桥、本地 Node、浏览器页面内桥等类型；选中后显示对应配置文件位置与提示，可复制或下载配置，HTTP/stdio 会自动填入当前试跑 key。
+面板独立的「客户端接入」页以可搜索矩阵预置 Claude Code、Claude Desktop、Cursor、CodeBuddy Code CLI、ZCode、TRAE、VS Code、Windsurf、Codex、DeepSeek Harness、OpenCode、Pi、Cherry Studio、Qoder、WorkBuddy、Antigravity、Cline、Roo Code、Kilo Code、Gemini CLI、GitHub Copilot CLI、Zed、Continue、Amp、通用 HTTP、stdio 桥、本地 Node、浏览器页面内桥等类型；选中后显示对应配置文件位置与提示，可复制或下载配置，HTTP/stdio 会自动填入当前试跑 key。
 
 ![MCP 客户端接入：可搜索的客户端矩阵（IDE / CLI / 桌面 / stdio / 页面桥，含 DBX MCP Server 的非客户端边界），选中后展示官方配置位置、可复制/下载的配置与 CLI 安装/检测命令](screenshots/mcp-client-onboarding.png)
 
@@ -424,7 +424,7 @@ esquerystudio-mcp-cli config --client claude-code --url http://localhost:5601/mc
 
 > **DBX 互操作**：DBX 0.6+ 是 MCP **Server**（把自己的数据库连接暴露给 AI 客户端），不是 MCP 客户端，不能直接消费本端点；若同一个 Agent 要同时使用 DBX 与本控制台，请在 Agent 配置里并列注册两个 server。DBX 侧可用 `dbx agent setup` 安装它的官方 Agent Skill。
 
-Cursor / VS Code / Windsurf / OpenCode / Qoder / TRAE / CodeBuddy / ZCode / WorkBuddy / Pi / Antigravity 支持合并写入 MCP 配置（OpenCode 写入 `mcp.servers` 的 `type: "remote"`，ZCode 写入 `mcp.servers` 的 `type: "http"`，Qoder / CodeBuddy 写入带 `type: "http"` 的 `mcpServers`）；Claude Code 输出 `.mcp.json` 配置与可执行 `claude mcp add` 命令，Codex 输出 `~/.codex/config.toml` 的 `[mcp_servers.esquerystudio]` TOML；DeepSeek Harness 输出 `cordis.yml` 的 `@deepseek-ai/dsh-mcp-client` 插件条目（`transport: streamable-http`）；其余客户端输出标准 `mcpServers` JSON。CLI 不执行第三方命令，也不覆盖已有配置。
+Cursor / VS Code / Windsurf / OpenCode / Qoder / TRAE / CodeBuddy / ZCode / WorkBuddy / Pi / Antigravity / Cline / Roo Code / Kilo Code 支持合并写入 MCP 配置（OpenCode 写入 `mcp.servers` 的 `type: "remote"`，ZCode 写入 `mcp.servers` 的 `type: "http"`，Qoder / CodeBuddy / Cline 系写入带 `type: "http"` 的 `mcpServers`）；Claude Code 输出 `.mcp.json` 配置与可执行 `claude mcp add` 命令，Codex 输出 `~/.codex/config.toml` 的 `[mcp_servers.esquerystudio]` TOML；DeepSeek Harness 输出 `cordis.yml` 的 `@deepseek-ai/dsh-mcp-client` 插件条目（`transport: streamable-http`）；Claude Desktop 恒输出 stdio 桥形态（其配置文件不支持远程 URL，env 注入 `ESQ_MCP_URL`/`ESQ_MCP_TOKEN`）；Gemini CLI 用 `httpUrl` 键名方言并给 `gemini mcp add` 命令，GitHub Copilot CLI 给 `copilot mcp add` 命令，Amp 给 `amp mcp add` 命令；Zed 写入 `context_servers.<id>.{source:"custom",options}`（settings.json 混用户配置，手动只动该节点）；Continue 输出 `~/.continue/config.yaml` 的 YAML 片段；其余客户端输出标准 `mcpServers` JSON。CLI 不执行第三方命令，也不覆盖已有配置。
 
 ### stdio 桥（Claude Desktop / Cursor）
 

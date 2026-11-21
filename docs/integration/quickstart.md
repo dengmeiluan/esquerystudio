@@ -4,13 +4,13 @@
 
 ## 1. 引入依赖
 
-当前版本是 `1.0.79`。ESQueryStudio 的 ES 栈是 `provided`，宿主必须同时提供与自身 Spring Boot、服务端 ES 配套的 Spring Data Elasticsearch 与 RHLC 依赖；版本继续由宿主 BOM 管理。
+当前版本是 `1.0.80`。ESQueryStudio 的 ES 栈是 `provided`，宿主必须同时提供与自身 Spring Boot、服务端 ES 配套的 Spring Data Elasticsearch 与 RHLC 依赖；版本继续由宿主 BOM 管理。
 
 ```xml
 <dependency>
     <groupId>io.github.dengmeiluan</groupId>
     <artifactId>esquerystudio-console</artifactId>
-    <version>1.0.79</version>
+    <version>1.0.80</version>
 </dependency>
 <dependency>
     <groupId>org.springframework.boot</groupId>

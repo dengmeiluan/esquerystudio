@@ -29,12 +29,14 @@ function runFail(args) {
 
 const list = run(['list']);
 for (const client of ['claude-code', 'cursor', 'vscode', 'windsurf', 'trae', 'codex', 'qoder',
-  'codebuddy', 'zcode', 'deepseek-harness', 'opencode', 'pi', 'cherry-studio', 'workbuddy', 'antigravity', 'dbx', 'local']) {
+  'codebuddy', 'zcode', 'deepseek-harness', 'opencode', 'pi', 'cherry-studio', 'workbuddy', 'antigravity',
+  'claude-desktop', 'cline', 'roo-code', 'kilo-code', 'gemini-cli', 'copilot-cli', 'zed', 'continue', 'amp',
+  'dbx', 'local']) {
   assert.ok(list.includes(client), `client list missing ${client}`);
 }
 
 const detected = JSON.parse(run(['detect', '--json']));
-assert.equal(detected.length, 17);
+assert.equal(detected.length, 26);
 assert.ok(detected.every((row) => 'commandFound' in row && 'configFound' in row
   && 'installed' in row && 'mode' in row && Array.isArray(row.commandCandidates)));
 assert.equal(detected.find((row) => row.id === 'cherry-studio').mode, 'gui');
@@ -107,6 +109,47 @@ assert.equal(opencode.mcp.servers.esquerystudio.oauth, false);
 
 const dsh = run(['config', '--client', 'deepseek-harness', '--url', URL_VALUE, '--token', TOKEN]);
 assert.ok(dsh.includes('@deepseek-ai/dsh-mcp-client') && dsh.includes('transport: streamable-http') && dsh.includes(URL_VALUE));
+
+/* 扩容九家的方言锚：Claude Desktop 恒走 stdio 桥（env 注入）、Cline 系标准 http、
+   Gemini 键名方言 httpUrl、Zed 嵌套 context_servers、Continue YAML 文本、
+   gemini/copilot/amp 的 CLI 安装命令形态。 */
+const claudeDesktop = JSON.parse(run(['config', '--client', 'claude-desktop', '--url', URL_VALUE, '--token', TOKEN]));
+assert.equal(claudeDesktop.mcpServers.esquerystudio.command, 'node');
+assert.ok(claudeDesktop.mcpServers.esquerystudio.args[0].endsWith('esquerystudio-mcp-stdio.mjs'));
+assert.equal(claudeDesktop.mcpServers.esquerystudio.env.ESQ_MCP_URL, URL_VALUE);
+assert.equal(claudeDesktop.mcpServers.esquerystudio.env.ESQ_MCP_TOKEN, TOKEN);
+
+const cline = JSON.parse(run(['config', '--client', 'cline', '--url', URL_VALUE, '--token', TOKEN]));
+assert.equal(cline.mcpServers.esquerystudio.type, 'http');
+assert.equal(cline.mcpServers.esquerystudio.url, URL_VALUE);
+const roo = JSON.parse(run(['config', '--client', 'roo-code', '--url', URL_VALUE, '--token', TOKEN]));
+assert.equal(roo.mcpServers.esquerystudio.type, 'http');
+const kilo = JSON.parse(run(['config', '--client', 'kilo-code', '--url', URL_VALUE, '--token', TOKEN]));
+assert.equal(kilo.mcpServers.esquerystudio.type, 'http');
+
+const gemini = JSON.parse(run(['config', '--client', 'gemini-cli', '--url', URL_VALUE, '--token', TOKEN]));
+assert.equal(gemini.mcpServers.esquerystudio.httpUrl, URL_VALUE);
+assert.ok(!('url' in gemini.mcpServers.esquerystudio), 'gemini 方言必须用 httpUrl 而非 url');
+assert.equal(gemini.mcpServers.esquerystudio.headers.Authorization, 'Bearer ' + TOKEN);
+
+const copilotJson = JSON.parse(run(['config', '--client', 'copilot-cli', '--url', URL_VALUE, '--token', TOKEN]));
+assert.equal(copilotJson.mcpServers.esquerystudio.type, 'http');
+const copilot = run(['install', '--client', 'copilot-cli', '--url', URL_VALUE, '--token', TOKEN]);
+assert.ok(copilot.includes('copilot mcp add') && copilot.includes(URL_VALUE));
+
+const zed = JSON.parse(run(['config', '--client', 'zed', '--url', URL_VALUE, '--token', TOKEN]));
+assert.equal(zed.context_servers.esquerystudio.source, 'custom');
+assert.equal(zed.context_servers.esquerystudio.options.url, URL_VALUE);
+assert.equal(zed.context_servers.esquerystudio.options.headers.Authorization, 'Bearer ' + TOKEN);
+
+const cont = run(['config', '--client', 'continue', '--url', URL_VALUE, '--token', TOKEN]);
+assert.ok(cont.includes('mcpServers:') && cont.includes('esquerystudio:') && cont.includes(URL_VALUE));
+assert.ok(cont.includes('Authorization: "Bearer ' + TOKEN + '"'));
+
+const ampJson = JSON.parse(run(['config', '--client', 'amp', '--url', URL_VALUE, '--token', TOKEN]));
+assert.equal(ampJson.mcpServers.esquerystudio.type, 'http');
+const amp = run(['install', '--client', 'amp', '--url', URL_VALUE, '--token', TOKEN]);
+assert.ok(amp.includes('amp mcp add') && amp.includes('-H "Authorization: Bearer ' + TOKEN + '"'));
 
 const local = JSON.parse(run(['config', '--client', 'local']));
 assert.equal(local.defaultConnection, 'prod');
