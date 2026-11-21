@@ -2,9 +2,9 @@
   <div class="xm">
     <!-- 页头统一 PageHeader：原「新建迁移」卡头的展开/收起入口上移至页头 actions（入口保留不丢） -->
     <!-- w80:副标题与分组编号同步收敛为三步(原副标题承诺四步、组内只见 1/2 的断链修复) -->
-    <PageHeader :icon="Rocket" title="跨集群迁移" subtitle="旧集群 → 宿主集群 · ① 连接检查 → ② 选源 → ③ 定目标">
+    <PageHeader :icon="Rocket" :title="'跨集群迁移'" subtitle="旧集群 → 宿主集群 · ① 连接检查 → ② 选源 → ③ 定目标">
       <template #actions>
-        <button :aria-label="formOpen ? '收起表单' : '展开表单'" class="btn sm ghost" @click="formOpen = !formOpen" :title="formOpen ? '收起表单' : '展开表单'">
+        <button :aria-label="formOpen ? '收起表单' : '展开表单'" class="btn sm ghost" @click="formOpen = !formOpen" v-tip="formOpen ? '收起表单' : '展开表单'">
           <ChevronDown :size="12" :style="{ transform: formOpen ? 'rotate(180deg)' : '', transition: 'transform var(--tr)' }" />
         </button>
       </template>
@@ -28,7 +28,7 @@
  分节标题走全局 .sec-t 档（531 上半刀去 background 之后的下半刀：
  border 壳退役→border-top 分隔，编号语义保留） -->
           <div class="xm-group">
-            <div class="xm-g-hd sec-t"><span class="xm-g-num">1</span> 连接旧集群</div>
+            <div class="xm-g-hd sec-t"><span class="xm-g-num" :class="{ done: xmStepDone(1) }" data-test="xm-step1"><CheckCircle2 v-if="xmStepDone(1)" :size="12" /><template v-else>1</template></span> 连接旧集群</div>
             <!-- 已存连接下拉——服务端按档案取密，明文不经前端；留「手动输入…」回退；
  补 filterable（连接档案多时不可用，TopBar 索引下拉同款） -->
             <div class="xm-src-pick">
@@ -68,12 +68,12 @@
 
           <!-- ── 第 2 步:选源(旧集群) ── -->
           <div class="xm-group">
-            <div class="xm-g-hd sec-t"><span class="xm-g-num">2</span> {{ batchMode ? '从旧集群勾选要批量迁走的索引' : '从旧集群选一个要迁走的索引' }}
+            <div class="xm-g-hd sec-t"><span class="xm-g-num" :class="{ done: xmStepDone(2) }" data-test="xm-step2"><CheckCircle2 v-if="xmStepDone(2)" :size="12" /><template v-else>2</template></span> {{ batchMode ? '从旧集群勾选要批量迁走的索引' : '从旧集群选一个要迁走的索引' }}
               <!-- 多选批量开关：开=清单逐行勾选+目标名按前缀映射（生产一族索引同步测试环境场景）；
                关=单源向导既有行为零变化 -->
               <div class="seg" style="margin-left:auto" role="group" aria-label="多选批量模式开关">
                 <button data-test="xm-batch-toggle" :class="{ on: batchMode }" :aria-pressed="batchMode ? 'true' : 'false'"
-                  :title="batchMode ? '切回单索引向导' : '开启多选：勾选清单索引，目标名按「源前缀→目标前缀」映射后逐个下发'"
+                  v-tip="batchMode ? '切回单索引向导' : '开启多选：勾选清单索引，目标名按「源前缀→目标前缀」映射后逐个下发'"
                   @click="toggleBatchMode">多选批量</button>
               </div>
             </div>
@@ -115,8 +115,8 @@
             <template v-else>
               <div v-if="batchSel.length" class="xm-batch-sel">
                 <span class="dim">已选 {{ batchSel.length }}：</span>
-                <span v-for="nm in batchSel" :key="nm" class="chip mono on">{{ nm }}<button class="xm-batch-x" :aria-label="'移除源索引 ' + nm" :title="'移除 ' + nm" @click="toggleBatchSel(nm)">×</button></span>
-                <button class="btn sm ghost" @click="batchSel = []" title="清空全部勾选">清空已选</button>
+                <span v-for="nm in batchSel" :key="nm" class="chip mono on">{{ nm }}<button class="xm-batch-x" :aria-label="'移除源索引 ' + nm" v-tip="'移除 ' + nm" @click="toggleBatchSel(nm)">×</button></span>
+                <button class="btn sm ghost" @click="batchSel = []" v-tip="'清空全部勾选'">清空已选</button>
               </div>
               <div v-if="remoteIndices.length" class="xm-remote">
                 <div class="xm-r-t sec-t">快捷清单（命中 {{ batchListFiltered.length }}/{{ remoteIndices.length }}，勾选加入批量）：</div>
@@ -138,7 +138,7 @@
 
           <!-- ── 第 3 步:定目标(宿主集群) ── -->
           <div class="xm-group">
-            <div class="xm-g-hd sec-t"><span class="xm-g-num">3</span> {{ batchMode ? '在宿主集群定目标前缀（批量映射）' : '在宿主集群定一个目标索引' }}</div>
+            <div class="xm-g-hd sec-t"><span class="xm-g-num" :class="{ done: xmStepDone(3) }" data-test="xm-step3"><CheckCircle2 v-if="xmStepDone(3)" :size="12" /><template v-else>3</template></span> {{ batchMode ? '在宿主集群定目标前缀（批量映射）' : '在宿主集群定一个目标索引' }}</div>
             <!-- 目标下拉同迁 usePopupList（骨架语义见源下拉处批注） -->
             <div v-if="!batchMode" class="xm-f-row" ref="dstRootEl">
               <input :value="form.destIndex" class="inp mono xm-idx-inp" placeholder="搜索宿主已有索引,或输入新索引名"
@@ -174,8 +174,8 @@
                   placeholder="选择预设加载前缀映射" style="width:200px" data-test="xm-batch-preset-pick"
                   @update:value="onBatchPresetPick" />
                 <input v-model="batchPresetName" data-test="xm-batch-preset-name" class="inp mono" spellcheck="false" autocomplete="off" placeholder="预设名" />
-                <button class="btn sm ghost" data-test="xm-batch-preset-save" title="按预设名保存当前源/目标前缀映射">保存预设</button>
-                <button class="btn sm ghost" :disabled="!batchPresetId" title="删除当前选中的映射预设" @click="delBatchPreset">删除预设</button>
+                <button class="btn sm ghost" data-test="xm-batch-preset-save" v-tip="'按预设名保存当前源/目标前缀映射'">保存预设</button>
+                <button class="btn sm ghost" :disabled="!batchPresetId" v-tip="'删除当前选中的映射预设'" @click="delBatchPreset">删除预设</button>
               </div>
               <table v-if="batchMapRows.length" class="xm-batch-tbl" data-test="xm-batch-map">
                 <thead><tr><th>源索引</th><th class="dim">映射</th><th>目标索引</th></tr></thead>
@@ -194,7 +194,7 @@
             <div class="xm-f-row xm-inline">
               <span class="xm-inline-lb">建索引方式</span>
               <div class="seg">
-                <button v-for="m in destModes" :key="m.k" :class="{ on: form.destCreateMode === m.k }" @click="form.destCreateMode = m.k" :title="m.tip">{{ m.t }}</button>
+                <button v-for="m in destModes" :key="m.k" :class="{ on: form.destCreateMode === m.k }" @click="form.destCreateMode = m.k" v-tip="m.tip">{{ m.t }}</button>
               </div>
             </div>
 
@@ -211,23 +211,38 @@
               <span class="xm-inline-lb">迁移速度</span>
               <!-- emoji ⚡/🪶 → lucide 图标（Zap/Feather，全站图标语言统一） -->
               <div class="seg">
-                <button :class="{ on: form.tuneMode === 'AGGRESSIVE' }" @click="form.tuneMode = 'AGGRESSIVE'" title="大批次多并发,速度优先（离线时段推荐）"><Zap :size="11" /> 极速</button>
-                <button :class="{ on: form.tuneMode === 'GENTLE' }" @click="form.tuneMode = 'GENTLE'" title="小批次少并发,在线优先（业务高峰推荐）"><Feather :size="11" /> 温和</button>
+                <button :class="{ on: form.tuneMode === 'AGGRESSIVE' }" @click="form.tuneMode = 'AGGRESSIVE'" v-tip="'大批次多并发,速度优先（离线时段推荐）'"><Zap :size="11" /> 极速</button>
+                <button :class="{ on: form.tuneMode === 'GENTLE' }" @click="form.tuneMode = 'GENTLE'" v-tip="'小批次少并发,在线优先（业务高峰推荐）'"><Feather :size="11" /> 温和</button>
               </div>
             </div>
 
             <!-- 高级:默认折叠——原生 details/summary 升档 CollapsePanel 统一折叠件（默认收起不变） -->
-            <CollapsePanel title="高级参数（通常不需要改）" v-model:open="advOpen" class="xm-adv-details">
+            <CollapsePanel :title="'高级参数（通常不需要改）'" v-model:open="advOpen" class="xm-adv-details">
               <div class="xm-adv">
                 <!-- 三个数值档：原生 number 升档 NInputNumber（min=0/placeholder/title 语义保留；
                      留空=null 提交侧 || 0 归一口径不变） -->
-                <label class="xm-adv-f"><span>并行路数</span><n-input-number v-model:value="form.slices" :min="0" size="small" :show-button="false" placeholder="自动" class="xm-adv-i" title="sliced scroll 并行路数（留空/0=服务端默认）" style="width:72px" /></label>
-                <label class="xm-adv-f"><span>批大小</span><n-input-number v-model:value="form.batchSize" :min="0" size="small" :show-button="false" placeholder="默认" class="xm-adv-i" title="每批 bulk 写入文档数（留空/0=调优档默认）" style="width:82px" /></label>
-                <label class="xm-adv-f"><span>scroll 秒</span><n-input-number v-model:value="form.scrollKeepAliveSec" :min="0" size="small" :show-button="false" placeholder="默认" class="xm-adv-i" title="scroll 上下文存活秒（留空/0=调优档默认）" style="width:72px" /></label>
+                <!-- 三个数值档的悬浮说明走 v-tip（title 会透传到组件根元素成为原生 title，随任务零清退） -->
+                <label class="xm-adv-f"><span>并行路数</span><n-input-number v-model:value="form.slices" :min="0" size="small" :show-button="false" placeholder="自动" class="xm-adv-i" v-tip="'sliced scroll 并行路数（留空/0=服务端默认）'" style="width:72px" /></label>
+                <label class="xm-adv-f"><span>批大小</span><n-input-number v-model:value="form.batchSize" :min="0" size="small" :show-button="false" placeholder="默认" class="xm-adv-i" v-tip="'每批 bulk 写入文档数（留空/0=调优档默认）'" style="width:82px" /></label>
+                <label class="xm-adv-f"><span>scroll 秒</span><n-input-number v-model:value="form.scrollKeepAliveSec" :min="0" size="small" :show-button="false" placeholder="默认" class="xm-adv-i" v-tip="'scroll 上下文存活秒（留空/0=调优档默认）'" style="width:72px" /></label>
                 <n-checkbox v-model:checked="form.forceMerge" size="small" class="xm-fm">收尾合并段</n-checkbox>
                 <!-- 应用推荐：preflight.recommended 一键回填（预检未拉过则现拉一次） -->
                 <button class="btn sm ghost" data-test="xm-adv-recommend" :disabled="advRecBusy"
-                  title="按 preflight 预检推荐回填并行路数/批大小" @click="applyRecommended"><Wand2 :size="11" /> 应用推荐</button>
+                  v-tip="'按 preflight 预检推荐回填并行路数/批大小'" @click="applyRecommended"><Wand2 :size="11" /> 应用推荐</button>
+              </div>
+              <!-- 方案预设（localStorage xm-plan-presets-v1，交互照抄批量前缀预设）：保存当前
+                   迁移方案六参（速度/并行/批大小/scroll 秒/收尾合并/建索引方式）为命名预设，
+                   下拉选择即回填、可删除；不含任何连接信息与密码 -->
+              <div class="xm-f-row xm-inline xm-plan-preset">
+                <span class="xm-inline-lb">方案预设</span>
+                <n-select v-model:value="planPresetId" :options="planPresetOpts" size="small" clearable filterable
+                  placeholder="选择预设回填方案参数" style="width:200px" data-test="xm-plan-preset-pick"
+                  @update:value="onPlanPresetPick" />
+                <input v-model="planPresetName" data-test="xm-plan-preset-name" class="inp mono" spellcheck="false" autocomplete="off" placeholder="预设名" />
+                <button class="btn sm ghost" data-test="xm-plan-preset-save"
+                  v-tip="'按预设名保存当前迁移方案（迁移速度/并行路数/批大小/scroll 秒/收尾合并段/建索引方式；不含连接与密码）'"
+                  @click="savePlanPreset">保存预设</button>
+                <button class="btn sm ghost" :disabled="!planPresetId" v-tip="'删除当前选中的方案预设'" @click="delPlanPreset">删除预设</button>
               </div>
             </CollapsePanel>
           </div>
@@ -250,7 +265,7 @@
  （'/xmigrate/'）却全页无取数入口；钮形/aria/特征串零触（rawIo545 锁保全） -->
           <!-- 预览行数三档循环钮（useTierCycle 消费形态照抄 IlmView 宽/CV 高钮）——
  10/20/40 落盘键 xm.cfgRows，默认档 10=540 封顶值既有视觉零变化 -->
-          <button class="btn sm ghost" :title="'配置预览行数档：' + cfgCapRows + ' 行（点击切换）'" @click="cycleCfgRows">行数</button>
+          <button class="btn sm ghost" v-tip="'配置预览行数档：' + cfgCapRows + ' 行（点击切换）'" @click="cycleCfgRows">行数</button>
           <!-- 预检报告（openStartConfirm 已拉过 preflight 后可开）：索引画像/预估/建议 -->
           <button class="btn sm ghost" data-test="xm-pf-btn" :disabled="!preflight" @click="preflightOpen = true"><FileSearch :size="11" /> 预检报告</button>
           <!-- 拉取失败内联面板（连接检查失败面板同族形态）：全文可回看+原始对象旁路+重试 -->
@@ -274,11 +289,18 @@
           <div v-if="canOps" class="xm-sync-row">
             <span class="xm-inline-lb">同步结构到目标</span>
             <input v-model="syncDest" data-test="xm-sync-dest" class="inp mono xm-sync-inp" spellcheck="false" autocomplete="off"
-              :disabled="syncing" placeholder="目标索引名（默认与源同名）" title="在宿主集群要创建的目标索引名" @input="syncDestTouched = true" />
+              :disabled="syncing" placeholder="目标索引名（默认与源同名）" v-tip="'在宿主集群要创建的目标索引名'" @input="syncDestTouched = true" />
             <n-checkbox v-model:checked="syncAliases" size="small" data-test="xm-sync-aliases">同时迁移别名</n-checkbox>
             <Tip text="两段式：先 dryRun 预览兼容计划（每刀带理由，不落盘），再按计划创建；目标不兼容的厂商私有 settings 与分词组件自动剔除或降级，别名可选随迁；目标已存在将失败（不覆盖既有索引）" long>
               <button class="btn sm" data-test="xm-sync-btn" :disabled="!form.sourceIndex || syncing"
                 @click="openSyncPreview"><ArrowRightLeft :size="11" /> {{ syncing ? '同步中…' : '预览兼容计划' }}</button>
+            </Tip>
+            <!-- 结构对比（diff-structure 只读）：目标索引已存在时的次级动作——源/目标
+                 settings+mapping 逐项比对，命中兼容计划剔除集的项标「豁免」（不算计划外差异） -->
+            <Tip :text="srcConnId ? '对比源与目标索引的 settings/结构差异（只读）：命中兼容计划剔除清单的差异标「豁免」，其余为计划外差异' : '结构对比需选择已授权的源连接档案（手输连接不支持，与服务端 diff 契约一致）'" long>
+              <button v-if="canOps && diffDestExists" class="btn sm ghost" data-test="xm-diff-btn"
+                :disabled="!form.sourceIndex || !srcConnId || diffLoading"
+                @click="openDiffStructure"><GitCompareArrows :size="11" /> {{ diffLoading ? '对比中…' : '结构对比' }}</button>
             </Tip>
           </div>
           <!-- 请求层失败（4xx/5xx）：内联错误面板（拉取失败面板同族形态），
@@ -346,7 +368,7 @@
                 <span v-for="a in syncReport.aliases.skipped" :key="a" class="chip mono xm-plan-skip">{{ a }}</span>
               </div>
             </div>
-            <CollapsePanel v-if="syncReport.warnings?.length" v-model:open="syncWarnOpen" title="同步警告"
+            <CollapsePanel v-if="syncReport.warnings?.length" v-model:open="syncWarnOpen" :title="'同步警告'"
               :count="syncReport.warnings.length" class="xm-sync-warns-cp" data-test="xm-sync-warnings">
               <ul class="xm-sync-warns">
                 <li v-for="(w, i) in syncReport.warnings" :key="i">{{ w }}</li>
@@ -356,7 +378,7 @@
               <CheckCircle2 :size="12" /> 全部属性兼容，未剔除任何项
             </div>
             <div v-if="syncReport.created" class="xm-sync-next">
-              <button class="btn sm" data-test="xm-sync-continue" title="目标索引结构已就绪，回填目标索引后在下方启动迁移搬运数据"
+              <button class="btn sm" data-test="xm-sync-continue" v-tip="'目标索引结构已就绪，回填目标索引后在下方启动迁移搬运数据'"
                 @click="continueToMigrate"><Rocket :size="11" /> 继续迁移数据</button>
             </div>
           </div>
@@ -375,8 +397,13 @@
           <span v-if="idxNameError && !batchMode" class="xm-idx-err">{{ idxNameError }}</span>
           <!-- 原始 IO 快查钮常驻位（自 .xm-cfg 分节上移，钮形/aria/特征串零触）——
  margin-right:auto 靠行首（F4 红字同语言），启动钮仍在行尾 -->
-          <button class="btn sm ghost" style="margin-right:auto" aria-label="查看原始 IO（迁移接口）" title="最近一次迁移接口调用的请求/响应原文" @click="openRawIo"><Terminal :size="11" /> 原始 IO</button>
+          <button class="btn sm ghost" style="margin-right:auto" aria-label="查看原始 IO（迁移接口）" v-tip="'最近一次迁移接口调用的请求/响应原文'" @click="openRawIo"><Terminal :size="11" /> 原始 IO</button>
           <template v-if="!batchMode">
+            <!-- 全链收尾开关（随表单草稿走）：迁移 DONE 后自动对该作业发起等价验证并展示结论 -->
+            <n-checkbox v-if="canOps" v-model:checked="form.autoVerify" size="small" data-test="xm-autoverify"
+              v-tip="'迁移完成后自动发起等价验证：比对源/目标文档计数 + 抽样内容摘要，弹层展示等价/分歧/无法判定结论'">
+              完成后自动等价验证
+            </n-checkbox>
             <button v-if="canOps" class="btn primary" :disabled="!canStart || starting" @click="openStartConfirm">
               <Rocket :size="13" /> {{ starting ? '启动中 ' + startSecs + 's' : '启动迁移' }}
             </button>
@@ -398,13 +425,39 @@
         <b>{{ batchSummaryText }}</b>
         <button v-if="batchResult.fail.length" class="btn sm ghost" @click="copyBatchFails"><ClipboardCopy :size="11" /> 复制失败清单</button>
         <button v-if="batchResult.fail.length && batchFlowPhase !== 'previewed'" class="btn sm ghost" data-test="xm-batch-retry"
-          :disabled="starting" title="对下发失败的行按保存的启动参数一键重下发" @click="retryBatchFails"><RotateCcw :size="11" /> 重试失败项</button>
+          :disabled="starting" v-tip="'对下发失败的行按保存的启动参数一键重下发'" @click="retryBatchFails"><RotateCcw :size="11" /> 重试失败项</button>
         <button v-if="batchFlowPhase === 'previewed'" class="btn sm primary" data-test="xm-batch-apply"
           :disabled="starting" @click="runBatchCreateAndStart"><ArrowRightLeft :size="11" /> 按预览创建并迁移</button>
+        <!-- 批量链收尾补验证：对批量清单中已 DONE 的作业逐个等价验证，汇总 verdict 矩阵
+            （迁移仍在进行时点击会如实提示稍后再来，不伪造结果） -->
+        <button v-if="canOps && batchFlowPhase === 'done'" class="btn sm ghost" data-test="xm-batch-verify-btn"
+          :disabled="batchVerifyBusy"
+          v-tip="'对批量清单中已完成的作业逐个等价验证（源/目标计数 + 抽样内容摘要），汇总等价/有分歧/无法判定结论'"
+          @click="runBatchVerify"><ShieldCheck :size="11" /> {{ batchVerifyBusy ? '验证中…' : '全部等价验证' }}</button>
+        <div v-if="batchVerifyRows.length" class="xm-batch-verify" data-test="xm-batch-verify" role="status">
+          <div class="xm-bv-sum">
+            <span class="chip">已验证 {{ batchVerifySummary.done }}/{{ batchVerifySummary.total }}</span>
+            <span class="chip xm-h-ok">等价 {{ batchVerifySummary.equivalent }}</span>
+            <span class="chip xm-h-err">有分歧 {{ batchVerifySummary.divergent }}</span>
+            <span class="chip xm-h-warn">无法判定 {{ batchVerifySummary.inconclusive }}</span>
+            <span v-if="batchVerifySummary.error" class="chip xm-h-err">验证失败 {{ batchVerifySummary.error }}</span>
+          </div>
+          <ul class="xm-batch-rows">
+            <li v-for="r in batchVerifyRows" :key="r.jobId" class="mono"
+              :class="{ 'xm-batch-row-fail': !!r.err || r.verdict === 'DIVERGENT' }">
+              {{ r.dest }}：
+              <StatusPill :tone="r.err ? 'r' : verdictTone(r.verdict)" :label="r.err ? '验证失败' : verdictZh(r.verdict)"
+                :en="r.err ? undefined : (r.verdict || '—')" />
+              <span v-if="r.err" class="xm-sync-why">{{ r.err }}</span>
+              <button class="btn sm ghost" data-test="xm-batch-verify-view"
+                v-tip="'打开等价验证弹层查看完整结论（双侧计数/样本明细/警告）'" @click="openVerify(r.job)">查看</button>
+            </li>
+          </ul>
+        </div>
         <ul class="xm-batch-rows">
           <li v-for="r in batchResult.rows" :key="r.src" class="mono" :class="{ 'xm-batch-row-fail': r.state === 'fail' || r.state === 'create-fail' || r.state === 'preview-fail' }">
             {{ r.src }} → {{ r.dst }}：<span class="xm-batch-row-st">{{ batchRowStateText(r) }}</span>
-            <span v-if="r.state === 'previewed' && (r.previewReactive || 0) > 0" class="chip xm-batch-risk" title="报错兜底剔除属高风险：目标试建时多次报错回退，建议人工核对计划">兜底 {{ r.previewReactive }} 刀</span>
+            <span v-if="r.state === 'previewed' && (r.previewReactive || 0) > 0" class="chip xm-batch-risk" v-tip="'报错兜底剔除属高风险：目标试建时多次报错回退，建议人工核对计划'">兜底 {{ r.previewReactive }} 刀</span>
           </li>
         </ul>
       </div>
@@ -423,10 +476,10 @@
  恒定钉在 Markdown 钮上，刷新钮不再随作业数条件推右（位置恒定） -->
         <!-- 历史治理（对齐 adhoc 表头清理形态）：批量清理 7 天前终态记录（确认后调批量 DELETE）；
          仅清记录，不影响 ES 索引与已迁移数据 -->
-        <button class="btn sm ghost" data-test="xm-cleanup" :disabled="jobsLoading" title="清理 7 天前已结束（成功/失败/中止/中断）的迁移作业记录；进行中作业不受影响，仅清记录不影响 ES 索引" @click="doCleanupJobs"><Trash2 :size="11" /> 清理 7 天前</button>
-        <button class="btn sm ghost" style="margin-left:auto" :disabled="!jobs.length" @click="exportMd" title="复制当前视图为 Markdown 表（群聊/工单直贴）"><ClipboardList :size="11" /> Markdown</button>
-        <button class="btn sm ghost" :disabled="!jobs.length" @click="exportTsv" title="复制当前视图为 TSV（Excel 可直接粘贴）"><ClipboardCopy :size="11" /> 导出 TSV</button>
-        <button aria-label="刷新任务列表" class="btn sm ghost" @click="loadJobs" title="刷新任务列表"><RefreshCw :size="11" /></button>
+        <button class="btn sm ghost" data-test="xm-cleanup" :disabled="jobsLoading" v-tip="'清理 7 天前已结束（成功/失败/中止/中断）的迁移作业记录；进行中作业不受影响，仅清记录不影响 ES 索引'" @click="doCleanupJobs"><Trash2 :size="11" /> 清理 7 天前</button>
+        <button class="btn sm ghost" style="margin-left:auto" :disabled="!jobs.length" @click="exportMd" v-tip="'复制当前视图为 Markdown 表（群聊/工单直贴）'"><ClipboardList :size="11" /> Markdown</button>
+        <button class="btn sm ghost" :disabled="!jobs.length" @click="exportTsv" v-tip="'复制当前视图为 TSV（Excel 可直接粘贴）'"><ClipboardCopy :size="11" /> 导出 TSV</button>
+        <button aria-label="刷新任务列表" class="btn sm ghost" @click="loadJobs" v-tip="'刷新任务列表'"><RefreshCw :size="11" /></button>
       </div>
       <!-- 健康摘要条：从已加载 jobs 前端派生（零请求）——总数/运行中/成功/失败/中止/平均速率/
            冲突总数一排统计芯片；无作业隐藏（空态由下方 EmptyState 承担，不摆一排 0） -->
@@ -446,12 +499,12 @@
  Esc 清空/Enter 语义内建；xm-jobs-kw 类锚随 input-class 保留在 input 上—— DOM 锚字面保全，
  落位宽度随改用迁 wrap 根） -->
         <SearchFilterBar v-model="jobKw" class="xm-jobs-kw-wrap" input-class="inp xm-jobs-kw" placeholder="过滤：状态 / 目标索引 / 源索引" />
-        <button v-if="jobKw" class="btn sm ghost" @click="jobKw = ''" title="清除过滤，恢复完整清单">清除过滤</button>
+        <button v-if="jobKw" class="btn sm ghost" @click="jobKw = ''" v-tip="'清除过滤，恢复完整清单'">清除过滤</button>
         <span v-if="jobKw" class="dim xm-jobs-hit">{{ filteredJobs.length }}/{{ jobs.length }} 条命中</span>
         <!-- 条数三档切换（选择落 localStorage 记忆；后端上限 500） -->
         <div class="seg xm-jobs-limit" role="group" aria-label="作业表加载条数档">
           <button v-for="n in JOBS_LIMIT_TIERS" :key="n" :class="{ on: jobsLimit === n }"
-            :title="'加载最近 ' + n + ' 条迁移作业'" @click="setJobsLimit(n)">{{ n }}</button>
+            v-tip="'加载最近 ' + n + ' 条迁移作业'" @click="setJobsLimit(n)">{{ n }}</button>
         </div>
       </div>
       <!-- G3-B1：首载骨架前置（loading 初值 true + 无旧数据才出骨架，轮询/手动刷新不闪）；
@@ -481,7 +534,7 @@
         storage-key="xm-jobs" export-name="xm-jobs" :row-class="jobRowCls" max-height="none" empty-text="暂无迁移作业"
         :field-types="{ 进度: 'long', 冲突: 'long', 错误: 'long', 发起: 'date' }">
 <template #cell-jobId="{ row }">
-          <span class="mono cpy" :title="'点击复制 jobId: ' + row[0]" tabindex="0" role="button" @click.stop="copyJobId(String(row[0]))" @keydown.enter.prevent="copyJobId(String(row[0]))" @keydown.space.prevent="copyJobId(String(row[0]))">{{ row[0] }}</span>
+          <span class="mono cpy" v-tip="'点击复制 jobId: ' + row[0]" tabindex="0" role="button" @click.stop="copyJobId(String(row[0]))" @keydown.enter.prevent="copyJobId(String(row[0]))" @keydown.space.prevent="copyJobId(String(row[0]))">{{ row[0] }}</span>
 </template>
         <!-- xmStatusZh 中文主显 + 英文枚举小字 en 档（519 范式，528 W-E 形态不回退）；结果文案上 title。
  手滚 pill 改用 StatusPill 统一件（n 档兜底——未命中枚举回显原文并进 title）；
@@ -495,7 +548,7 @@
         <template #cell-目标索引="{ row }">
           <span class="mono" @contextmenu.stop.prevent="openJobMenu($event, rowJob(row))">{{ rowJob(row)?.destIndex }}</span>
           <!-- 目标索引跳转芯片（本地集群索引， QRT 同范式）；源索引属远程集群不跳 -->
-          <button class="xm-idx-go" :aria-label="'打开索引工作区：' + rowJob(row)?.destIndex" title="打开索引工作区" @click.stop="gotoIdx(rowJob(row)?.destIndex)"><ExternalLink :size="11" /></button>
+          <button class="xm-idx-go" :aria-label="'打开索引工作区：' + rowJob(row)?.destIndex" v-tip="'打开索引工作区'" @click.stop="gotoIdx(rowJob(row)?.destIndex)"><ExternalLink :size="11" /></button>
         </template>
         <template #cell-源="{ row }">
           <!-- 动态拼接 title 迁 Tip 统一件（原生 title 60+ 字符禁用口径）；右键列=行作业菜单 -->
@@ -525,12 +578,12 @@
             <SparkLine v-if="sp.length >= 2" class="xm-p-spark" :data="sp" :w="96" :h="16" />
           </template>
           <div v-if="elapsedMsOf(rowJob(row)) != null" class="xm-p-obs mono">
-            <span :title="'耗时（' + (rowJob(row)?.finishedAtMs ? '已完成' : '进行中') + '）'">{{ fmtElapsed(elapsedMsOf(rowJob(row))!) }}</span>
-            <span v-if="rateOf(rowJob(row)) != null" :title="'速率 = ΣsliceMigrated / 耗时'">· {{ fmtNum(rateOf(rowJob(row))!) }} docs/s</span>
+            <span v-tip="'耗时（' + (rowJob(row)?.finishedAtMs ? '已完成' : '进行中') + '）'">{{ fmtElapsed(elapsedMsOf(rowJob(row))!) }}</span>
+            <span v-if="rateOf(rowJob(row)) != null" v-tip="'速率 = ΣsliceMigrated / 耗时'">· {{ fmtNum(rateOf(rowJob(row))!) }} docs/s</span>
           </div>
           <div v-if="sliceFailChips(rowJob(row)).length" class="xm-sfails">
             <span v-for="f in sliceFailChips(rowJob(row))" :key="f.id" class="chip mono xm-sfail"
-              :title="'切片 #' + f.id + ' 失败 ' + f.n + ' 次'">#{{ f.id }} ×{{ f.n }}</span>
+              v-tip="'切片 #' + f.id + ' 失败 ' + f.n + ' 次'">#{{ f.id }} ×{{ f.n }}</span>
           </div>
         </template>
         <template #cell-冲突="{ row }">
@@ -547,25 +600,30 @@
         <!-- 行级行动注入位（原「操作」列合并）：详情/中止/续跑/去查询验证/复制错误样本/作业行菜单 -->
         <template #row-actions="{ row }">
           <!-- 作业详情回放（纯读，不限状态/权限）：message 全文+错误/冲突样本+逐片矩阵+savedSettings -->
-          <button aria-label="作业详情：message 全文/错误与冲突样本/逐片进度/保存的 settings" class="btn sm ghost" title="作业详情：message 全文、错误与冲突样本、逐片进度、保存的 settings" @click.stop="openDetail(rowJob(row))"><FileSearch :size="11" /></button>
+          <button aria-label="作业详情：message 全文/错误与冲突样本/逐片进度/保存的 settings" class="btn sm ghost" v-tip="'作业详情：message 全文、错误与冲突样本、逐片进度、保存的 settings'" @click.stop="openDetail(rowJob(row))"><FileSearch :size="11" /></button>
           <!-- 1122 运行中动态调速：RUNNING 行调 throttle 端点改写入速率（-1 恢复不限速） -->
           <button v-if="canJobOps(rowJob(row)) && rowJob(row)?.status === 'RUNNING'" aria-label="调速" class="btn sm ghost"
-            title="动态调速：调整该运行中作业的写入速率（-1 恢复不限速）" data-test="xm-throttle-btn"
+            v-tip="'动态调速：调整该运行中作业的写入速率（-1 恢复不限速）'" data-test="xm-throttle-btn"
             @click.stop="openThrottle(rowJob(row))"><Gauge :size="11" /></button>
-          <button aria-label="中止迁移：停止拉取，目标索引已写入的数据保留（不自动清理）" v-if="canJobOps(rowJob(row)) && rowJob(row)?.status === 'RUNNING'" class="btn sm danger" title="中止迁移：停止拉取，目标索引已写入的数据保留（不自动清理）" :disabled="aborting" @click.stop="askAbort(rowJob(row))"><OctagonX :size="11" :class="{ spinning: aborting }" /></button>
-          <button aria-label="断点续跑" v-if="canJobOps(rowJob(row)) && canDestOps && ['FAILED','ABORTED','INTERRUPTED'].includes(rowJob(row)?.status ?? '')" class="btn sm" @click.stop="askResume(rowJob(row))" title="断点续跑"><RotateCcw :size="11" /></button>
+          <button aria-label="中止迁移：停止拉取，目标索引已写入的数据保留（不自动清理）" v-if="canJobOps(rowJob(row)) && rowJob(row)?.status === 'RUNNING'" class="btn sm danger" v-tip="'中止迁移：停止拉取，目标索引已写入的数据保留（不自动清理）'" :disabled="aborting" @click.stop="askAbort(rowJob(row))"><OctagonX :size="11" :class="{ spinning: aborting }" /></button>
+          <button aria-label="断点续跑" v-if="canJobOps(rowJob(row)) && canDestOps && ['FAILED','ABORTED','INTERRUPTED'].includes(rowJob(row)?.status ?? '')" class="btn sm" @click.stop="askResume(rowJob(row))" v-tip="'断点续跑'"><RotateCcw :size="11" /></button>
           <!-- 联动性：迁移完成一键去查询工作台验证目标索引（对齐托管重建「去查询验证」深链） -->
-          <button aria-label="去查询验证：在查询工作台打开目标索引" v-if="rowJob(row)?.status === 'DONE' && rowJob(row)?.destIndex" class="btn sm" :title="'验证迁移结果：在查询工作台打开「' + rowJob(row)?.destIndex + '」'" @click.stop="goVerify(rowJob(row))"><SearchCheck :size="11" /></button>
+          <button aria-label="去查询验证：在查询工作台打开目标索引" v-if="rowJob(row)?.status === 'DONE' && rowJob(row)?.destIndex" class="btn sm" v-tip="'验证迁移结果：在查询工作台打开「' + rowJob(row)?.destIndex + '」'" @click.stop="goVerify(rowJob(row))"><SearchCheck :size="11" /></button>
+          <!-- 等价验证（DONE 且有 destIndex）：双侧计数 + 样本逐 _id 内容摘要比对，弹层出 verdict -->
+          <button v-if="rowJob(row)?.status === 'DONE' && rowJob(row)?.destIndex" aria-label="等价验证：比对源/目标文档数与样本内容摘要"
+            class="btn sm ghost" data-test="xm-verify-btn"
+            v-tip="'等价验证：比对源/目标文档计数 + 抽样 100 条逐 _id 内容摘要，给出等价/分歧/无法判定结论'"
+            @click.stop="openVerify(rowJob(row))"><ShieldCheck :size="11" /> 等价验证</button>
           <!-- 错误样本全量复制（诚实口径）——展开详情降维 JsonTree 后复制入口上移行尾 -->
           <button v-if="rowJob(row)?.errorSamples?.length" class="btn sm ghost" :aria-label="'复制全部 ' + rowJob(row)?.errorSamples.length + ' 条错误样本'"
-            title="复制全部错误样本" @click.stop="copyErrSamples(rowJob(row))"><ClipboardList :size="11" /></button>
+            v-tip="'复制全部错误样本'" @click.stop="copyErrSamples(rowJob(row))"><ClipboardList :size="11" /></button>
           <!-- 历史治理：行级删除仅终态行在场（进行中作业不渲染删除入口，后端也仅受理终态） -->
           <button v-if="XM_TERMINAL_STATUS.includes(rowJob(row)?.status)" aria-label="删除记录" class="btn sm ghost"
-                  title="删除该作业记录（仅清记录，不影响 ES 索引与已迁移数据）"
+                  v-tip="'删除该作业记录（仅清记录，不影响 ES 索引与已迁移数据）'"
                   @click.stop="doDeleteJob(rowJob(row))"><Trash2 :size="11" /></button>
           <!-- 作业行菜单（CellContextMenu）——行级 contextmenu 被 QRT 内核列管理占用，
  入口改行尾菜单钮（左键/右键皆开）；行展开由内核行尾钮/E 键承接 -->
-          <button aria-label="作业行菜单" class="btn sm ghost" title="复制 jobId / 复制作业信息（右键本钮同效）"
+          <button aria-label="作业行菜单" class="btn sm ghost" v-tip="'复制 jobId / 复制作业信息（右键本钮同效）'"
             @click.stop="openJobMenu($event, rowJob(row))" @contextmenu.stop.prevent="openJobMenu($event, rowJob(row))"
             @keydown="onJobMenuKey($event, rowJob(row))"><MoreHorizontal :size="11" /></button>
 </template>
@@ -579,7 +637,7 @@
  （openStartConfirm/askAbort 内联承载；F3 警告分支在 preflight 落定后随弹层一次呈现） -->
 
     <!-- resume modal -->
-    <n-modal v-model:show="resumeOpen" preset="card" title="续跑迁移（重新供给旧集群凭据）" style="width:480px;max-width:92vw" :bordered="false">
+    <n-modal v-model:show="resumeOpen" preset="card" :title="'续跑迁移（重新供给旧集群凭据）'" style="width:480px;max-width:92vw" :bordered="false">
       <div class="xm-tip" style="margin-bottom:var(--sp-3)">目标：<b class="mono">{{ actJob?.sourceIndex }}</b> → <b class="mono">{{ actJob?.destIndex }}</b>（{{ actJob?.remoteEndpoint }}）</div>
       <!-- 续跑同样可引用已存连接档案；：补 filterable（与源集群下拉同款） -->
       <div style="margin-bottom:var(--sp-2)">
@@ -602,14 +660,14 @@
 
     <!-- 1122 运行中动态调速弹层：NInputNumber（min=-1，-1=不限速，0 拒绝并提示就地报错）
          调 api.xb.throttle；成功 toast + 作业表刷新，失败（非运行态/网络）弹层内如实展示 -->
-    <n-modal v-model:show="throttleOpen" preset="card" title="运行中调速" style="width:440px;max-width:92vw" :bordered="false">
+    <n-modal v-model:show="throttleOpen" preset="card" :title="'运行中调速'" style="width:440px;max-width:92vw" :bordered="false">
       <div class="xm-tip" style="margin:0 0 var(--sp-2)">
         作业 <b class="mono">{{ throttleJob?.jobId }}</b>（{{ throttleJob?.sourceIndex }} → {{ throttleJob?.destIndex }}）
       </div>
       <div class="xm-throttle-row">
         <span class="xm-inline-lb">速率上限</span>
         <n-input-number v-model:value="throttleRps" :min="-1" size="small" :show-button="false" placeholder="docs/s"
-          data-test="xm-throttle-rps" class="xm-throttle-inp" title="每秒写入文档数（docs/s）；-1=不限速" />
+          data-test="xm-throttle-rps" class="xm-throttle-inp" v-tip="'每秒写入文档数（docs/s）；-1=不限速'" />
         <span class="dim">docs/s</span>
         <Tip text="速率 docs/s：-1=不限速（恢复全速），0 将被拒绝（停止写入请用「中止迁移」）。服务端为 reindex task 级限速；浏览器模式为批粒度限速（每批 bulk 之间按上限间隔），并在事件时间线留 THROTTLE 事件痕" long>
           <span class="dim xm-throttle-what">这是什么？</span>
@@ -624,11 +682,66 @@
       </template>
     </n-modal>
 
+    <!-- 等价验证弹层（DONE 作业收尾核对）：双侧计数对 + countsMatch 徽标 + 样本 matched/checked +
+         missingInDest/mismatched 明细（服务端截断标志如实标注）+ verdict 大徽标（等价绿/分歧红/
+         无法判定中性）+ warnings；加载态防重入，失败内联可复制（不冒充结论） -->
+    <n-modal v-model:show="verifyOpen" preset="card" :title="'等价验证（源/目标等价性比对）'" style="width:560px;max-width:92vw" :bordered="false">
+      <div class="xm-verify" data-test="xm-verify">
+        <div class="xm-tip" style="margin:0 0 var(--sp-2)">
+          作业 <b class="mono">{{ verifyJob?.jobId }}</b>（{{ verifyJob?.sourceIndex }} → {{ verifyJob?.destIndex }}）
+        </div>
+        <div v-if="verifyLoading" class="dim" data-test="xm-verify-loading">等价验证中…（双侧 _count + 抽样逐 _id 内容摘要比对）</div>
+        <div v-else-if="verifyErr" role="alert" class="xm-detail-rc-err" data-test="xm-verify-err">
+          <span class="xm-verify-err-txt">{{ verifyErr }}</span>
+          <button class="btn sm ghost xm-detail-cp-btn" aria-label="复制错误原文" v-tip="'复制等价验证失败原文（排障/报障直用）'"
+            @click="copyText(verifyErr).then(ok => store.notify(ok ? 'success' : 'error', ok ? '已复制错误原文' : '复制失败'))">复制</button>
+        </div>
+        <template v-else-if="verifyResult">
+          <!-- verdict 大徽标：EQUIVALENT 绿 / DIVERGENT 红 / INCONCLUSIVE 中性（未知枚举回显原文中性档） -->
+          <div role="status" class="xm-verify-verdict" :class="'xm-verify-v-' + verdictTone(verifyResult.verdict)"
+            :data-test="'xm-verify-verdict-' + String(verifyResult.verdict)">
+            {{ verdictZh(verifyResult.verdict) }}<span class="dim xm-verify-verdict-en">{{ verifyResult.verdict }}</span>
+          </div>
+          <!-- 计数对 + countsMatch 徽标 -->
+          <div class="xm-verify-counts" data-test="xm-verify-counts">
+            <span class="dim">源 <b class="mono">{{ verifyResult.source?.index || '—' }}</b> {{ fmtNum(verifyResult.source?.count) }}</span>
+            <ArrowRightLeft :size="12" class="xm-plan-var" aria-hidden="true" />
+            <span class="dim">目标 <b class="mono">{{ verifyResult.dest?.index || '—' }}</b> {{ fmtNum(verifyResult.dest?.count) }}</span>
+            <StatusPill :tone="verifyResult.countsMatch == null ? 'n' : (verifyResult.countsMatch ? 'g' : 'r')" :label="verifyResult.countsMatch == null ? '计数未知' : (verifyResult.countsMatch ? '计数一致' : '计数不一致')" />
+          </div>
+          <!-- 样本区：matched/checked + 缺失/不一致明细（截断标志如实标注） -->
+          <div class="xm-verify-sec" data-test="xm-verify-sample">
+            <div class="sec-t">样本比对 <span class="dim">（matched {{ verifySample.matched }} / checked {{ verifySample.checked }}，请求 {{ verifySample.requested }}）</span></div>
+            <div v-if="verifySample.missingInDest.length" class="xm-verify-list-t">目标缺失 _id（{{ verifySample.missingInDest.length }}）<template v-if="verifySample.missingTruncated">——清单已被服务端截断（仅显示前 20 条）</template></div>
+            <ul v-if="verifySample.missingInDest.length" class="xm-detail-list" data-test="xm-verify-missing">
+              <li v-for="(id, i) in verifySample.missingInDest" :key="i" class="mono">{{ id }}</li>
+            </ul>
+            <div v-if="verifySample.mismatched.length" class="xm-verify-list-t">内容不一致 _id（{{ verifySample.mismatched.length }}）<template v-if="verifySample.mismatchTruncated">——清单已被服务端截断（仅显示前 20 条）</template></div>
+            <ul v-if="verifySample.mismatched.length" class="xm-detail-list" data-test="xm-verify-mismatched">
+              <li v-for="(m, i) in verifySample.mismatched" :key="i" class="mono">{{ m.id }}<span class="xm-sync-why"> —— {{ m.reason }}</span></li>
+            </ul>
+            <div v-if="!verifySample.missingInDest.length && !verifySample.mismatched.length" class="dim xm-detail-none">样本全部匹配（无缺失、无内容不一致）</div>
+          </div>
+          <div v-if="(verifyResult.warnings || []).length" class="xm-verify-sec" data-test="xm-verify-warnings">
+            <div class="sec-t">警告 <span class="dim">（{{ verifyResult.warnings.length }} 条）</span></div>
+            <ul class="xm-sync-warns">
+              <li v-for="(w, i) in verifyResult.warnings" :key="i">{{ w }}</li>
+            </ul>
+          </div>
+        </template>
+      </div>
+      <template #footer>
+        <div style="display:flex;justify-content:flex-end;gap:var(--sp-2)">
+          <button class="btn" :disabled="verifyLoading" @click="verifyOpen = false">关闭</button>
+        </div>
+      </template>
+    </n-modal>
+
     <!-- 结构同步·兼容计划预览弹层（dryRun 结果，未创建索引）：源→目标 vendor 芯片对 +
          planned「矩阵预剔除」/reactive「报错兜底剔除」三清单（每刀带 reason——这是核心价值：
          每一刀都有理由）+ advice 建议（kind 徽标）+ 别名段 + 警告折叠；底部 CTA「按此计划创建」
          走现有确认弹层二次确认后以 dryRun=false 落地执行 -->
-    <n-modal v-model:show="syncPlanOpen" preset="card" title="兼容计划预览（dryRun，未创建索引）" style="width:640px;max-width:92vw" :bordered="false">
+    <n-modal v-model:show="syncPlanOpen" preset="card" :title="'兼容计划预览（dryRun，未创建索引）'" style="width:640px;max-width:92vw" :bordered="false">
       <div v-if="syncPlan" class="xm-plan" data-test="xm-sync-plan" role="status">
         <div class="xm-plan-hd">
           <MetaStrip :items="syncPlanMetaItems" />
@@ -693,22 +806,22 @@
         <div v-if="syncPlanBodyReady" class="xm-sync-sec" data-test="xm-plan-body">
           <div class="xm-sync-t sec-t">适配后目标结构预览
             <Tip v-if="syncPlan?.planDigest" long text="planDigest 是适配后 create body 的 16 位摘要；「按此计划创建」时自动携带 expectPlanDigest=该摘要——源结构若在预览后发生变化，创建将被 409 PLAN_DRIFT 拒绝（PUT 前拦截），防止按过期计划建索引">
-              <span class="chip mono" data-test="xm-plan-digest" title="计划摘要短码（planDigest）">{{ syncPlan.planDigest }}</span>
+              <span class="chip mono" data-test="xm-plan-digest" v-tip="'计划摘要短码（planDigest）'">{{ syncPlan.planDigest }}</span>
             </Tip>
           </div>
           <CollapsePanel v-if="planBodyText('settings')" v-model:open="planBodySettingsOpen"
-            title="body.settings（适配后将在目标创建的 settings）" class="xm-plan-body-cp" data-test="xm-plan-body-settings">
+            :title="'body.settings（适配后将在目标创建的 settings）'" class="xm-plan-body-cp" data-test="xm-plan-body-settings">
             <JsonArea :model-value="planBodyText('settings')" readonly :rows="cfgRows(planBodyText('settings'))" />
           </CollapsePanel>
           <CollapsePanel v-if="planBodyText('mappings')" v-model:open="planBodyMappingsOpen"
-            title="body.mappings（适配后字段映射）" class="xm-plan-body-cp" data-test="xm-plan-body-mappings">
+            :title="'body.mappings（适配后字段映射）'" class="xm-plan-body-cp" data-test="xm-plan-body-mappings">
             <JsonArea :model-value="planBodyText('mappings')" readonly :rows="cfgRows(planBodyText('mappings'))" />
           </CollapsePanel>
         </div>
         <div v-if="syncPlanAllCompatible" class="xm-sync-allpass" data-test="xm-plan-allpass">
           <CheckCircle2 :size="12" /> 全部属性兼容，计划零剔除
         </div>
-        <CollapsePanel v-if="syncPlan.warnings?.length" v-model:open="syncPlanWarnOpen" title="推演警告"
+        <CollapsePanel v-if="syncPlan.warnings?.length" v-model:open="syncPlanWarnOpen" :title="'推演警告'"
           :count="syncPlan.warnings.length" class="xm-sync-warns-cp" data-test="xm-plan-warnings">
           <ul class="xm-sync-warns">
             <li v-for="(w, i) in syncPlan.warnings" :key="i">{{ w }}</li>
@@ -726,17 +839,82 @@
       </template>
     </n-modal>
 
+    <!-- 结构对比弹层（diff-structure 只读结果）：源→目标索引对 + 判定徽标（无计划外差异/
+         存在计划外差异）+ 三清单（settings 差异/分析组件差异/字段增删改）——每项带变化说明，
+         命中兼容计划剔除集的项标「豁免」徽标并附剔除原因（豁免不算计划外差异）；三清单全空
+         显示「结构已一致」正面态；语言与视觉结构对齐「兼容计划预览」弹层 -->
+    <n-modal v-model:show="diffOpen" preset="card" :title="'结构对比（源/目标 settings+mapping，只读）'" style="width:640px;max-width:92vw" :bordered="false">
+      <div class="xm-diff" data-test="xm-diff">
+        <div v-if="diffLoading" class="dim" data-test="xm-diff-loading">结构对比中…（源/目标 settings 与 mapping 逐项比对）</div>
+        <div v-else-if="diffErr" role="alert" class="xm-detail-rc-err" data-test="xm-diff-err">
+          <span>{{ diffErr }}</span>
+          <button class="btn sm ghost" :disabled="diffLoading" @click="openDiffStructure"><RefreshCw :size="12" /> 重试</button>
+        </div>
+        <template v-else-if="diffResult">
+          <div class="xm-plan-vendor" data-test="xm-diff-pair">
+            <span class="chip mono">{{ diffResult.sourceIndex || form.sourceIndex }}</span>
+            <ArrowRightLeft :size="12" class="xm-plan-var" aria-hidden="true" />
+            <span class="chip mono">{{ diffResult.destIndex }}</span>
+            <StatusPill :tone="diffUnexpectedCount ? 'r' : 'g'"
+              :label="diffUnexpectedCount ? '存在计划外差异 ' + diffUnexpectedCount + ' 项' : '无计划外差异'" />
+          </div>
+          <div class="xm-tip" style="margin:0">只读对比源/目标索引的 settings 与 mapping：命中兼容计划剔除清单的差异标「豁免」（同步结构时按计划剔除属预期），其余为计划外差异，需人工评估。</div>
+          <div v-if="diffAllClean" class="xm-sync-allpass" data-test="xm-diff-clean">
+            <CheckCircle2 :size="12" /> 结构已一致：settings 与字段定义均无差异
+          </div>
+          <template v-else>
+            <div v-if="diffSettingsRows.length" class="xm-sync-sec" data-test="xm-diff-settings">
+              <div class="xm-sync-t sec-t">settings 差异 <span class="dim">（{{ diffSettingsRows.length }} 项）</span></div>
+              <ul class="xm-sync-list">
+                <li v-for="r in diffSettingsRows" :key="r.key" :class="{ 'xm-diff-bad': !r.exempt }">
+                  <code>{{ r.key }}</code><span class="xm-diff-change">{{ r.change }}</span>
+                  <span v-if="r.exempt" class="chip xm-diff-exempt" v-tip="'该项命中兼容计划剔除清单：同步结构时按计划剔除/降级，属预期差异'">豁免</span>
+                  <span v-if="r.exempt && r.exemptReason" class="xm-sync-why">{{ r.exemptReason }}</span>
+                </li>
+              </ul>
+            </div>
+            <div v-if="diffAnalysisRows.length" class="xm-sync-sec" data-test="xm-diff-analysis">
+              <div class="xm-sync-t sec-t">分析组件差异 <span class="dim">（{{ diffAnalysisRows.length }} 项）</span></div>
+              <ul class="xm-sync-list">
+                <li v-for="r in diffAnalysisRows" :key="r.key" :class="{ 'xm-diff-bad': !r.exempt }">
+                  <code>{{ r.key }}</code><span class="xm-diff-change">{{ r.change }}</span>
+                  <span v-if="r.exempt" class="chip xm-diff-exempt" v-tip="'该组件命中兼容计划剔除清单：目标集群不可用，同步结构时按计划剔除，属预期差异'">豁免</span>
+                  <span v-if="r.exempt && r.exemptReason" class="xm-sync-why">{{ r.exemptReason }}</span>
+                </li>
+              </ul>
+            </div>
+            <div v-if="diffFieldRows.length" class="xm-sync-sec" data-test="xm-diff-fields">
+              <div class="xm-sync-t sec-t">字段差异 <span class="dim">（{{ diffFieldRows.length }} 项）</span></div>
+              <ul class="xm-sync-list">
+                <li v-for="r in diffFieldRows" :key="r.key" :class="{ 'xm-diff-bad': !r.exempt }">
+                  <code>{{ r.key }}</code><span class="xm-diff-change">{{ r.change }}</span>
+                  <span v-if="r.exempt" class="chip xm-diff-exempt" v-tip="'该字段命中兼容计划降级清单：分词/分析属性已按计划降级（类型未变），属预期差异'">豁免</span>
+                  <span v-if="r.exempt && r.exemptReason" class="xm-sync-why">{{ r.exemptReason }}</span>
+                </li>
+              </ul>
+            </div>
+          </template>
+        </template>
+        <div v-else class="dim xm-detail-none">点上方「结构对比」比对源与目标索引的 settings 与字段定义</div>
+      </div>
+      <template #footer>
+        <div style="display:flex;justify-content:flex-end;gap:var(--sp-2)">
+          <button class="btn" :disabled="diffLoading" @click="diffOpen = false">关闭</button>
+        </div>
+      </template>
+    </n-modal>
+
     <!-- 启动预检报告弹层（preflight 快照，openStartConfirm 拉取后可开）：预估行（源体积/源文档数/
          预计耗时/分片）+ 索引画像区（字段类型分布 chips / 源别名 chips）+ advice 动作芯片区
          （每条 code 映射下一步动作，version_gap 可展开提示文案） -->
-    <n-modal v-model:show="preflightOpen" preset="card" title="启动预检报告（preflight）" style="width:560px;max-width:92vw" :bordered="false">
+    <n-modal v-model:show="preflightOpen" preset="card" :title="'启动预检报告（preflight）'" style="width:560px;max-width:92vw" :bordered="false">
       <div v-if="preflight" class="xm-pf" data-test="xm-preflight">
         <div class="xm-pf-hd">
           <MetaStrip :items="preflightMetaItems" data-test="xm-pf-meta" />
           <!-- 1122 可选件：能力对比（compareCapabilities 只读探测）——版本差/厂商切换/
                插件差/风险矩阵；手输源连接（无 srcConnId）不可比对，如实禁用 -->
           <button class="btn sm ghost" data-test="xm-pf-capbtn" :disabled="!srcConnId || capDiffLoading"
-            :title="srcConnId ? '比对源/目标集群能力（版本差/厂商/插件/风险矩阵）' : '需选择已授权的源连接档案后可比对（手输连接不支持）'"
+            v-tip="srcConnId ? '比对源/目标集群能力（版本差/厂商/插件/风险矩阵）' : '需选择已授权的源连接档案后可比对（手输连接不支持）'"
             @click="doCompareCaps"><GitCompareArrows :size="11" /> {{ capDiffLoading ? '比对中…' : '能力对比' }}</button>
         </div>
         <div v-if="capDiff || capDiffErr" class="xm-pf-sec" data-test="xm-pf-capdiff">
@@ -771,7 +949,7 @@
           <div class="sec-t">预检建议 <span class="dim">（{{ preflightAdvice.length }} 条）</span></div>
           <div v-for="(a, i) in preflightAdvice" :key="i" class="xm-pf-adv">
             <button class="chip xm-pf-act" :aria-expanded="pfAdvOpen[a.code] ? 'true' : 'false'"
-              :title="pfActionOf(a.code).title" @click="togglePfAdv(a.code)">{{ pfActionOf(a.code).label }}</button>
+              v-tip="pfActionOf(a.code).title" @click="togglePfAdv(a.code)">{{ pfActionOf(a.code).label }}</button>
             <span class="xm-pf-msg">{{ a.message }}</span>
             <div v-if="pfActionOf(a.code).detail && pfAdvOpen[a.code]" class="xm-pf-detail">{{ pfActionOf(a.code).detail }}</div>
           </div>
@@ -784,7 +962,7 @@
 
     <!-- 批量迁移确认弹层（resume 弹窗同形态 n-modal preset=card）：列全部映射对，
          建索引方式/迁移速度等策略与向导共用；REBUILD 档每行红色警示，确认钮文案升级 -->
-    <n-modal v-model:show="batchConfirmOpen" preset="card" title="启动批量跨集群迁移" style="width:560px;max-width:92vw" :bordered="false">
+    <n-modal v-model:show="batchConfirmOpen" preset="card" :title="'启动批量跨集群迁移'" style="width:560px;max-width:92vw" :bordered="false">
       <div class="xm-tip" style="margin:0 0 var(--sp-2)">将从 {{ batchSrcDesc }} 批量搬运 {{ batchPairs.length }} 个索引到本集群，逐个下发、失败不中断（策略与向导共用）。</div>
       <div v-if="form.destCreateMode === 'REBUILD'" class="xm-batch-warn" role="alert">
         ⚠ 删旧重建模式:每个目标索引及其全部数据将被删除,然后按源结构重建并全量迁入。此操作不可撤销!
@@ -815,7 +993,7 @@
          告知条（job doc 自持，jobs REST 即带出；观测级被脱敏或旧作业缺字段→「无」，不冒充）/
          sliceStatus·sliceMigrated·sliceErrors 逐片矩阵 / savedSettings（折叠面板）。
          数据经 detailJobId 从 jobsById 反查：轮询刷新拍自动换最新 doc，行被过滤/删除则弹窗内容消隐 -->
-    <n-modal v-model:show="detailOpen" preset="card" title="作业详情" style="width:640px;max-width:92vw" :bordered="false">
+    <n-modal v-model:show="detailOpen" preset="card" :title="'作业详情'" style="width:640px;max-width:92vw" :bordered="false">
       <div v-if="detailJobLive" class="xm-detail" data-test="xm-detail">
         <div class="xm-detail-sec" data-test="xm-detail-msg">
           <div class="xm-detail-t sec-t">message <span class="dim">全文</span></div>
@@ -823,7 +1001,7 @@
         </div>
         <div class="xm-detail-sec" data-test="xm-detail-errors">
           <div class="xm-detail-t sec-t">错误样本 <span class="dim">（{{ (detailJobLive.errorSamples || []).length }} 条）</span>
-            <button v-if="(detailJobLive.errorSamples || []).length" class="btn sm ghost xm-detail-cp-btn" :aria-label="'复制全部 ' + (detailJobLive.errorSamples || []).length + ' 条错误样本'" title="复制全部错误样本" @click="copyErrSamples(detailJobLive)"><ClipboardList :size="11" /> 复制全部</button>
+            <button v-if="(detailJobLive.errorSamples || []).length" class="btn sm ghost xm-detail-cp-btn" :aria-label="'复制全部 ' + (detailJobLive.errorSamples || []).length + ' 条错误样本'" v-tip="'复制全部错误样本'" @click="copyErrSamples(detailJobLive)"><ClipboardList :size="11" /> 复制全部</button>
           </div>
           <ul v-if="(detailJobLive.errorSamples || []).length" class="xm-detail-list">
             <li v-for="(e, i) in detailJobLive.errorSamples" :key="i" class="mono">{{ e }}</li>
@@ -832,7 +1010,7 @@
         </div>
         <div class="xm-detail-sec" data-test="xm-detail-conflicts">
           <div class="xm-detail-t sec-t">冲突 _id 样本 <span class="dim">（已显示 {{ detailConflictIds.length }} 条 / 总冲突 {{ fmtNum(detailJobLive.conflicts ?? 0) }}）</span>
-            <button v-if="(detailJobLive.conflictSamples || []).length" class="btn sm ghost xm-detail-cp-btn" aria-label="复制冲突 _id 样本列表（每行一个）" title="复制冲突 _id 列表（每行一个）" @click="copyConflictSamples(detailJobLive)"><ClipboardList :size="11" /> 复制 _id 列表</button>
+            <button v-if="(detailJobLive.conflictSamples || []).length" class="btn sm ghost xm-detail-cp-btn" aria-label="复制冲突 _id 样本列表（每行一个）" v-tip="'复制冲突 _id 列表（每行一个）'" @click="copyConflictSamples(detailJobLive)"><ClipboardList :size="11" /> 复制 _id 列表</button>
           </div>
           <!-- 后端环形采样上限 1000（MAX_CONFLICT_SAMPLES），全量计数以 conflicts 字段为准；
                默认显示 job doc 自带样本前 50 条，「加载全部冲突」走游标分页端点逐页拉满 -->
@@ -843,7 +1021,7 @@
           <div v-else class="dim xm-detail-none">无</div>
           <button v-if="!detailConflictsAllLoaded" class="btn sm ghost xm-detail-cp-btn" data-test="xm-conflicts-loadall"
             :disabled="detailConflictsLoading || !(detailJobLive.conflicts > 0 || (detailJobLive.conflictSamples || []).length)"
-            :title="'游标分页拉取全部冲突 _id 样本（环形上限 1000），当前已显示 ' + detailConflictIds.length + ' 条'"
+            v-tip="'游标分页拉取全部冲突 _id 样本（环形上限 1000），当前已显示 ' + detailConflictIds.length + ' 条'"
             @click="loadAllConflicts"><Scale :size="11" /> {{ detailConflictsLoading ? '加载中…' : '加载全部冲突' }}</button>
         </div>
         <!-- 目标对账（只读拉取，任意状态可发起）：源/目标文档数比对（diff≠0 红警示+差值 /
@@ -852,7 +1030,7 @@
         <div class="xm-detail-sec" data-test="xm-detail-reconcile">
           <div class="xm-detail-t sec-t">目标对账 <span class="dim">（源/目标文档数比对）</span>
             <button class="btn sm ghost xm-detail-cp-btn" data-test="xm-reconcile-run" :disabled="reconciling"
-                    title="按作业源连接比对源/目标索引文档数（快照，不随轮询刷新）" @click="doReconcile"><Scale :size="11" /> {{ reconciling ? '对账中…' : '对账' }}</button>
+                    v-tip="'按作业源连接比对源/目标索引文档数（快照，不随轮询刷新）'" @click="doReconcile"><Scale :size="11" /> {{ reconciling ? '对账中…' : '对账' }}</button>
           </div>
           <div v-if="reconcileErr" role="alert" class="xm-detail-rc-err" data-test="xm-reconcile-err">{{ reconcileErr }}</div>
           <div v-else-if="reconcileResult" class="xm-detail-rc-row" data-test="xm-reconcile-result">
@@ -865,7 +1043,7 @@
             <span v-else class="dim">差值未知（任一侧文档数取数失败），请以两侧计数人工核对</span>
           </div>
           <div v-else class="dim xm-detail-none">点「对账」按作业源连接比对源/目标索引文档数</div>
-          <CollapsePanel v-model:open="reconcileConflictsOpen" title="冲突 _id 样本（对账读取）" class="xm-detail-cp">
+          <CollapsePanel v-model:open="reconcileConflictsOpen" :title="'冲突 _id 样本（对账读取）'" class="xm-detail-cp">
             <div v-if="reconcileConflictsErr" role="alert" class="xm-detail-rc-err" data-test="xm-reconcile-conflicts-err">{{ reconcileConflictsErr }}</div>
             <template v-else-if="reconcileConflictsRead">
               <ul v-if="reconcileConflictIds.length" class="xm-detail-list">
@@ -903,7 +1081,7 @@
         </div>
         <div class="xm-detail-sec" data-test="xm-detail-settings">
           <!-- savedSettings：调优前目标索引原始 settings 快照（收尾/中止/续跑据此还原）——低频核对项，默认折叠（开合记忆） -->
-          <CollapsePanel v-model:open="detailSettingsOpen" title="savedSettings（调优前目标索引原始 settings）" class="xm-detail-cp">
+          <CollapsePanel v-model:open="detailSettingsOpen" :title="'savedSettings（调优前目标索引原始 settings）'" class="xm-detail-cp">
             <pre class="xm-detail-pre mono">{{ detailSettingsText }}</pre>
           </CollapsePanel>
         </div>
@@ -911,35 +1089,74 @@
              最新在上；轮询跟随详情刷新节奏（loadJobs 拍），拉取失败就地重试错误卡不静默。
              1122 升级：筛选芯片（全部/门禁/错误/终态——芯片集自适应只出有命中事件的档）+
              自动滚动开关（默认开，展开/新事件到达滚回最新=顶部）+ 跨天 dayLabel 分组段头；
-             折叠记忆（xm-detail-open-keys）不触 -->
+             折叠记忆（xm-detail-open-keys）不触。
+             再升级三能：单事件钻取（行点击内联展开全文/完整时间戳/level/类型+复制）、
+             关键字搜索（与筛选芯片 AND 叠加）、JSONL 独立导出（当前筛选后事件集） -->
         <div class="xm-detail-sec" data-test="xm-detail-events">
-          <CollapsePanel v-model:open="detailEventsOpen" title="事件时间线（最新在上）" :count="detailEvents.length" class="xm-detail-cp">
+          <CollapsePanel v-model:open="detailEventsOpen" :title="'事件时间线（最新在上）'" :count="detailEvents.length" class="xm-detail-cp">
             <div v-if="detailEventsErr" role="alert" class="xm-detail-rc-err" data-test="xm-detail-events-err">
               事件读取失败：{{ detailEventsErr }}<template v-if="detailEvents.length">（下方保留上次成功的事件快照）</template>
               <button class="btn sm" :disabled="detailEventsBusy" @click="refreshDetailEvents(true)"><RefreshCw :size="12" /> 重试</button>
             </div>
             <div v-if="detailEventsBusy && !detailEvents.length" class="dim">事件读取中…</div>
             <template v-else-if="detailEvents.length">
-              <!-- 筛选芯片行（固定头不随内容滚）：当前档位芯片高亮；自动滚动开关默认开 -->
+              <!-- 筛选芯片行（固定头不随内容滚）：当前档位芯片高亮；自动滚动开关默认开；
+                   关键字搜索输入与芯片 AND 叠加；导出钮把当前筛选后事件落 JSONL 文件 -->
               <div class="xm-ev-tools">
                 <button v-for="f in evFilterChips" :key="f.v" type="button" class="chip xm-ev-fchip"
                   :class="{ on: evFilter === f.v }" :data-test="'xm-evt-filter-' + f.v"
                   :aria-pressed="evFilter === f.v ? 'true' : 'false'"
-                  :title="f.v === 'all' ? '全部事件（不筛选）' : '只看' + f.label + '类事件'"
+                  v-tip="f.v === 'all' ? '全部事件（不筛选）' : '只看' + f.label + '类事件'"
                   @click="evFilter = f.v">{{ f.label }}</button>
+                <input v-model="evKw" data-test="xm-evt-kw" class="inp xm-ev-kw" spellcheck="false" autocomplete="off"
+                  placeholder="搜索消息关键字" v-tip="'按 message 关键字过滤，与左侧档位芯片叠加（AND）'" />
+                <button class="btn sm ghost xm-ev-export" data-test="xm-evt-export"
+                  v-tip="'把当前筛选后事件导出为 JSONL 文件（每行 {ts,level,type,message}）'"
+                  @click="exportEventsJsonl"><Download :size="11" /> 导出 JSONL</button>
                 <n-checkbox v-model:checked="evAutoScroll" size="small" class="xm-ev-autoscroll" data-test="xm-evt-autoscroll">
                   自动滚动到最新
                 </n-checkbox>
+              </div>
+              <!-- 1122 时间旅行：速率曲线×事件时间线联动——曲线消费 rateHist 该作业采样
+                   （{t,m} 带 ts），悬停/点击采样点定位「不晚于该时刻的最近事件」滚动+高亮一拍；
+                   红刻度=THROTTLE 调速时刻；点击选中点标记（再点同点取消）。数据 <2 点不显 -->
+              <div v-if="detailSparkData.length >= 2" class="xm-ev-spark-row" data-test="xm-ev-spark-row">
+                <SparkLine :data="detailSparkData" :w="180" :h="22" :marks="detailSparkMarks"
+                  :active-idx="sparkPinIdx" :on-scrub="onDetailSparkScrub" class="xm-ev-spark" />
+                <span class="dim xm-ev-spark-hint">悬停/点击曲线定位对应时刻的事件<template v-if="detailSparkMarks.length">（红刻度=调速时刻）</template></span>
               </div>
               <!-- 跨天分组：事件 ts 降序（最新在上），天段同序——今天/昨天/MM-DD（dayLabel 单源） -->
               <div v-if="filteredEvents.length" ref="evLineEl" class="xm-ev-line" data-test="xm-events-line">
                 <template v-for="g in groupedEvents" :key="g.day">
                   <div class="xm-ev-day" data-test="xm-ev-day" :data-day="g.day">{{ g.day }}</div>
-                  <div v-for="(ev, i) in g.evs" :key="i" class="xm-ev" :class="'xm-ev-' + (ev.level || 'info')">
-                    <span class="xm-ev-ts mono">{{ fmtHms(Number(ev.ts)) }}</span>
-                    <StatusPill :label="String(ev.stage || '—')" :tone="evLevelTone(ev.level)" />
-                    <span class="xm-ev-msg">{{ ev.message }}</span>
-                  </div>
+                  <template v-for="(ev, i) in g.evs" :key="i">
+                    <!-- 事件行=钻取入口（点击/Enter 展开）；行本体样式与 1122 锁面零触。
+                         1122 时间旅行：data-evt=ts 锚（曲线联动滚动定位的行身份），
+                         xm-ev-flash=定位命中高亮一拍（160ms 摘除，reduced-motion 关过渡） -->
+                    <div class="xm-ev" :class="['xm-ev-' + (ev.level || 'info'), { 'xm-ev-flash': Number(ev.ts) === evFlashTs }]" role="button" tabindex="0"
+                      :aria-expanded="evOpenKey === evKeyOf(g.day, i) ? 'true' : 'false'"
+                      :data-test="'xm-ev-row-' + i" :data-evt="Number(ev.ts)"
+                      @click="toggleEvOpen(g.day, i)" @keydown.enter.prevent="toggleEvOpen(g.day, i)" @keydown.space.prevent="toggleEvOpen(g.day, i)">
+                      <span class="xm-ev-ts mono">{{ fmtHms(Number(ev.ts)) }}</span>
+                      <StatusPill :label="String(ev.stage || '—')" :tone="evLevelTone(ev.level)" />
+                      <!-- 本会话标注：服务端 /events 只读无写入口，VERIFY 结果降级为
+                           sessionStorage 会话稿合并展示（不冒充服务端持久化） -->
+                      <span v-if="ev.local" class="chip xm-ev-local" data-test="xm-evt-local"
+                        v-tip="'服务端模式暂无事件写入口：此条等价验证记录保存在本浏览器会话（sessionStorage），仅本会话可见'">本会话</span>
+                      <span class="xm-ev-msg">{{ ev.message }}</span>
+                    </div>
+                    <!-- 钻取展开区：完整时间戳/level/类型 + message 全文（不截断）+ 复制钮 -->
+                    <div v-if="evOpenKey === evKeyOf(g.day, i)" class="xm-ev-detail" data-test="xm-evt-detail">
+                      <div class="xm-ev-d-meta mono">
+                        <span>{{ fmtTime(Number(ev.ts)) }}</span>
+                        <span class="chip">level={{ ev.level || 'info' }}</span>
+                        <span class="chip">type={{ ev.stage || '—' }}</span>
+                        <button class="btn sm ghost xm-ev-d-copy" data-test="xm-evt-copy"
+                          v-tip="'复制该事件 message 全文'" @click.stop="copyEvMsg(ev)"><ClipboardCopy :size="11" /> 复制</button>
+                      </div>
+                      <pre class="xm-ev-d-msg mono">{{ ev.message || '（无消息）' }}</pre>
+                    </div>
+                  </template>
                 </template>
               </div>
               <div v-else class="dim xm-detail-none" data-test="xm-evt-empty">当前筛选无命中事件</div>
@@ -952,8 +1169,11 @@
         <div class="xm-detail-ft">
           <!-- 以此参数新建：作业参数回填向导（连接/索引/参数/tuneMode/destCreateMode）并滚回向导区 -->
           <button class="btn sm" data-test="xm-detail-newfrom" @click="newFromDetail"><Rocket :size="11" /> 以此参数新建</button>
-          <button class="btn sm ghost" title="下载作业完整对象 JSON（排障/归档直用）" @click="exportDetailJson"><FileJson :size="11" /> 导出快照 JSON</button>
-          <button class="btn sm ghost" title="复制 Markdown 工单贴片（概要/参数/进度/对账/冲突计数/收尾结论）" @click="exportDetailMd"><ClipboardList :size="11" /> 复制工单贴片</button>
+          <button class="btn sm ghost" v-tip="'下载作业完整对象 JSON（排障/归档直用）'" @click="exportDetailJson"><FileJson :size="11" /> 导出快照 JSON</button>
+          <button class="btn sm ghost" v-tip="'复制 Markdown 工单贴片（概要/参数/进度/对账/冲突计数/收尾结论）'" @click="exportDetailMd"><ClipboardList :size="11" /> 复制工单贴片</button>
+          <button v-if="detailJobLive?.status === 'DONE' && detailJobLive?.destIndex" class="btn sm ghost"
+            data-test="xm-verify-detail-btn" v-tip="'等价验证：比对源/目标文档计数 + 抽样 100 条逐 _id 内容摘要，给出等价/分歧/无法判定结论'"
+            @click="openVerify(detailJobLive)"><ShieldCheck :size="11" /> 等价验证</button>
           <button class="btn" style="margin-left:auto" @click="detailOpen = false">关闭</button>
         </div>
       </template>
@@ -972,7 +1192,7 @@
 import { ref, reactive, computed, h, onMounted, onActivated, onBeforeUnmount, watch, nextTick } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useAutoRefresh } from '../composables/useAutoRefresh';
-import { Rocket, ChevronDown, PlugZap, FileDown, RefreshCw, ListTodo, OctagonX, RotateCcw, ClipboardCopy, ClipboardList, SearchCheck, Copy, Zap, Feather, ExternalLink, MoreHorizontal, Terminal, FileSearch, Trash2, Scale, ArrowRightLeft, CheckCircle2, Wand2, FileJson, Download, Gauge, GitCompareArrows } from 'lucide-vue-next';
+import { Rocket, ChevronDown, PlugZap, FileDown, RefreshCw, ListTodo, OctagonX, RotateCcw, ClipboardCopy, ClipboardList, SearchCheck, Copy, Zap, Feather, ExternalLink, MoreHorizontal, Terminal, FileSearch, Trash2, Scale, ArrowRightLeft, CheckCircle2, Wand2, FileJson, Download, Gauge, GitCompareArrows, ShieldCheck } from 'lucide-vue-next';
 import { NSelect, NModal, NInputNumber, NCheckbox, NInput } from 'naive-ui';
 /* 折叠壳统一件（原生 details/summary 升档） */
 import CollapsePanel from '../components/CollapsePanel.vue';
@@ -988,14 +1208,17 @@ import { isBrowserMode } from '../platform/browserApi';
 /* 原始请求/响应快查弹窗（源配置预览分节消费，ioRecorder 记录环取数） */
 import RawIoModal from '../components/RawIoModal.vue';
 import { friendlyApiError } from '../utils/esError';
-import { writeStoredRaw } from '../utils/safeJson'; /* 存储写通道单源（配额/隐私模式吞异常回执布尔） */
+import { writeStoredRaw, removeStoredRaw } from '../utils/safeJson'; /* 存储写通道单源（配额/隐私模式吞异常回执布尔） */
 /* err-bar 双参改用（errMetaPave547 TaskTreeView 口径——errPreHtml+errMeta，
  错误原文全文不回退，仅头部追加 code 徽标/「失败于 端点」元信息行） */
 import { errPreHtml, errMeta } from '../utils/errPre';
 import type { ConnHealth } from '../api';
 import { useAppStore } from '../stores/app';
 import { useAuthStore } from '../stores/auth';
-import { useScopedDraft, useScopedDraftState } from '../composables/useScopedDraft';
+/* 1122 workbench 草稿自建读写：draftStorageKey（定位旧 draft2 会话稿做一次性迁移）、
+   redactDraft（写前掩埋凭据样键值）。useScopedDraft 全局机制（其他视图「关标签页即弃」
+   语义）不动，本视图升级为 localStorage 跨会话恢复（见 XM_WB_KEY 区注释） */
+import { draftStorageKey, redactDraft } from '../composables/useScopedDraft';
 import { usePref } from '../composables/urlState'; /* ：xm.recentKeys 最近选用置顶（预览限高稿 cfgMaxH 已随 pre 退役） */
 import { useTierCycle } from '../composables/useTierCycle'; /* ：配置预览行数三档（xm.cfgRows，Ilm/CV 同款消费形态） */
 /* 1122 单源接线：fmtHms（事件时刻）/fmtElapsed（humanElapsed 本地版逐字收口）/dayLabel（时间线跨天段头）
@@ -1085,6 +1308,9 @@ function openDetail(j: any) {
   detailConflictIds.value = (Array.isArray(j?.conflictSamples) ? j.conflictSamples.map(String) : []).slice(0, XM_DETAIL_CONFLICT_PAGE);
   detailConflictsAllLoaded.value = false;
   evFilter.value = 'all'; /* 1122：换作业打开详情，筛选档复位「全部」（新事件集的档位集可能不同） */
+  evKw.value = ''; /* 关键字搜索同拍复位（新事件集的旧词命中无意义） */
+  evOpenKey.value = ''; /* 钻取展开态不跨作业残留 */
+  clearSparkLocate(); /* 1122 时间旅行：曲线定位态不跨作业残留 */
   detailEvents.value = [];
   detailEventsErr.value = '';
   detailOpen.value = true;
@@ -1096,6 +1322,53 @@ const detailEvents = ref<any[]>([]);
 const detailEventsErr = ref('');
 const detailEventsBusy = ref(false);
 let detailEventsSeq = 0;
+/* ═══ verify 结果落事件线（本会话稿，服务端模式降级通道）：服务端 /events 是只读回放
+   端点、无事件写入口——等价验证结论降级记入 sessionStorage（xm-verify-events-v1，按
+   jobId 分组 cap 20），时间线读取时合并展示并标「本会话」来源徽标，不伪造服务端持久化；
+   浏览器模式不写此稿（browserXmigrate verifyEquivalence 内部落台账事件环，读取即得） ═══ */
+const XM_VERIFY_EVENTS_KEY = 'xm-verify-events-v1';
+const XM_VERIFY_EVENTS_CAP = 20;
+/* VERIFY 事件 level 分档：分歧红 / 无法判定黄 / 其余灰 */
+function verifyEventLevel(verdict: any): string {
+  const v = String(verdict ?? '');
+  if (v === 'DIVERGENT') return 'error';
+  if (v === 'INCONCLUSIVE') return 'warn';
+  return 'info';
+}
+/* 事件 message：verdict + 双侧计数摘要 + 样本匹配摘要（有样本才带，不冒充） */
+function verifyEventMessage(result: any): string {
+  const fmtC = (v: any) => v == null ? '计数未知' : fmtNum(Number(v));
+  const parts = [
+    `等价验证 ${verdictZh(result?.verdict)}（${String(result?.verdict ?? '—')}）`,
+    `源 ${fmtC(result?.source?.count)} / 目标 ${fmtC(result?.dest?.count)}`,
+  ];
+  const smp = result?.sample;
+  if (smp && Number(smp.checked) > 0) {
+    parts.push(`样本匹配 ${fmtNum(Number(smp.matched) || 0)}/${fmtNum(Number(smp.checked))}`);
+  }
+  return parts.join('，');
+}
+/* verify 落定后写会话稿（浏览器模式跳过——台账环已落，双写会在时间线重复） */
+function recordVerifyEvent(job: any, result: any) {
+  if (isBrowserMode) return;
+  try {
+    const id = String(job?.jobId ?? '');
+    if (!id) return;
+    const all = JSON.parse(sessionStorage.getItem(XM_VERIFY_EVENTS_KEY) || '{}');
+    const list = Array.isArray(all[id]) ? all[id] : [];
+    list.push({ ts: Date.now(), stage: 'VERIFY', level: verifyEventLevel(result?.verdict), message: verifyEventMessage(result), local: true });
+    all[id] = list.slice(-XM_VERIFY_EVENTS_CAP);
+    writeStoredRaw(sessionStorage, XM_VERIFY_EVENTS_KEY, JSON.stringify(all));
+  } catch { /* 会话稿写失败不炸（时间线仍走服务端事件） */ }
+}
+/* 读取该 jobId 的本会话 VERIFY 稿（坏快照回空集） */
+function readSessionVerifyEvents(jobId: string): any[] {
+  try {
+    const all = JSON.parse(sessionStorage.getItem(XM_VERIFY_EVENTS_KEY) || '{}');
+    const list = Array.isArray(all[jobId]) ? all[jobId] : [];
+    return list.filter(e => e && typeof e === 'object');
+  } catch { return []; }
+}
 async function refreshDetailEvents(explicit = false) {
   const jobId = detailJobId.value;
   if (!jobId || detailEventsBusy.value) return;
@@ -1107,6 +1380,9 @@ async function refreshDetailEvents(explicit = false) {
     const r = await api.xb.events(jobId, detailJobLive.value?.srcConnId || undefined);
     if (seq !== detailEventsSeq) return;
     const list = Array.isArray(r?.events) ? [...r.events] : [];
+    /* 服务端模式合并本会话 VERIFY 稿（带 local 标注渲染「本会话」徽标；浏览器模式
+       VERIFY 已在台账事件环内随 events 返回，不重复合并） */
+    if (!isBrowserMode) list.push(...readSessionVerifyEvents(jobId));
     list.sort((a, b) => Number(b?.ts ?? 0) - Number(a?.ts ?? 0));
     detailEvents.value = list;
     detailEventsErr.value = '';
@@ -1129,17 +1405,20 @@ function evLevelTone(level: any): 'n' | 'y' | 'r' {
 /* ═══ 1122：时间线筛选芯片（全部/门禁/错误/终态）+ 自动滚动 + 跨天分组 ═══
  分类语义映射 xmigrate 事件：GATE_ 前缀或确认类=门禁、ERROR 与失败类=错误、终态
  DONE/ABORTED/INTERRUPTED=终态；其余归「全部」不单独出档。芯片集自适应——
- 只显示有命中事件的档（事件集无门禁类则不出门禁芯片，AdhocRebuild ar-ev-fchip 同形态） */
+ 只显示有命中事件的档（事件集无门禁类则不出门禁芯片，AdhocRebuild ar-ev-fchip 同形态）。
+ 1122 全链批：VERIFY（等价验证结论）归门禁类——质量关卡事件 */
 type EvCat = 'gate' | 'error' | 'final';
 const EV_CAT_LABELS: Record<EvCat, string> = { gate: '门禁', error: '错误', final: '终态' };
 function evCategory(ev: any): EvCat | null {
   const stage = String(ev?.stage ?? '').toUpperCase();
-  if (stage.startsWith('GATE_') || stage.includes('CONFIRM')) return 'gate';
+  if (stage.startsWith('GATE_') || stage.includes('CONFIRM') || stage === 'VERIFY') return 'gate';
   if (String(ev?.level ?? '') === 'error' || stage.includes('FAIL') || stage === 'ERROR') return 'error';
   if (stage === 'DONE' || stage === 'ABORTED' || stage === 'INTERRUPTED') return 'final';
   return null;
 }
 const evFilter = ref<'all' | EvCat>('all');
+/* 关键字搜索：与档位芯片 AND 叠加（message 大小写不敏感包含）；换作业复位 */
+const evKw = ref('');
 /* 自动滚动默认开（新事件到达/展开时滚回最新=顶部，最新在上）；勾掉后翻历史不被打扰 */
 const evAutoScroll = ref(true);
 const evFilterChips = computed(() => {
@@ -1150,11 +1429,16 @@ const evFilterChips = computed(() => {
     ...order.filter(c => cats.has(c)).map(c => ({ v: c, label: EV_CAT_LABELS[c] })),
   ];
 });
-/* 筛选后事件：当前档在事件集刷新后无命中档时回落「全部」（档位移除后不悬空） */
+/* 筛选后事件：当前档在事件集刷新后无命中档时回落「全部」（档位移除后不悬空）；
+   关键字在此基础上 AND 叠加过滤 message */
 const filteredEvents = computed(() => {
-  if (evFilter.value === 'all') return detailEvents.value;
-  if (!evFilterChips.value.some(c => c.v === evFilter.value)) return detailEvents.value;
-  return detailEvents.value.filter(ev => evCategory(ev) === evFilter.value);
+  let list = detailEvents.value;
+  if (evFilter.value !== 'all' && evFilterChips.value.some(c => c.v === evFilter.value)) {
+    list = list.filter(ev => evCategory(ev) === evFilter.value);
+  }
+  const kw = evKw.value.trim().toLowerCase();
+  if (kw) list = list.filter(ev => String(ev?.message ?? '').toLowerCase().includes(kw));
+  return list;
 });
 /* 跨天分组：detailEvents 已按 ts 降序（最新在上），顺序遍历同天归段——段头今天/昨天/MM-DD */
 const groupedEvents = computed(() => {
@@ -1168,6 +1452,34 @@ const groupedEvents = computed(() => {
   }
   return groups;
 });
+/* ═══ 单事件钻取：行点击内联展开（完整时间戳/level/类型 + message 全文不截断 + 复制钮）。
+   展开键=天段+组内行号；事件集刷新（新事件到达）时重置——行集变化后组内行号会漂移，
+   保留旧键会把展开区挂到别的事件上（见 detailEvents watch 的复位拍） ═══ */
+const evOpenKey = ref('');
+function evKeyOf(day: string, i: number): string { return day + '#' + i; }
+function toggleEvOpen(day: string, i: number) {
+  const k = evKeyOf(day, i);
+  evOpenKey.value = evOpenKey.value === k ? '' : k;
+}
+async function copyEvMsg(ev: any) {
+  const ok = await copyText(String(ev?.message ?? ''));
+  store.notify(ok ? 'success' : 'error', ok ? '已复制事件消息全文' : '复制失败');
+}
+/* JSONL 独立导出：当前筛选后事件（芯片档+关键字叠加的所见集），每行 {ts,level,type,message}
+   ——type 承载 stage 枚举（与事件行 StatusPill 同源），导出快照 JSON 同款下载通道 */
+function exportEventsJsonl() {
+  const list = filteredEvents.value;
+  if (!list.length) { store.notify('warning', '当前筛选无命中事件，无内容可导出'); return; }
+  const name = `xm-events-${detailJobId.value || 'job'}.jsonl`;
+  const body = list.map(ev => JSON.stringify({
+    ts: Number(ev?.ts) || 0,
+    level: String(ev?.level || 'info'),
+    type: String(ev?.stage || ''),
+    message: String(ev?.message ?? ''),
+  })).join('\n');
+  downloadText(name, body, 'application/x-ndjson');
+  store.notify('success', `已导出 ${list.length} 条事件（JSONL）：${name}`);
+}
 /* 自动滚动：最新在上 → 滚回容器顶部。触发口=①折叠区展开 ②新事件到达（长度变化或
  首条换引用；轮询同内容刷新拍不打扰翻历史）。容器限高内滚（.xm-ev-line max-height） */
 const evLineEl = ref<HTMLElement | null>(null);
@@ -1177,11 +1489,76 @@ async function scrollEvToLatest() {
 }
 watch(detailEventsOpen, open => { if (open) void scrollEvToLatest(); });
 watch(detailEvents, (cur, prev) => {
+  evOpenKey.value = ''; /* 事件集刷新拍行集可能变化：钻取展开位置随之复位，不挂错行 */
   if (!detailEventsOpen.value || !evAutoScroll.value) return;
   /* 无新事件的刷新拍不打扰翻历史——真实轮询每拍都是全新 JSON 对象，引用比较恒不等，
    必须按数据身份（同长度且首条 ts 相同）判「无新事件」 */
   if (cur.length === prev.length && Number(cur[0]?.ts ?? 0) === Number(prev[0]?.ts ?? 0)) return;
   void scrollEvToLatest();
+});
+/* ═══ 1122 时间旅行：速率曲线×事件时间线联动（详情弹窗事件区内曲线） ═══
+   曲线=rateHist 该作业采样序列（{t,m}[] 本就带 ts，localStorage xm-rate-hist-v1 跨刷新在场）；
+   悬停/点击采样点 → 定位「不晚于该采样时刻 ts 的最近事件」（detailEvents 已按 ts 降序，
+   从最新往下第一个 ev.ts ≤ ts），事件区未展开先展开，滚动该行入视野 + 高亮一拍（160ms 摘除）。
+   点击=粘性定位（曲线上实心点标记），再次点击同点取消。定位态记 ref——轮询拍 sparkline
+   数据换引用不清除；弹窗关闭/换作业统一清（clearSparkLocate）。THROTTLE 事件时刻按采样
+   时间逐段插值出曲线分数索引打红刻度（采样点时间不严格均匀，索引轴位置为近似提示，
+   不谎称精确时刻）。采样点早于全部事件（曲线先于首事件）不定位不谎称。 */
+const detailSparkData = computed(() => {
+  const j = detailJobLive.value;
+  return j ? sparkOf(j) : [];
+});
+const sparkPinIdx = ref<number | null>(null); /* 粘性定位采样点索引（null=无定位） */
+const evFlashTs = ref<number | null>(null);   /* 高亮一拍的事件 ts 锚（行 data-evt 匹配挂类） */
+let evFlashTimer: number | undefined;
+const EV_FLASH_MS = 160;
+function clearSparkLocate() {
+  sparkPinIdx.value = null;
+  evFlashTs.value = null;
+  if (evFlashTimer != null) { clearTimeout(evFlashTimer); evFlashTimer = undefined; }
+}
+/* 高亮一拍：CSS 类挂行 + 160ms 后摘除；reduced-motion 由 CSS 关过渡（类时序不变） */
+function flashEvOnce(ts: number) {
+  evFlashTs.value = ts;
+  if (evFlashTimer != null) clearTimeout(evFlashTimer);
+  evFlashTimer = window.setTimeout(() => { evFlashTs.value = null; evFlashTimer = undefined; }, EV_FLASH_MS);
+}
+async function locateEventAt(ts: number) {
+  if (!detailEventsOpen.value) detailEventsOpen.value = true; /* 联动结果可见（折叠记忆顺带记住） */
+  const ev = detailEvents.value.find(e => Number(e?.ts) <= ts);
+  if (!ev) return; /* 曲线时刻早于全部事件：不定位（不谎称） */
+  const evTs = Number(ev.ts);
+  flashEvOnce(evTs);
+  await nextTick(); /* 行挂上 flash 类/可能刚展开的列表先渲染 */
+  evLineEl.value?.querySelector(`[data-evt="${evTs}"]`)?.scrollIntoView({ block: 'center' });
+}
+function onDetailSparkScrub(i: number | null, kind?: 'move' | 'click') {
+  if (i == null) return; /* leave：预览随之消失，粘性定位态保留（不丢） */
+  const buf = rateHist.get(detailJobId.value);
+  if (!buf || !buf[i]) return;
+  if (kind === 'click') {
+    if (sparkPinIdx.value === i) { clearSparkLocate(); return; } /* 再点已选中点=取消定位 */
+    sparkPinIdx.value = i;
+  }
+  void locateEventAt(buf[i].t);
+}
+watch(detailOpen, open => { if (!open) clearSparkLocate(); }); /* 弹窗关闭清定位态 */
+/* THROTTLE 事件时刻 → 曲线分数索引：逐采样段线性插值（ts 落在 buf[k]~buf[k+1] →
+   k+段内比例）；曲线时间窗外（早于首采样/晚于末采样）不标 */
+const detailSparkMarks = computed(() => {
+  const buf = rateHist.get(detailJobId.value);
+  if (!buf || buf.length < 2) return [];
+  const marks: number[] = [];
+  for (const ev of detailEvents.value) {
+    if (String(ev?.stage ?? '').toUpperCase() !== 'THROTTLE') continue;
+    const ts = Number(ev?.ts);
+    if (!Number.isFinite(ts) || ts < buf[0].t || ts > buf[buf.length - 1].t) continue;
+    let k = 0;
+    while (k < buf.length - 2 && buf[k + 1].t < ts) k++;
+    const seg = buf[k + 1].t - buf[k].t;
+    marks.push(seg > 0 ? k + (ts - buf[k].t) / seg : k);
+  }
+  return marks;
 });
 /* ═══ 冲突样本（详情冲突区）：默认显示 job doc 自带样本前 50 条；「加载全部冲突」走游标
  分页端点逐页追加拉满（服务端环上限 1000），total 以 job.conflicts 全量计数为准 ═══ */
@@ -1361,17 +1738,81 @@ const destModes = computed(() => isBrowserMode
  550 轨2 ② DevTools dt.histOpen 同范式——展开/收起跨会话记忆） */
 const formOpen = usePref('xm.formOpen', true);
 const connUrl = ref('');
-/* w53:连接串非密码部分进草稿(host/port/username 刷新/切走不丢);password 会话内存态——
- 安全天条:密码不落盘,刷新后需重输但其余字段全在(比整表清空好一个量级)。 */
-const connDraft = useScopedDraftState<any>('conn', { route: 'xmigrate' },
-  { scheme: 'http', host: '', port: 9200, username: '', password: '' });
-const conn = connDraft.state;
-/* 挂载后立即清 password 草稿残留(useScopedDraftState 恢复整个对象,但 password 不该在存储里) */
+/* ═══ 1122 草稿跨会话持久化（迁移工作台 workbench）：conn（host/port/username 等非凭据
+   字段）、srcConnId、form（含 autoVerify）、批量勾选+前缀对——从 sessionStorage 会话稿
+   升级为独立 localStorage key（语义=迁移工作台跨会话恢复）。安全天条：密码/token 绝不
+   落盘——写前 redactDraft 掩埋凭据样键值，读回掩埋值（"***"）视为空重填；写入 500ms
+   节流合并（browserXmigrate 台账同款），卸载/清除前冲账。useScopedDraft 全局机制是
+   其他视图的「关标签页即弃」语义、不动；本视图自建读写，旧 draft2 会话稿一次性搬入后
+   删除（用户无感），「恢复到默认=清除」「启动成功清 form 稿」语义照旧 ═══ */
+const XM_WB_KEY = 'esquerystudio.xmigrate.workbench-v1';
+const XM_WB_WRITE_MS = 500;
+const XM_CONN_DEFAULT = { scheme: 'http', host: '', port: 9200, username: '', password: '' };
+interface XmWorkbench {
+  conn?: Record<string, any>;
+  srcConnId?: string;
+  form?: Record<string, any>;
+  batch?: { sel?: string[]; srcPrefix?: string; dstPrefix?: string };
+}
+/* 键序免疫的「等于默认」比较快照：只按默认对象的键取值（旧稿多出的怪键/键序差异不参与比较） */
+function snapBy(o: Record<string, any>, def: Record<string, any>): string {
+  return JSON.stringify(Object.keys(def).map(k => [k, o?.[k]]));
+}
+const connDefSnap = snapBy(XM_CONN_DEFAULT, XM_CONN_DEFAULT);
+/* 读一次（含旧稿迁移+掩埋置空）。段级形态防御：非对象/非数组段丢弃回落默认，坏 JSON 整体回空 */
+function readWorkbench(): XmWorkbench {
+  let wb: XmWorkbench | null = null;
+  try {
+    const parsed = JSON.parse(localStorage.getItem(XM_WB_KEY) || 'null');
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) wb = parsed;
+  } catch { /* 坏快照回落空（全默认） */ }
+  /* 旧 draft2 会话稿一次性迁移：新 key 无稿才迁（有稿=已升级过，旧稿作废），搬完删旧 key */
+  if (!wb) {
+    const oldConnKey = draftStorageKey({ route: 'xmigrate' }, 'conn');
+    const oldSrcKey = draftStorageKey({ route: 'xmigrate' }, 'src-conn-id');
+    const oldFormKey = draftStorageKey({ route: 'xmigrate' }, 'form');
+    const migrated: XmWorkbench = {};
+    try {
+      const oc = JSON.parse(sessionStorage.getItem(oldConnKey) || 'null');
+      if (oc && typeof oc === 'object' && !Array.isArray(oc)) migrated.conn = oc;
+    } catch { /* 坏旧稿丢弃 */ }
+    const os = sessionStorage.getItem(oldSrcKey);
+    if (os != null && os !== '') migrated.srcConnId = os;
+    try {
+      const ofm = JSON.parse(sessionStorage.getItem(oldFormKey) || 'null');
+      if (ofm && typeof ofm === 'object' && !Array.isArray(ofm)) migrated.form = ofm;
+    } catch { /* 坏旧稿丢弃 */ }
+    if (Object.keys(migrated).length) {
+      wb = migrated;
+      /* 搬入即落盘新 key（redact 掩埋同写通道）——先保新稿再删旧 key，中途关页不丢稿 */
+      writeStoredRaw(localStorage, XM_WB_KEY, redactDraft(JSON.stringify(migrated)));
+      for (const k of [oldConnKey, oldSrcKey, oldFormKey]) removeStoredRaw(sessionStorage, k); /* 搬完删旧 key（存储写通道单源） */
+    }
+  }
+  if (!wb) return {};
+  /* 掩埋值视为空：redactDraft 落盘的 "***"（password/token 等）读回置空让用户重填 */
+  const unmask = (v: any): any => {
+    if (v === '***') return '';
+    if (v && typeof v === 'object' && !Array.isArray(v)) {
+      const o: Record<string, any> = {};
+      for (const [k, val] of Object.entries(v)) o[k] = unmask(val);
+      return o;
+    }
+    return v;
+  };
+  return unmask(wb);
+}
+const wbInit = readWorkbench();
+/* w53 语义承接（升级跨会话）：连接非凭据字段刷新/重开不丢；password 内存态——读侧掩埋置空
+ + 写侧 redact 掩埋 + 挂载兜底清，三层保证不落盘不回填 */
+const conn = ref<any>({ ...XM_CONN_DEFAULT, ...wbInit.conn, password: '' });
+const connRestored = ref(snapBy(conn.value, XM_CONN_DEFAULT) !== connDefSnap);
 onMounted(() => { conn.value.password = ''; });
 
-/* 已存连接下拉——选中则服务端按档案取密，明文不经前端；''=手动输入回退 */
-const srcConnIdDraft = useScopedDraft('src-conn-id', { route: 'xmigrate' });
-const srcConnId = srcConnIdDraft.text;
+/* 已存连接下拉——选中则服务端按档案取密，明文不经前端；''=手动输入回退。
+   1122：档案 id（非凭据）随 workbench 跨会话恢复 */
+const srcConnId = ref(typeof wbInit.srcConnId === 'string' ? wbInit.srcConnId : '');
+const srcConnIdRestored = ref(srcConnId.value !== '');
 /* 连接模型下源必须是已授权档案（后端 requireSourceWrite 拒绝手输）；
    非连接模型保留手输回退。连接目录本身也按 canSeeConn 过滤，未授权连接名不外泄。 */
 const connModel = computed(() => Array.isArray(auth.grantedPages)
@@ -1416,19 +1857,60 @@ const XM_FORM_DEFAULT = ({
   destCreateMode: 'NONE', tuneMode: 'AGGRESSIVE',
   /* 高级参数初始留空：侧栏裸 0 会盖掉 placeholder，运维分不清「0」是填过还是默认；提交时 || 0 归一 */
   slices: null, batchSize: null, scrollKeepAliveSec: null, forceMerge: false,
+  /* 全链收尾：迁移 DONE 后自动发起等价验证（随表单草稿走，默认开） */
+  autoVerify: true,
 });
-/* 草稿：表单草稿迁 useScopedDraftState（按集群目标隔离；不含凭据字段），
- 启动成功后的清除语义保留（clear()）。 */
-const formDraft = useScopedDraftState<any>('form', { route: 'xmigrate',}, XM_FORM_DEFAULT);
+/* 草稿：表单随 workbench 跨会话恢复（不含凭据字段；与默认键序无关的相等比较），
+   启动成功后的清除语义保留（clearFormDraft）。 */
+const formDefSnap = JSON.stringify(XM_FORM_DEFAULT);
+const cloneFormDef = () => JSON.parse(formDefSnap) as Record<string, any>;
+const formDefKeySnap = snapBy(cloneFormDef(), XM_FORM_DEFAULT);
+/* 旧稿段合并而非整体替换：新字段（如 autoVerify）落默认不读成 undefined */
+const form = ref<Record<string, any>>({ ...cloneFormDef(), ...wbInit.form });
+const formRestored = ref(snapBy(form.value, XM_FORM_DEFAULT) !== formDefKeySnap);
 /* 高级参数折叠态（原 details 无受控态；升档 CollapsePanel 后显式落位，默认收起不变） */
 const advOpen = ref(false);
-const form = formDraft.state;
 /* 浏览器模式隐藏 FROM_ENTITY 后，恢复的旧草稿不能停留在不可见档位。 */
 if (isBrowserMode && form.value.destCreateMode === 'FROM_ENTITY') form.value.destCreateMode = 'NONE';
+/* 旧草稿无 autoVerify 字段（后续新增字段）——归一回默认开，不把 undefined 读成 falsy 关 */
+if (form.value.autoVerify == null) form.value.autoVerify = true;
 /* 第 2 步宿主目标索引默认回填顶栏选中（ 单一真相）：一次性初值，仅空时回填——
  不改用户已输/草稿恢复值；写类视图不做持续 follow（ 白名单口径，防「A 的目标
  被顶栏切换悄悄改掉」），要换目标由用户显式改输入。 */
 if (!form.value.destIndex && store.pickedIdx) form.value.destIndex = store.pickedIdx;
+/* ═══ workbench 写侧（500ms 节流合并，browserXmigrate 台账同款）：段级「等于默认=不落盘」
+   （恢复到默认=清除语义），整体空=删 key；写前 redactDraft 掩埋凭据样键值兜底。
+   batch 段（勾选+前缀）在 batchSel 定义处挂 watch（TDZ 后置），conn/srcConnId/form 在此 ═══ */
+function writeWorkbenchNow(): void {
+  const wb: XmWorkbench = {};
+  if (snapBy(conn.value, XM_CONN_DEFAULT) !== connDefSnap) wb.conn = { ...conn.value };
+  if (srcConnId.value) wb.srcConnId = srcConnId.value;
+  if (snapBy(form.value, XM_FORM_DEFAULT) !== formDefKeySnap) wb.form = { ...form.value };
+  const batch = { sel: batchSel.value.filter(Boolean), srcPrefix: batchSrcPrefix.value, dstPrefix: batchDstPrefix.value };
+  if (batch.sel.length || batch.srcPrefix || batch.dstPrefix) wb.batch = batch;
+  if (!Object.keys(wb).length) { removeStoredRaw(localStorage, XM_WB_KEY); return; }
+  writeStoredRaw(localStorage, XM_WB_KEY, redactDraft(JSON.stringify(wb)));
+}
+let wbWriteTimer: number | undefined;
+function persistWorkbench(): void {
+  if (wbWriteTimer != null) return; /* 窗口内合并写（高频编辑不打写风暴） */
+  wbWriteTimer = window.setTimeout(() => { wbWriteTimer = undefined; writeWorkbenchNow(); }, XM_WB_WRITE_MS);
+}
+/* 立即落盘（清除/卸载冲账用）：取消 pending 定时器后同步写一次 */
+function flushWorkbench(): void {
+  if (wbWriteTimer != null) { clearTimeout(wbWriteTimer); wbWriteTimer = undefined; }
+  writeWorkbenchNow();
+}
+watch(conn, () => { connRestored.value = false; persistWorkbench(); }, { deep: true });
+watch(srcConnId, () => { srcConnIdRestored.value = false; persistWorkbench(); });
+watch(form, () => { formRestored.value = false; persistWorkbench(); }, { deep: true });
+onBeforeUnmount(flushWorkbench); /* 卸载冲账：pending 窗口内的最后编辑不丢 */
+/* 启动成功清 form 稿（原 useScopedDraftState.clear 同语义：归默认+清段+提示位复位） */
+function clearFormDraft() {
+  form.value = cloneFormDef();
+  formRestored.value = false;
+  flushWorkbench();
+}
 const keyOpts = ref<{ label: string; value: string }[]>([]);
 /* 迁移 key 下拉 localeCompare 字母序 + 最近选用置顶——
  选中即记录（去重 unshift，cap 5：太长置顶区挤占字母序视野），usePref 落盘刷新保持。
@@ -1835,13 +2317,192 @@ async function doSyncStructure(dest: string) {
     store.notify('error', syncErr.value);
   }
 }
-/* 报告落地后的快捷动作：确保目标已回填 + toast 提示（不强行跳转，由用户在下方自行启动） */
-function continueToMigrate() {
+/* 报告落地后的快捷动作：确保目标已回填 + toast 提示；全链升级——同步成功后自动拉一次
+   启动预检并打开预检报告弹层（复用 openStartConfirm 同一 preflight 数据面），把
+   「结构已同步 → 预检 → 启动」串成一步；预检失败不阻断（下方启动确认链会重拉并如实降级） */
+async function continueToMigrate() {
   const dest = String(syncReport.value?.destIndex || syncDest.value || '');
   if (!dest) { store.notify('warning', '目标索引名缺失，请先在目标索引输入框填写'); return; }
   if (!form.value.destIndex) form.value.destIndex = dest;
   store.notify('info', `目标索引「${dest}」结构已就绪，可在下方启动迁移继续搬运数据`);
+  try {
+    preflight.value = await api.xb.preflight({ sourceIndex: form.value.sourceIndex, destIndex: dest }, srcConnId.value || undefined);
+    preflightOpen.value = true; /* 预检报告直接在场：预估/画像/建议先看再启动 */
+  } catch { /* 预检失败不拦继续迁移链（openStartConfirm 会重拉并 warning 降级提示） */ }
 }
+
+/* ═══ 全链向导步骤点亮：三步完成判定（连接检查成功或已选档案 / 源索引合法 / 目标索引合法
+   ——批量模式第 3 步=前缀映射产出合法目标对），完成态编号换绿底对勾（纯视觉推进反馈，
+   不改变任何步骤的交互与禁用逻辑） ═══ */
+function xmStepDone(n: number): boolean {
+  if (n === 1) return remoteIndices.value.length > 0 || !!srcConnId.value;
+  if (n === 2) return !!form.value.sourceIndex && !idxNameProblem(form.value.sourceIndex);
+  return batchMode.value
+    ? batchPairs.value.length > 0
+    : !!form.value.destIndex && !idxNameProblem(form.value.destIndex);
+}
+
+/* ═══ 结构对比（api.xb.diffStructure 只读）：目标索引已存在时与源索引 settings+mapping
+   逐项比对。豁免语义=命中兼容计划剔除集（expectedRemovals）的项显示豁免徽标而非差异
+   （同步结构按计划剔除属预期）；三清单全空显示「结构已一致」正面态 ═══ */
+const diffOpen = ref(false);
+const diffLoading = ref(false);
+const diffErr = ref('');
+const diffResult = ref<any>(null);
+/* 对比目标名：跟随同步目标输入（默认与源同名）——diff 的语义场景就是「目标已建成，核对差异」 */
+const diffDestName = computed(() => (syncDest.value.trim() || form.value.sourceIndex || '').trim());
+/* 目标已存在判定（宿主索引清单在场）+ 源连接档案在场（服务端 diff 契约 srcConnId 必传，
+   手输连接不支持——能力对比同口径） */
+const diffDestExists = computed(() =>
+  !!diffDestName.value && hostIndices.value.some(h => String(h.index) === diffDestName.value));
+async function openDiffStructure() {
+  if (!canOps.value) { store.notify('warning', '结构对比需专项或 ADMIN 角色'); return; }
+  if (!srcConnId.value) { store.notify('warning', '结构对比需选择已授权的源连接档案（手输连接不支持）'); return; }
+  if (!form.value.sourceIndex || diffLoading.value) return;
+  diffLoading.value = true;
+  diffErr.value = '';
+  diffResult.value = null;
+  diffOpen.value = true;
+  try {
+    diffResult.value = await api.xb.diffStructure({
+      srcConnId: srcConnId.value,
+      sourceIndex: form.value.sourceIndex,
+      destIndex: diffDestName.value || undefined,
+    }, srcConnId.value || undefined);
+  } catch (e: any) {
+    diffResult.value = null;
+    diffErr.value = '结构对比失败：' + friendlyApiError(e);
+  } finally { diffLoading.value = false; }
+}
+/* 豁免集：expectedRemovals 按 area:key 归一（settings 整键 / analysis 组件 kind.name / mappings 字段名） */
+const diffExemptions = computed(() => {
+  const m = new Map<string, string>();
+  const list = Array.isArray(diffResult.value?.expectedRemovals) ? diffResult.value.expectedRemovals : [];
+  for (const e of list) m.set(String(e?.area) + ':' + String(e?.key ?? ''), String(e?.reason ?? ''));
+  return m;
+});
+/* 差异值显示：对象 prettyJson、缺失侧 (absent)（browserXmigrate fieldSemanticDetail 同口径） */
+function diffVal(v: any): string {
+  if (v === undefined) return '(absent)';
+  if (v !== null && typeof v === 'object') return prettyJson(v);
+  return String(v ?? '(absent)');
+}
+/* 嵌套 index.analysis 值的组件清单（kind.name 集合，browserXmigrate analysisComponents 同口径） */
+function diffAnalysisComponents(v: any): Set<string> {
+  const out = new Set<string>();
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return out;
+  for (const [kind, defs] of Object.entries(v)) {
+    if (!defs || typeof defs !== 'object' || Array.isArray(defs)) continue;
+    for (const name of Object.keys(defs)) out.add(`${kind}.${name}`);
+  }
+  return out;
+}
+/* settings 键豁免判定：整键命中 / analysis 平铺前缀命中 / 嵌套 index.analysis 组件差集 ⊆ 剔除集 */
+function diffSettingExempt(key: string, sourceValue?: any, targetValue?: any): { hit: boolean; reason: string } {
+  const ex = diffExemptions.value;
+  const whole = ex.get('settings:' + key);
+  if (whole != null) return { hit: true, reason: whole };
+  if (key.startsWith('index.analysis.')) {
+    const rest = key.slice('index.analysis.'.length);
+    for (const [k, reason] of ex) {
+      if (!k.startsWith('analysis:')) continue;
+      if (rest.startsWith(k.slice('analysis:'.length) + '.')) return { hit: true, reason };
+    }
+  }
+  if (key === 'index.analysis') {
+    const expected = new Set([...ex.keys()].filter(k => k.startsWith('analysis:')).map(k => k.slice('analysis:'.length)));
+    const srcComps = diffAnalysisComponents(sourceValue);
+    const dstComps = diffAnalysisComponents(targetValue);
+    let reason = '';
+    for (const c of srcComps) {
+      if (dstComps.has(c)) continue;
+      if (!expected.has(c)) return { hit: false, reason: '' };
+      reason = reason || ex.get('analysis:' + c) || '';
+    }
+    return { hit: true, reason };
+  }
+  return { hit: false, reason: '' };
+}
+/* 单条差异行：key + 人话变化 + 豁免徽标与原因 */
+interface DiffRow { key: string; change: string; exempt: boolean; exemptReason: string }
+/* 三清单行集：settings（排除 index.analysis* 键——归分析组件区）/ 分析组件 / 字段增删改 */
+const diffSettingsRows = computed<DiffRow[]>(() => {
+  const d = diffResult.value?.settingsDiff;
+  if (!d) return [];
+  const rows: DiffRow[] = [];
+  const push = (s: any, change: string, exempt: { hit: boolean; reason: string }) =>
+    rows.push({ key: String(s.key), change, exempt: exempt.hit, exemptReason: exempt.reason });
+  for (const s of [...(d.onlyInSource || []), ...(d.onlyInTarget || []), ...(d.valueChanged || [])]) {
+    const key = String(s?.key ?? '');
+    if (key === 'index.analysis' || key.startsWith('index.analysis.')) continue;
+    if ('targetValue' in s && s.targetValue !== undefined && 'sourceValue' in s) {
+      push(s, `${diffVal(s.sourceValue)} → ${diffVal(s.targetValue)}`, diffSettingExempt(key, s.sourceValue, s.targetValue));
+    } else if (s?.targetValue !== undefined) {
+      push(s, `仅目标有：${diffVal(s.targetValue)}`, diffSettingExempt(key, undefined, s.targetValue));
+    } else {
+      push(s, `仅源有：${diffVal(s.sourceValue)}`, diffSettingExempt(key, s.sourceValue, undefined));
+    }
+  }
+  return rows;
+});
+const diffAnalysisRows = computed<DiffRow[]>(() => {
+  const d = diffResult.value?.settingsDiff;
+  if (!d) return [];
+  const rows: DiffRow[] = [];
+  const expected = new Map([...diffExemptions.value].filter(([k]) => k.startsWith('analysis:'))
+    .map(([k, v]) => [k.slice('analysis:'.length), v]));
+  for (const s of [...(d.onlyInSource || []), ...(d.onlyInTarget || []), ...(d.valueChanged || [])]) {
+    const key = String(s?.key ?? '');
+    if (key === 'index.analysis') {
+      /* 嵌套整键差集：源有目标无（豁免判定）/ 目标有源无（新增，恒不豁免）逐组件成行 */
+      const srcComps = diffAnalysisComponents(s?.sourceValue);
+      const dstComps = diffAnalysisComponents(s?.targetValue);
+      for (const c of srcComps) {
+        if (dstComps.has(c)) continue;
+        rows.push({ key: c, change: '源有分析组件，目标缺失', exempt: expected.has(c), exemptReason: expected.get(c) || '' });
+      }
+      for (const c of dstComps) {
+        if (srcComps.has(c)) continue;
+        rows.push({ key: c, change: '目标有分析组件，源缺失', exempt: false, exemptReason: '' });
+      }
+    } else if (key.startsWith('index.analysis.')) {
+      const short = key.slice('index.analysis.'.length);
+      const exempt = diffSettingExempt(key, s?.sourceValue, s?.targetValue);
+      const change = s?.targetValue !== undefined && 'sourceValue' in s
+        ? `${diffVal(s.sourceValue)} → ${diffVal(s.targetValue)}`
+        : s?.targetValue !== undefined ? `仅目标有：${diffVal(s.targetValue)}` : `仅源有：${diffVal(s.sourceValue)}`;
+      rows.push({ key: short, change, exempt: exempt.hit, exemptReason: exempt.reason });
+    }
+  }
+  return rows;
+});
+const diffFieldRows = computed<DiffRow[]>(() => {
+  const m = diffResult.value?.mappingsDiff;
+  if (!m) return [];
+  const ex = diffExemptions.value;
+  const rows: DiffRow[] = [];
+  for (const f of m.fieldAdded || []) {
+    rows.push({ key: String(f.field), change: `目标新增字段（${f.type}）`, exempt: ex.has('mappings:' + f.field), exemptReason: ex.get('mappings:' + f.field) || '' });
+  }
+  for (const f of m.fieldRemoved || []) {
+    rows.push({ key: String(f.field), change: `源有字段目标缺失（${f.type}）`, exempt: ex.has('mappings:' + f.field), exemptReason: ex.get('mappings:' + f.field) || '' });
+  }
+  for (const f of m.fieldChanged || []) {
+    /* 降级豁免仅 type 未变（browserXmigrate 同口径）：降级后类型仍变的差异按计划外报告 */
+    const hit = ex.has('mappings:' + f.field) && f.sourceType === f.targetType;
+    rows.push({
+      key: String(f.field),
+      change: `${f.sourceType} → ${f.targetType}${f.detail ? '（' + f.detail + '）' : ''}`,
+      exempt: hit, exemptReason: hit ? ex.get('mappings:' + f.field) || '' : '',
+    });
+  }
+  return rows;
+});
+/* 计划外差异计数（unexpected 全量）与三清单全空判定（结构已一致正面态） */
+const diffUnexpectedCount = computed(() =>
+  Array.isArray(diffResult.value?.unexpected) ? diffResult.value.unexpected.length : 0);
+const diffAllClean = computed(() =>
+  !diffSettingsRows.value.length && !diffAnalysisRows.value.length && !diffFieldRows.value.length);
 
 /* 启动 */
 const starting = ref(false);
@@ -1969,6 +2630,93 @@ async function applyRecommended() {
       + (rec.requestsPerSecond != null ? `（推荐限速 ${rec.requestsPerSecond}/s，迁移档不自持限速参数）` : ''));
   } finally { advRecBusy.value = false; }
 }
+/* ═══ 迁移方案预设（localStorage xm-plan-presets-v1，交互照抄批量前缀预设）：保存当前
+   方案六参（tuneMode/slices/batchSize/scrollKeepAliveSec/forceMerge/destCreateMode）为
+   命名预设，下拉选择即回填、可删除；cap 20 超限按保存时间淘汰最旧。方案只关参数——
+   不含任何连接信息/密码/索引名（那些随作业与草稿走） ═══ */
+const XM_PLAN_PRESETS_KEY = 'xm-plan-presets-v1';
+const XM_PLAN_PRESETS_CAP = 20;
+interface XmPlanPreset {
+  tuneMode: string; slices: number | null; batchSize: number | null;
+  scrollKeepAliveSec: number | null; forceMerge: boolean; destCreateMode: string;
+  savedAt: number;
+}
+const planPresets = ref<Record<string, XmPlanPreset>>({});
+/* 读侧：坏快照静默丢弃（最坏=预设列表空，不炸页面）；键级校验只认对象形态 */
+try {
+  const rawPlanPresets = localStorage.getItem(XM_PLAN_PRESETS_KEY);
+  const parsedPlanPresets = rawPlanPresets ? JSON.parse(rawPlanPresets) : null;
+  if (parsedPlanPresets && typeof parsedPlanPresets === 'object' && !Array.isArray(parsedPlanPresets)) {
+    for (const [k, v] of Object.entries(parsedPlanPresets)) {
+      if (!v || typeof v !== 'object') continue;
+      planPresets.value[k] = {
+        tuneMode: String((v as any).tuneMode ?? 'AGGRESSIVE'),
+        slices: (v as any).slices == null ? null : Number((v as any).slices),
+        batchSize: (v as any).batchSize == null ? null : Number((v as any).batchSize),
+        scrollKeepAliveSec: (v as any).scrollKeepAliveSec == null ? null : Number((v as any).scrollKeepAliveSec),
+        forceMerge: !!(v as any).forceMerge,
+        destCreateMode: String((v as any).destCreateMode ?? 'NONE'),
+        savedAt: Number((v as any).savedAt) || 0,
+      };
+    }
+  }
+} catch { /* 坏快照静默丢弃 */ }
+const planPresetId = ref<string | null>(null);
+const planPresetName = ref('');
+const planPresetOpts = computed(() => Object.keys(planPresets.value)
+  .map(k => ({ label: k, value: k })));
+function persistPlanPresets() {
+  /* 配额满等写失败：提示但不打断（单源写通道吞异常回执布尔） */
+  if (!writeStoredRaw(localStorage, XM_PLAN_PRESETS_KEY, JSON.stringify(planPresets.value))) {
+    store.notify('warning', '方案预设保存失败（本地存储不可用）');
+  }
+}
+function onPlanPresetPick(v: string | null) {
+  if (!v) return;
+  const p = planPresets.value[v];
+  if (!p) return;
+  form.value.tuneMode = p.tuneMode;
+  form.value.slices = p.slices;
+  form.value.batchSize = p.batchSize;
+  form.value.scrollKeepAliveSec = p.scrollKeepAliveSec;
+  form.value.forceMerge = p.forceMerge;
+  /* 建索引方式挡不可见档位（浏览器模式无 FROM_ENTITY，newMigrationFromJob 同款） */
+  form.value.destCreateMode = destModes.value.some(o => o.k === p.destCreateMode) ? p.destCreateMode : 'NONE';
+  planPresetName.value = v;
+  store.notify('info', `已回填方案预设「${v}」（速度/并行/批大小/scroll 秒/收尾合并/建索引方式）`);
+}
+function savePlanPreset() {
+  const name = planPresetName.value.trim();
+  if (!name) { store.notify('warning', '先填预设名再保存'); return; }
+  planPresets.value = { ...planPresets.value, [name]: {
+    tuneMode: form.value.tuneMode, slices: form.value.slices ?? null, batchSize: form.value.batchSize ?? null,
+    scrollKeepAliveSec: form.value.scrollKeepAliveSec ?? null, forceMerge: !!form.value.forceMerge,
+    destCreateMode: form.value.destCreateMode, savedAt: Date.now(),
+  } };
+  /* cap 20：超限按保存时间淘汰最旧（无 savedAt 视为 0 最先走） */
+  const keys = Object.keys(planPresets.value);
+  if (keys.length > XM_PLAN_PRESETS_CAP) {
+    const next: Record<string, XmPlanPreset> = {};
+    for (const k of keys.sort((a, b) => (planPresets.value[a].savedAt ?? 0) - (planPresets.value[b].savedAt ?? 0)).slice(keys.length - XM_PLAN_PRESETS_CAP)) {
+      next[k] = planPresets.value[k];
+    }
+    planPresets.value = next;
+  }
+  persistPlanPresets();
+  planPresetId.value = name;
+  store.notify('success', `方案预设「${name}」已保存`);
+}
+function delPlanPreset() {
+  const name = planPresetId.value;
+  if (!name) return;
+  const next = { ...planPresets.value };
+  delete next[name];
+  planPresets.value = next;
+  persistPlanPresets();
+  planPresetId.value = null;
+  if (planPresetName.value === name) planPresetName.value = '';
+  store.notify('info', `方案预设「${name}」已删除`);
+}
 /* W4：启动确认直挂 ConfirmModal 合并 askConfirm——preflight 先行落定，
  弹层一次性呈现完整警告分支（F3：REBUILD 删数据警示绝不允许缺席，故不参与
  dismissable 会话跳过——同 title 下后续作业的删数据警示不得被静默吞掉）。
@@ -2065,9 +2813,12 @@ async function doStart() {
     if (srcConnId.value) req.srcConnId = srcConnId.value;
     else req.conn = connBody();
     const r = await api.xb.start(req, srcConnId.value || undefined);
+    /* 全链收尾登记：勾选了「完成后自动等价验证」的作业记录 jobId（须在 clearFormDraft
+       归位默认值前读取勾选态），作业表刷新发现 DONE 后自动发起验证（checkAutoVerify） */
+    if (form.value.autoVerify && r?.jobId) autoVerifyJobId.value = String(r.jobId);
     store.notify('success', '迁移已启动: ' + (r?.jobId || ''), { action: { label: '查看进度', onClick: () => { formOpen.value = false; locateJobRow(String(r?.jobId || '')); } } });
     formOpen.value = false;
-    formDraft.clear();
+    clearFormDraft();
     loadJobs();
   } catch (e: any) {
     /* G3-B3：启动失败不再仅 toast——内联面板留全文（后端校验长错误可回看），重试重开确认弹层；
@@ -2127,15 +2878,19 @@ function setJobsLimit(n: number) {
   jobsLimitPref.value = n;
   loadJobs();
 }
-/* 草稿恢复徽标——conn/src-conn-id/form 三把内容稿任一恢复即提示；
- list-sort 排序偏好稿随排序合并 QRT 内核（es_tbl_sort 记忆）退役，
- 「清除」覆盖本页三把会话稿。 */
+/* 草稿恢复徽标——conn/src-conn-id/form 三把内容稿任一恢复即提示（badge 语义不变，
+ 来源随 1122 从 sessionStorage 会话稿换成 workbench 跨会话稿）；
+ 「清除」覆盖本页三把内容稿（batch 段不在徽标语义内，勾选区自带清空钮）。 */
 const xmDraftRestored = computed(() =>
-  connDraft.restored.value || srcConnIdDraft.restored.value || formDraft.restored.value);
+  connRestored.value || srcConnIdRestored.value || formRestored.value);
 function clearDrafts() {
-  connDraft.clear();
-  srcConnIdDraft.clear();
-  formDraft.clear();
+  conn.value = { ...XM_CONN_DEFAULT };
+  srcConnId.value = '';
+  form.value = cloneFormDef();
+  connRestored.value = false;
+  srcConnIdRestored.value = false;
+  formRestored.value = false;
+  flushWorkbench(); /* 清除=立即落盘（不等节流窗） */
 }
 const filteredJobs = computed(() => {
   const kw = jobKw.value.trim().toLowerCase();
@@ -2199,12 +2954,42 @@ function sliceFailChips(j: any): { id: string; n: number }[] {
 
 /* 速率趋势环形缓冲——按 jobId 维护 (t, migrated) 采样点（loadJobs 轮询拍 push，cap 60）；
  值未变的拍不推点（缓冲不被平段灌满），终态后不再变化=DONE/FAILED 自然保留最后曲线。
- SparkLine 消费 migrated 序列（DiagView dg-spark 同款 w=96/h=16 档）；组件内存态，
- 刷新页面重建（首拍单点不绘，≥2 点才接线） */
+ SparkLine 消费 migrated 序列（DiagView dg-spark 同款 w=96/h=16 档）。
+ 持久化（xm-rate-hist-v1）：采样点随拍落 localStorage，刷新/重开页面为在场作业补水量——
+ 首拍即有 ≥2 点历史曲线（原内存态刷新即失）；行删除/批量清理同步清除其键（见
+ doDeleteJob/doCleanupJobs），总 job 键数 cap 50 按最后采样时间淘汰 */
 const XM_RATE_CAP = 60;
 const rateHist = reactive(new Map<string, { t: number; m: number }[]>());
+const XM_RATE_STORE_KEY = 'xm-rate-hist-v1';
+const XM_RATE_STORE_JOBS = 50;
+/* 载入：坏快照键级丢弃（单键坏不拖累整存储，内存态从零采样照常） */
+try {
+  const rawRateHist = localStorage.getItem(XM_RATE_STORE_KEY);
+  const parsedRateHist = rawRateHist ? JSON.parse(rawRateHist) : null;
+  if (parsedRateHist && typeof parsedRateHist === 'object' && !Array.isArray(parsedRateHist)) {
+    for (const [k, pts] of Object.entries(parsedRateHist)) {
+      if (!Array.isArray(pts)) continue;
+      const buf = (pts as any[])
+        .map(p => ({ t: Number(p?.t), m: Number(p?.m) }))
+        .filter(p => Number.isFinite(p.t) && p.t > 0 && Number.isFinite(p.m) && p.m >= 0)
+        .slice(-XM_RATE_CAP);
+      if (buf.length) rateHist.set(k, buf);
+    }
+  }
+} catch { /* 坏快照静默丢弃 */ }
+function persistRateHist() {
+  /* 空 buf 键不落盘；键数超 cap 按最后采样时间淘汰最旧（内存同步删，防 Map 越积越大） */
+  for (const [k, buf] of [...rateHist]) if (!buf.length) rateHist.delete(k);
+  if (rateHist.size > XM_RATE_STORE_JOBS) {
+    const byLast = [...rateHist.entries()]
+      .sort((a, b) => (a[1][a[1].length - 1]?.t ?? 0) - (b[1][b[1].length - 1]?.t ?? 0));
+    for (let i = 0; i < byLast.length - XM_RATE_STORE_JOBS; i++) rateHist.delete(byLast[i][0]);
+  }
+  writeStoredRaw(localStorage, XM_RATE_STORE_KEY, JSON.stringify(Object.fromEntries(rateHist))); /* 写失败不炸（内存态照常） */
+}
 function pushRateSamples() {
   const now = Date.now();
+  let dirty = false;
   for (const j of jobs.value) {
     const id = String(j?.jobId ?? '');
     if (!id) continue;
@@ -2214,7 +2999,9 @@ function pushRateSamples() {
     if (buf.length && buf[buf.length - 1].m === m) continue;
     buf.push({ t: now, m });
     if (buf.length > XM_RATE_CAP) buf.shift();
+    dirty = true;
   }
+  if (dirty) persistRateHist();
 }
 /* jobId → 速率序列缓存（与 rateHist 同生命周期：作业对象上无挂载位，行槽经
    rowJob 反查 jobId 再取序列——缓存让「同 buf 状态」在多次模板求值间引用恒定） */
@@ -2346,6 +3133,7 @@ async function loadJobs() {
     const r = await api.xb.jobs(jobsLimit.value, srcConnId.value || undefined);
     if (seq !== jobsSeq) return; // 已有更新拍入列：本拍整拍作废，不动任何状态
     jobs.value = Array.isArray(r) ? r : [];
+    checkAutoVerify(); /* 自动等价验证链：登记作业转终态后本拍即发起（用户手动验证在途/弹窗在场时不抢） */
     pushRateSamples(); /* 速率环形缓冲随拍采样（弃拍在上方 return，不采旧数据） */
     /* 详情弹窗打开时事件时间线随本拍刷新（跟随作业表轮询节奏；错误态只走就地重试） */
     if (detailOpen.value && detailJobId.value) void refreshDetailEvents(false);
@@ -2384,8 +3172,11 @@ async function doDeleteJob(j: any) {
   try {
     await api.xb.deleteJob(jobId, j?.srcConnId || undefined);
     store.notify('success', '已删除作业记录');
-    /* 本地移除该行：删除语义确定（204），不必整表重拉——轮询拍/RUNNING 守卫照常 */
+    /* 本地移除该行：删除语义确定（204），不必整表重拉——轮询拍/RUNNING 守卫照常；
+       速率历史持久化键同步清除（记录已删，曲线不留孤儿数据） */
     jobs.value = jobs.value.filter(x => String(x.jobId) !== jobId);
+    rateHist.delete(jobId);
+    persistRateHist();
   } catch (e: any) {
     store.notify('error', '删除失败：' + friendlyApiError(e));
   }
@@ -2399,8 +3190,19 @@ async function doCleanupJobs() {
   });
   if (!ok) return;
   try {
+    /* 清理前快照：后端只回 deleted 计数不回清单，本地按同口径（终态 + createTime 7 天前）
+       近似同步清除速率历史键——多清的键在作业仍在列表时下一采样拍自动重建 */
+    const cutoff = Date.now() - 7 * 86400000;
+    const goneKeys = jobs.value
+      .filter(j => XM_TERMINAL_STATUS.includes(j?.status) && Number(j?.createTime) < cutoff)
+      .map(j => String(j?.jobId ?? ''))
+      .filter(Boolean);
     const r = await api.xb.cleanupJobs(7, srcConnId.value || undefined);
     store.notify('success', `已清理 ${Number(r?.deleted) || 0} 条 7 天前的终态记录`);
+    if (Number(r?.deleted) > 0 && goneKeys.length) {
+      goneKeys.forEach(k => rateHist.delete(k));
+      persistRateHist();
+    }
     loadJobs();
   } catch (e: any) {
     store.notify('error', '清理失败：' + friendlyApiError(e));
@@ -2425,10 +3227,19 @@ function queryStr(key: string): string {
 async function consumeDeepLinks() {
   const jobId = queryStr('jobId');
   const source = queryStr('source');
+  /* detail=1 深链（配 ?jobId=）：jobs 载入后自动打开该作业详情弹窗——复用 openDetail
+     （复位态/拉事件与手工打开同链）；作业不在载入列表（已删除/被档位截断）→ toast 如实
+     告知，行定位行为不变。不带 detail=1 时本分支整拍跳过=与现状完全一致 */
+  const wantDetail = !!jobId && queryStr('detail') === '1';
   const seq = ++dlSeq;
   await loadJobs();
   if (seq !== dlSeq) return; // 已有更新消费口入列：定位与摘链权让位
   if (jobId) locateJobRow(jobId);
+  if (wantDetail) {
+    const j = jobsById.value.get(jobId);
+    if (j) openDetail(j);
+    else store.notify('warning', `未找到作业 ${jobId}：可能已被删除或不在最近 ${jobsLimit.value} 条内，无法打开详情`);
+  }
   if (source) {
     form.value.sourceIndex = source; /* 深链回填源索引（写草稿=与手输同口径） */
     formOpen.value = true; /* 表单组展开：第 2 步选源直接在场 */
@@ -2437,6 +3248,7 @@ async function consumeDeepLinks() {
   const rest = { ...route.query };
   delete rest.jobId;
   delete rest.source;
+  delete rest.detail;
   router.replace({ query: rest }).catch(() => {});
 }
 /** 1125：挂载期读取（作业清单/目标索引清单/indexKey）同样要过身份门——
@@ -2468,10 +3280,11 @@ watch(() => [auth.probed, auth.authDisabled, auth.me?.username, store.target], (
   void bootReads();
 });
 /* 深链第二/三口——KeepAlive 回流与 SPA 内重入共用 consumeDeepLinks（见上注）；
- watch 双参并察（jobId/source 任一「从无到有/值变化」即消费，摘链后的清除拍不回环） */
+   watch 三参并察（jobId/source/detail 任一「从无到有/值变化」即消费——同 jobId 配
+   detail=1 的补拍也走消费口，摘链后的清除拍不回环） */
 onActivated(() => { consumeDeepLinks(); });
-watch(() => [route.query.jobId, route.query.source], ([nj, ns], [oj, os]) => {
-  if (nj === oj && ns === os) return;
+watch(() => [route.query.jobId, route.query.source, route.query.detail], ([nj, ns, nd], [oj, os, od]) => {
+  if (nj === oj && ns === os && nd === od) return;
   if (nj || ns) consumeDeepLinks();
 });
 /* 联动性：迁移完成一键去查询工作台验证目标索引——
@@ -2669,9 +3482,13 @@ watch(hasRunningJob, () => xmRefresher.restart());
    模式开关切换：关=单源向导（既有行为零变化）；开=快捷清单逐行勾选 + 目标名按
    「源前缀→目标前缀」映射，确认弹层列全部映射对后逐个下发，失败不中断。 */
 const batchMode = ref(false);
-const batchSel = ref<string[]>([]);
-const batchSrcPrefix = ref('');
-const batchDstPrefix = ref('');
+/* 1122：勾选+前缀进 workbench batch 段（跨会话恢复；段级形态防御坏稿回落空）。
+   关闭批量模式清勾选的既有交互照旧（watch 落盘同步清段），前缀保留微调语义不变 */
+const wbBatch = wbInit.batch && typeof wbInit.batch === 'object' && !Array.isArray(wbInit.batch) ? wbInit.batch : {};
+const batchSel = ref<string[]>(Array.isArray(wbBatch.sel) ? wbBatch.sel.map(s => String(s)).filter(Boolean) : []);
+const batchSrcPrefix = ref(typeof wbBatch.srcPrefix === 'string' ? wbBatch.srcPrefix : '');
+const batchDstPrefix = ref(typeof wbBatch.dstPrefix === 'string' ? wbBatch.dstPrefix : '');
+watch([batchSel, batchSrcPrefix, batchDstPrefix], () => persistWorkbench(), { deep: true });
 const batchConfirmOpen = ref(false);
 /* ═══ 前缀映射预设（localStorage xm-batch-presets-v1，名称→映射行数组；当前单行前缀对，
    行数组形态留扩展）。读侧坏 JSON 静默丢弃（最坏=预设列表为空，不炸页面） ═══ */
@@ -2936,6 +3753,53 @@ async function copyBatchFails() {
   store.notify(okCopy ? 'success' : 'error', okCopy ? `已复制 ${list.length} 条失败明细（每行一条）` : '复制失败');
 }
 
+/* ═══ 批量链收尾补验证：finishBatch 后「全部等价验证」——按目标名把批量清单关联回作业表
+   中的 DONE 作业，逐个等价验证（串行，结论逐行落定），汇总 verdict 矩阵（等价/有分歧/
+   无法判定/验证失败计数）；每项结论同步落事件线（recordVerifyEvent 同链）。作业仍在
+   RUNNING 时如实提示稍后再来，不伪造结果 ═══ */
+const batchVerifyBusy = ref(false);
+interface BatchVerifyRow { jobId: string; dest: string; verdict: string; err: string; done: boolean; job: any }
+const batchVerifyRows = ref<BatchVerifyRow[]>([]);
+const batchVerifySummary = computed(() => {
+  const doneRows = batchVerifyRows.value.filter(r => r.done);
+  const by = (v: string) => doneRows.filter(r => !r.err && r.verdict === v).length;
+  return {
+    total: batchVerifyRows.value.length,
+    done: doneRows.length,
+    equivalent: by('EQUIVALENT'),
+    divergent: by('DIVERGENT'),
+    inconclusive: by('INCONCLUSIVE'),
+    error: doneRows.filter(r => !!r.err).length,
+  };
+});
+async function runBatchVerify() {
+  if (!canOps.value) { store.notify('warning', '等价验证需专项或 ADMIN 角色'); return; }
+  if (batchVerifyBusy.value) return;
+  /* 关联集=批量清单目标名命中的 DONE 作业（失败/进行中作业不参与，完成后可再点补验） */
+  const dstSet = new Set(batchRows.value.map(r => String(r.dst)));
+  const targets = jobs.value.filter(j => j?.status === 'DONE' && j?.destIndex && dstSet.has(String(j.destIndex)));
+  if (!targets.length) {
+    store.notify('warning', '批量清单暂无已完成的作业可验证——迁移仍在进行时稍后再点「全部等价验证」');
+    return;
+  }
+  batchVerifyBusy.value = true;
+  batchVerifyRows.value = targets.map(j => ({
+    jobId: String(j.jobId), dest: String(j.destIndex), verdict: '', err: '', done: false, job: j,
+  }));
+  try {
+    for (const row of batchVerifyRows.value) {
+      try {
+        const result = await api.xb.verifyEquivalence({ jobId: row.jobId, sampleSize: 100 }, row.job?.srcConnId || undefined);
+        row.verdict = String(result?.verdict ?? '');
+        recordVerifyEvent(row.job, result); /* 批量结论同样落事件线（浏览器台账/服务端会话稿） */
+      } catch (e: any) {
+        row.err = friendlyApiError(e);
+      }
+      row.done = true;
+    }
+  } finally { batchVerifyBusy.value = false; }
+}
+
 /* abort / resume */
 const actJob = ref<any>(null);
 const resumeOpen = ref(false);
@@ -3007,6 +3871,69 @@ async function doThrottle() {
 }
 /* 调速弹层 Enter=提交（resume 弹窗同款；在途不放行） */
 useModalEnter(throttleOpen, doThrottle, () => !throttling.value);
+
+/* ═══ 等价验证（DONE 作业收尾核对，api.xb.verifyEquivalence 只读）：双侧 _count +
+   抽样 sampleSize=100 逐 _id 内容摘要比对 → verdict EQUIVALENT/DIVERGENT/INCONCLUSIVE。
+   入口=行行动区/详情 footer（DONE 且有 destIndex）；加载态防重入（verifyLoading 闸）；
+   失败内联展示可复制（不冒充结论） ═══ */
+const verifyOpen = ref(false);
+const verifyJob = ref<any>(null);
+const verifyLoading = ref(false);
+const verifyErr = ref('');
+const verifyResult = ref<any>(null);
+const VERIFY_VERDICT_ZH: Record<string, string> = { EQUIVALENT: '等价', DIVERGENT: '有分歧', INCONCLUSIVE: '无法判定' };
+function verdictZh(v: any): string { return VERIFY_VERDICT_ZH[String(v)] || String(v ?? '—'); }
+function verdictTone(v: any): 'g' | 'r' | 'n' {
+  const s = String(v);
+  if (s === 'EQUIVALENT') return 'g';
+  if (s === 'DIVERGENT') return 'r';
+  return 'n'; /* INCONCLUSIVE 与未知枚举归中性档（不吞枚举原文） */
+}
+/* 样本区归一：sample 缺席（旧后端）回空集形态，显示层不炸不冒充 */
+const verifySample = computed(() => {
+  const s = verifyResult.value?.sample;
+  return {
+    requested: Number(s?.requested ?? 0) || 0,
+    checked: Number(s?.checked ?? 0) || 0,
+    matched: Number(s?.matched ?? 0) || 0,
+    missingInDest: Array.isArray(s?.missingInDest) ? s.missingInDest.map(String) : [],
+    mismatched: Array.isArray(s?.mismatched) ? s.mismatched : [],
+    missingTruncated: !!s?.missingTruncated,
+    mismatchTruncated: !!s?.mismatchTruncated,
+  };
+});
+async function openVerify(j: any) {
+  const jobId = String(j?.jobId ?? '');
+  if (!jobId || !j?.destIndex) { store.notify('warning', '仅迁移完成且有目标索引的作业可做等价验证'); return; }
+  if (verifyLoading.value) return; /* 防重入：在途验证未落定前不重复发起 */
+  verifyJob.value = j;
+  verifyLoading.value = true;
+  verifyErr.value = '';
+  verifyResult.value = null;
+  verifyOpen.value = true;
+  try {
+    verifyResult.value = await api.xb.verifyEquivalence({ jobId, sampleSize: 100 }, j?.srcConnId || undefined);
+    /* 验证结论落事件线：浏览器模式由 browserXmigrate 台账环内落 VERIFY；服务端模式
+       写本会话稿（recordVerifyEvent 内分流）。详情弹窗开着本作业时事件线随拍刷新 */
+    recordVerifyEvent(j, verifyResult.value);
+    if (detailOpen.value && detailJobId.value === jobId) void refreshDetailEvents(true);
+  } catch (e: any) {
+    verifyResult.value = null;
+    verifyErr.value = '等价验证失败：' + friendlyApiError(e);
+  } finally { verifyLoading.value = false; }
+}
+/* ═══ 全链收尾：启动时勾选「完成后自动等价验证」的作业，作业表刷新发现终态后自动发起
+   等价验证（仅 DONE 且有 destIndex）。竞态守卫：验证弹窗在场或在途时不抢（用户手动
+   操作优先）；标记消费即清——关掉自动弹层后不会反复重开 ═══ */
+const autoVerifyJobId = ref('');
+function checkAutoVerify() {
+  const id = autoVerifyJobId.value;
+  if (!id || verifyOpen.value || verifyLoading.value) return;
+  const j = jobs.value.find(x => String(x.jobId) === id);
+  if (!j || !XM_TERMINAL_STATUS.includes(j.status)) return;
+  autoVerifyJobId.value = '';
+  if (j.status === 'DONE' && j.destIndex) void openVerify(j);
+}
 function askResume(j: any) {
   actJob.value = j;
   const m = String(j.remoteEndpoint || '').match(/^(https?):\/\/([^:]+):(\d+)/);
@@ -3120,12 +4047,17 @@ useModalEnter(resumeOpen, doResume, () => !resuming.value && canJobOps(actJob.va
 /* 分节标题形态归全局 .sec-t（fs-sm/600/tx1），本类只留 flex 排布与编号落位 */
 .xm-g-hd { display: flex; align-items: center; gap: var(--sp-2); margin-bottom: var(--sp-2); }
 .xm-g-num { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: var(--ac); color: var(--bg0); font-size: var(--fs-xs); font-weight: 650; }
+/* 全链向导步骤完成点亮：编号底换绿档、数字换对勾（纯推进反馈，不改交互） */
+.xm-g-num.done { background: var(--ok); }
 .xm-hint-line { font-size: var(--fs-xs); color: var(--muted); padding: var(--sp-1) 0; }
 .xm-inline { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
 .xm-inline-lb { font-size: var(--fs-xs); color: var(--tx2); white-space: nowrap; min-width: 72px; }
 .xm-key-row { padding: var(--sp-1) 0; }
 /* 高级参数折叠壳：details/summary 升档 CollapsePanel（展开钮/计数语汇归组件），本类只留外距 */
 .xm-adv-details { margin-top: var(--sp-1); }
+/* 方案预设行（高级参数折叠区内）：交互形态照抄批量前缀预设 .xm-batch-preset */
+.xm-plan-preset { margin-top: var(--sp-2); }
+.xm-plan-preset .inp { width: 140px; }
 /* 数值档 NInputNumber：mono 字号沿原 .inp.mono 档（皮肤归 naive） */
 .xm-adv-i { flex: none; }
 .xm-adv-i :deep(.n-input__input-el) { font-family: var(--mono, monospace); font-size: var(--fs-xs); }
@@ -3316,10 +4248,17 @@ useModalEnter(resumeOpen, doResume, () => !resuming.value && canJobOps(actJob.va
 .xm-pf-detail { flex-basis: 100%; padding: var(--sp-1) var(--sp-2); border-left: 2px solid var(--warn); color: var(--tx2); background: var(--bg1); border-radius: var(--r-xs); word-break: break-all; }
 /* 同步警告折叠壳落位 */
 .xm-sync-warns-cp { margin: 0; }
+/* ── 结构对比弹层（diff-structure 只读）：三清单差异行（计划外红 / 豁免弱化+徽标） ── */
+.xm-diff-change { color: var(--tx2); font-size: var(--fs-xs); word-break: break-all; }
+.xm-sync-list li.xm-diff-bad .xm-diff-change { color: var(--err); }
+.xm-diff-exempt { font-size: var(--fs-2xs); border-color: var(--ac-line); color: var(--ac); }
 /* ── 批量区：映射预设行 / 先同步结构开关 / 渐进式下发清单 ── */
 .xm-batch-preset { margin-bottom: var(--sp-2); }
 .xm-batch-preset .inp { width: 140px; }
 .xm-batch-syncfirst { margin-top: var(--sp-2); }
+/* 批量等价验证汇总区（结果面板内独占行）：verdict 计数芯片 + 逐目标明细行 */
+.xm-batch-verify { flex-basis: 100%; display: flex; flex-direction: column; gap: var(--sp-1); }
+.xm-bv-sum { display: flex; align-items: center; gap: var(--sp-1h); flex-wrap: wrap; }
 .xm-batch-rows { margin: 0; padding: 0; list-style: none; flex-basis: 100%; display: flex; flex-direction: column; gap: 2px; }
 .xm-batch-rows li { word-break: break-all; color: var(--tx2); }
 .xm-batch-rows li.xm-batch-row-fail { color: var(--err); }
@@ -3342,18 +4281,45 @@ useModalEnter(resumeOpen, doResume, () => !resuming.value && canJobOps(actJob.va
 .xm-ev-autoscroll { margin-left: auto; }
 /* 跨天段头：今天/昨天/MM-DD（dayLabel 单源）——浅档弱化不抢事件行视觉 */
 .xm-ev-day { font-size: var(--fs-2xs); color: var(--tx1); font-weight: 600; padding: var(--sp-1h) 0 var(--sp-0); position: sticky; top: 0; background: var(--n-color, var(--bg1)); z-index: 1; }
-.xm-ev { display: flex; align-items: baseline; gap: var(--sp-2); padding: var(--sp-0) var(--sp-1h); font-size: var(--fs-xs); }
+.xm-ev { display: flex; align-items: baseline; gap: var(--sp-2); padding: var(--sp-0) var(--sp-1h); font-size: var(--fs-xs); cursor: pointer; }
+.xm-ev:hover { background: var(--hl-soft); }
+/* 1122 时间旅行：曲线联动定位命中行高亮一拍（160ms 摘除；reduced-motion 关过渡即时切换） */
+.xm-ev-flash { background: var(--hl-soft); box-shadow: inset 0 0 0 1px var(--ac); transition: background 160ms ease-out, box-shadow 160ms ease-out; }
+@media (prefers-reduced-motion: reduce) { .xm-ev-flash { transition: none; } }
+/* 联动曲线行：曲线 + 弱提示文案（工具行与事件列表之间） */
+.xm-ev-spark-row { display: flex; align-items: center; gap: var(--sp-2); margin: 0 0 var(--sp-1h); }
+.xm-ev-spark-hint { font-size: var(--fs-2xs); }
 .xm-ev-info { color: var(--tx2); }
 .xm-ev-warn { background: color-mix(in srgb, var(--warn) 12%, transparent); }
 .xm-ev-error { background: color-mix(in srgb, var(--err) 12%, transparent); }
 .xm-ev-ts { color: var(--tx2); flex-shrink: 0; }
 .xm-ev-msg { color: var(--tx2); word-break: break-all; }
+/* 本会话来源徽标：服务端 /events 只读无写入口，VERIFY 会话稿合并行的诚实标注 */
+.xm-ev-local { font-size: var(--fs-2xs); border-color: var(--ac-line); color: var(--ac); flex-shrink: 0; }
+/* 关键字搜索输入（时间线头部轻输入）：窄宽不挤芯片行 */
+.xm-ev-kw { width: min(150px, 100%); font-size: var(--fs-xs); padding: 2px var(--sp-1h); }
+/* 单事件钻取展开区：meta 行（完整时间戳/level/类型芯片 + 复制钮钉右）+ message 全文（不截断限高内滚） */
+.xm-ev-detail { display: flex; flex-direction: column; gap: var(--sp-1); margin: 2px 0 var(--sp-1h); padding: var(--sp-1) var(--sp-2); background: var(--bg1); border-left: 2px solid var(--ac-line); border-radius: var(--r-xs); }
+.xm-ev-d-meta { display: flex; align-items: center; gap: var(--sp-1h); flex-wrap: wrap; color: var(--tx2); font-size: var(--fs-2xs); }
+.xm-ev-d-copy { margin-left: auto; }
+.xm-ev-d-msg { margin: 0; white-space: pre-wrap; word-break: break-all; font-size: var(--fs-xs); color: var(--tx1); max-height: 200px; overflow-y: auto; }
 .xm-detail-ft { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
 /* ── 1122 运行中调速弹层：速率输入行（NInputNumber+Tip 语义说明） ── */
 .xm-throttle-row { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; margin-bottom: var(--sp-2); }
 .xm-throttle-inp { width: 110px; }
 .xm-throttle-inp :deep(.n-input__input-el) { font-family: var(--mono, monospace); }
 .xm-throttle-what { cursor: help; font-size: var(--fs-xs); }
+/* ── 等价验证弹层：verdict 大徽标三色档 + 计数对行 + 样本明细区 ── */
+.xm-verify { display: flex; flex-direction: column; gap: var(--sp-2); }
+.xm-verify-verdict { display: inline-flex; align-items: baseline; gap: var(--sp-1h); align-self: flex-start; padding: var(--sp-1h) var(--sp-3); border: 1px solid var(--line); border-radius: var(--r-m); font-weight: 650; font-size: var(--fs-md); }
+.xm-verify-verdict-en { font-weight: 400; font-size: var(--fs-xs); }
+.xm-verify-v-g { color: var(--ok); border-color: var(--ok-line); background: color-mix(in srgb, var(--ok) 10%, transparent); }
+.xm-verify-v-r { color: var(--err); border-color: var(--err-line); background: color-mix(in srgb, var(--err) 10%, transparent); }
+.xm-verify-v-n { color: var(--tx1); border-color: var(--line); background: var(--bg1); }
+.xm-verify-counts { display: flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; font-size: var(--fs-xs); }
+.xm-verify-sec { display: flex; flex-direction: column; gap: var(--sp-1); border-top: 1px solid var(--line); padding-top: var(--sp-2); }
+.xm-verify-list-t { font-size: var(--fs-2xs); color: var(--tx2); }
+.xm-verify-err-txt { word-break: break-all; }
 /* G3-C2： 标准断点——双栏（表单/配置预览）堆叠为单栏 */
 @media (max-width: 1100px) {
   .xm-form, .xm-cfg-grid { grid-template-columns: 1fr; }

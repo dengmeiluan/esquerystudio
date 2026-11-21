@@ -22,15 +22,15 @@
           </button>
           <!-- G122：双钮补 spinning（ilmOpPending 此前只 disabled 半合规；733 G110 同款） -->
           <button v-if="canOps" class="btn ghost sm" @click="ilmStart"
-            :disabled="ilmOpPending || !canClusterScope" :title="ilmScopeHint">
+            :disabled="ilmOpPending || !canClusterScope" v-tip="ilmScopeHint">
             <PlayCircle :size="12" :class="{ spinning: ilmOpPending }" /> Start ILM
           </button>
           <button v-if="canOps" class="btn ghost sm" @click="ilmStop"
-            :disabled="ilmOpPending || !canClusterScope" :title="ilmScopeHint">
+            :disabled="ilmOpPending || !canClusterScope" v-tip="ilmScopeHint">
             <PauseCircle :size="12" :class="{ spinning: ilmOpPending }" /> Stop ILM
           </button>
           <!-- 前置说明：不可用态不只靠 title（触屏/键盘看不到 tooltip），在按钮旁常驻一句原因 -->
-          <span v-if="canOps && !canClusterScope" class="dim" style="font-size:var(--fs-xs)" :title="ilmScopeHint">
+          <span v-if="canOps && !canClusterScope" class="dim" style="font-size:var(--fs-xs)" v-tip="ilmScopeHint">
             集群级开关需 rank3 / 集群设置写权
           </span>
 </div>
@@ -50,7 +50,7 @@
         <span class="lc-sub">对写入别名手动触发 rollover（可 dry-run 预检）</span>
         <!-- 条件编辑框高度三档循环钮（ra-script-h 同款 margin-left:auto 形态），useTierCycle('lifecycle.roH') 记忆 -->
         <button class="btn ghost xs" style="margin-left:auto" data-test="lc-ro-h"
-          :title="'条件编辑框高度档：' + roH + ' 行'" @click="cycleRoH">高</button>
+          v-tip="'条件编辑框高度档：' + roH + ' 行'" @click="cycleRoH">高</button>
       </div>
       <div class="lc-rollover">
         <!-- 「用当前索引」回填钮合并 PickCurrentIdxBtn 统一件（558 五视图先例：
@@ -82,7 +82,7 @@
           </button>
           <!-- 原始 IO 快查——本页最近一次 rollover（含 dry-run）请求/响应原文
  （ioRecorder 记录环；下方「原始响应」details 的快查姊妹钮，545 Adhoc 先例 margin-left:auto） -->
-          <button class="btn ghost sm" style="margin-left:auto" data-test="raw-io" aria-label="查看原始 IO（Rollover）" title="最近一次 Rollover（含 Dry-run）请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIoRollover"><Terminal :size="12" /> 原始 IO</button>
+          <button class="btn ghost sm" style="margin-left:auto" data-test="raw-io" aria-label="查看原始 IO（Rollover）" v-tip="'最近一次 Rollover（含 Dry-run）请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIoRollover"><Terminal :size="12" /> 原始 IO</button>
         </div>
         <!-- 结构化结果：真实 rollover 展示新旧索引切换 + 跳转；dry-run 展示条件命中 -->
         <div v-if="rolloverInfo" class="lc-ro">
@@ -133,11 +133,11 @@
       <div v-else-if="policies.length" class="lc-gantt">
         <div v-for="p in policies" :key="p.name" class="lc-gantt-row" tabindex="0"
           @contextmenu.prevent="openLcMenu($event, p)" @keydown="onLcMenuKey($event, p)" data-row-nav @keydown.self="rowArrowNav">
-          <div class="lc-gantt-label" :title="p.name">{{ p.name }}</div>
+          <div class="lc-gantt-label" v-tip="p.name">{{ p.name }}</div>
           <div class="lc-gantt-track">
             <div v-for="ph in p.phases" :key="ph.name" class="lc-gantt-bar" :class="'ph-' + ph.name"
               :style="{ left: ph.leftPct + '%', width: ph.widthPct + '%' }"
-              :title="`${phaseZh(ph.name) || ph.name}（${ph.name}） · min_age: ${ph.minAge}`">
+              v-tip="`${phaseZh(ph.name) || ph.name}（${ph.name}） · min_age: ${ph.minAge}`">
               <span>{{ phaseZh(ph.name) || ph.name }}</span><em v-if="ph.ageSec > 0" class="lc-gantt-age">{{ ph.minAge }}</em>
             </div>
           </div>
@@ -173,20 +173,20 @@
         <div class="lc-move-row">
           <span>current</span>
           <n-select v-model:value="curPhase" :options="phaseOpts" size="tiny" filterable class="lc-sel"
-            placeholder="阶段（如 hot）" :title="'ILM 生命周期阶段（hot 热 / warm 温 / cold 冷 / frozen 冻结 / delete 删除）'" />
+            placeholder="阶段（如 hot）" v-tip="'ILM 生命周期阶段（hot 热 / warm 温 / cold 冷 / frozen 冻结 / delete 删除）'" />
           <Tip long text="ILM 动作名（下拉候选=官方九动作：forcemerge 强制合并段 / shrink 收缩分片 / allocate 调整副本分配 / rollover 滚动 / delete 删除 / set_priority 恢复优先级 / unfollow 解除跟随 / searchable_snapshot 可搜索快照 / downsample 降采样）">
             <n-select v-model:value="curAction" :options="actionOpts" size="tiny" filterable class="lc-sel" placeholder="动作名" />
           </Tip>
-          <input v-model="curStep" placeholder="step 名" class="lc-inp-sm" :title="'ILM 内部 step 标识（随策略与动作组合而异，候选域不稳未挂下拉；选索引后自动预填当前值）'" />
+          <input v-model="curStep" placeholder="step 名" class="lc-inp-sm" v-tip="'ILM 内部 step 标识（随策略与动作组合而异，候选域不稳未挂下拉；选索引后自动预填当前值）'" />
         </div>
         <div class="lc-move-row">
           <span>next →</span>
           <n-select v-model:value="nextPhase" :options="phaseOpts" size="tiny" filterable class="lc-sel"
-            placeholder="阶段（如 warm）" :title="'ILM 生命周期阶段（hot 热 / warm 温 / cold 冷 / frozen 冻结 / delete 删除）'" />
+            placeholder="阶段（如 warm）" v-tip="'ILM 生命周期阶段（hot 热 / warm 温 / cold 冷 / frozen 冻结 / delete 删除）'" />
           <Tip long text="ILM 动作名（下拉候选=官方九动作：forcemerge 强制合并段 / shrink 收缩分片 / allocate 调整副本分配 / rollover 滚动 / delete 删除 / set_priority 恢复优先级 / unfollow 解除跟随 / searchable_snapshot 可搜索快照 / downsample 降采样）">
             <n-select v-model:value="nextAction" :options="actionOpts" size="tiny" filterable class="lc-sel" placeholder="动作名" />
           </Tip>
-          <input v-model="nextStep" placeholder="step 名" class="lc-inp-sm" :title="'ILM 内部 step 标识（随策略与动作组合而异，候选域不稳未挂下拉；选索引后自动预填当前值）'" />
+          <input v-model="nextStep" placeholder="step 名" class="lc-inp-sm" v-tip="'ILM 内部 step 标识（随策略与动作组合而异，候选域不稳未挂下拉；选索引后自动预填当前值）'" />
         </div>
         <div class="lc-actions">
           <!-- G123：推进钮补 mvPending 守卫+spinning+文案（随 G121 同修同验） -->
@@ -195,7 +195,7 @@
           </button>
           <!-- 原始 IO 快查（explain 通道）——选索引自动预填的 ilm/explain 记录
  （data-test 双钮第②钮，548 QueryXray raw-io-tv 先例；explain 为只读预检全角色可用） -->
-          <button class="btn ghost sm" style="margin-left:auto" data-test="raw-io-lc-explain" aria-label="查看原始 IO（ILM explain）" title="最近一次 ILM explain（选索引自动预填当前 step）请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIoExplain"><Terminal :size="12" /> 原始 IO</button>
+          <button class="btn ghost sm" style="margin-left:auto" data-test="raw-io-lc-explain" aria-label="查看原始 IO（ILM explain）" v-tip="'最近一次 ILM explain（选索引自动预填当前 step）请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIoExplain"><Terminal :size="12" /> 原始 IO</button>
         </div>
         <!-- 同 rollover——JSON 响应走 highlightJson；：错误分支换 errPreHtml v-html -->
         <template v-if="moveResult">

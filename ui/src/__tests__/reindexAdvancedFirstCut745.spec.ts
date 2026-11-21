@@ -172,14 +172,16 @@ describe('745 G156：结果 MetaStrip total/created/updated 三段中文 tip', (
       .find(el => el.querySelector('i')?.textContent === label);
     const totalSeg = seg('total');
     expect(totalSeg, 'total 段必须在场').toBeTruthy();
-    expect(totalSeg!.getAttribute('title'), 'total 段中文 tip').toContain('本次 reindex 处理的文档总数');
+    /* 段提示已迁 v-tip 指令（DOM 无 title 属性）——三段中文 tip 改源码锚（items prop 传 tip） */
+    const v = view();
+    expect(v).toContain("tip: 'total：本次 reindex 处理的文档总数'");
     expect(totalSeg!.classList.contains('help'), 'tip 段 help 档（cursor:help）').toBe(true);
     const createdSeg = seg('created');
     expect(createdSeg, 'created 段必须在场').toBeTruthy();
-    expect(createdSeg!.getAttribute('title'), 'created 段中文 tip').toContain('新写入');
+    expect(v).toContain("tip: 'created：新写入 dest 的文档数'");
     const updatedSeg = seg('updated');
     expect(updatedSeg, 'updated 段必须在场').toBeTruthy();
-    expect(updatedSeg!.getAttribute('title'), 'updated 段中文 tip').toContain('覆盖更新');
+    expect(v).toContain("tip: 'updated：覆盖更新（同 ID 重写）的文档数'");
     app.unmount();
   });
 });
@@ -188,17 +190,13 @@ describe('745 G156：结果 MetaStrip total/created/updated 三段中文 tip', (
 describe('745 G159：五 select label 中文释义 + version_type 两选项中文', () => {
   it('op_type/version_type/conflicts/refresh/wait_for_completion 五 label 中文释义全量', async () => {
     const { app, host } = await mountRA();
-    const expects: Array<[string, RegExp]> = [
-      ['op_type', /写入方式/],
-      ['conflicts', /版本冲突策略/],
-      ['refresh', /刷新/],
-    ];
-    for (const [name, re] of expects) {
-      const label = findLabel(host, name);
-      expect(label, `label「${name}」必须在场`).toBeTruthy();
-      const title = label!.getAttribute('title');
-      expect(title, `label「${name}」:title 必须非空`).toBeTruthy();
-      expect(title!, `label「${name}」:title 须含中文释义`).toMatch(re);
+    /* label 提示已迁 v-tip 指令（DOM 无 title 属性）——三段释义改源码锚 */
+    const v = view();
+    expect(v).toContain('v-tip="\'op_type：写入方式——create 仅新增（同 ID 已存在即冲突报错），index 存在则覆盖（默认）\'"');
+    expect(v).toContain('v-tip="\'conflicts：版本冲突策略——abort 遇冲突中止（默认），proceed 跳过冲突文档继续\'"');
+    expect(v).toContain('v-tip="\'refresh：完成后刷新——不刷新（默认）/ true 立即可搜 / wait_for 等待下次自动刷新\'"');
+    for (const name of ['op_type', 'conflicts', 'refresh']) {
+      expect(findLabel(host, name), `label「${name}」必须在场`).toBeTruthy();
     }
     /* version_type 释义 116 字符超原生 title 承载，迁 Tip long 档悬浮（1120 存量
        迁移，接线形态由 qualityBacklog1120 看守）——Tip 浮层未 hover 不在挂载 DOM，
@@ -228,11 +226,12 @@ describe('745 G159：五 select label 中文释义 + version_type 两选项中�
     expect(gte, 'external_gte 选项须含中文注释（与 gt 区分：含相等语义）').toMatch(/相等|≥/);
   });
 
-  it('既有五参数（slices 等 561 批口径）:title 不受扰（负锚）', async () => {
+  it('既有五参数（slices 等 561 批口径）释义不受扰（负锚）', async () => {
     const { app, host } = await mountRA();
     const slicesLabel = findLabel(host, 'slices');
     expect(slicesLabel, 'slices label 必须在场').toBeTruthy();
-    expect(slicesLabel!.getAttribute('title'), 'slices 既有 :title 保持').toContain('并行切片数');
+    /* label 提示已迁 v-tip 指令——既有释义改源码锚（561 批口径不动） */
+    expect(view()).toContain('v-tip="\'slices：并行切片数——auto 交 ES 自定，或正整数\'"');
     app.unmount();
   });
 });

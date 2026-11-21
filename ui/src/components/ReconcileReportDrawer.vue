@@ -28,7 +28,7 @@
         </div>
         <div v-if="rows.length" class="rr-tools">
           <input v-model="kw" class="ipt rr-kw" placeholder="过滤：状态 / 索引 / 说明…" aria-label="过滤对账记录" />
-          <button v-if="kw" class="btn xs ghost" @click="kw = ''" title="清除过滤，恢复完整清单">清除</button>
+          <button v-if="kw" class="btn xs ghost" @click="kw = ''" v-tip="'清除过滤，恢复完整清单'">清除</button>
         </div>
         <QueryResultTable
           :cols="RR_COLS" :rows="rrMatrix" sortable
@@ -48,8 +48,8 @@
           <!-- 索引列：原纯 MarkText 断链 → 补 goHub 跳转芯片（XmigrateView 目标索引芯片同范式，
  /indices?idx= 直达索引工作区；IndexHub 经 useIdxState 消费 ?idx=，无携带键需求） -->
           <template #cell-索引="{ value }">
-            <span class="mono" :title="value">{{ value }}</span>
-            <button class="rr-go" :aria-label="'打开索引工作区：' + value" title="打开索引工作区" @click.stop="gotoHub(value)"><ExternalLink :size="11" /></button>
+            <span class="mono" v-tip="value">{{ value }}</span>
+            <button class="rr-go" :aria-label="'打开索引工作区：' + value" v-tip="'打开索引工作区'" @click.stop="gotoHub(value)"><ExternalLink :size="11" /></button>
           </template>
           <!-- 说明列：显示 shortReason 人话化，td title/导出/复制恒 raw（内核契约，与旧表 title 原文同口径） -->
           <template #cell-说明="{ value }">

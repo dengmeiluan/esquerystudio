@@ -7,7 +7,7 @@
       <template #actions>
         <div class="lc-hd-r">
 <!-- W4-T14：构建器前置入口——lucene 文本包装 query_string 走 ?dsl= 通道预填构建器 -->
-<button class="btn ghost sm" @click="openInBuilder" title="转成 DSL 在构建器中打开（query_string 包装，现场尽量预填）">
+<button class="btn ghost sm" @click="openInBuilder" v-tip="'转成 DSL 在构建器中打开（query_string 包装，现场尽量预填）'">
   <ListTree :size="12" /> 在构建器中打开
 </button>
 <!-- 两钮 title 改随态三元（SqlConsole 执行钮 525 W10 同语言）——479 禁用原因
@@ -16,22 +16,22 @@
  （文案切换既有）+重试钮 文案通道——G161 族，803 池①横切。在途示能各随其链
  （SqlConsole 同语言）：体检示能随 schemaBusy、执行读秒/取消钮随 qr.running，
  互斥闸门（disabled）保持共享 busy -->
-<button class="btn ghost sm" :title="index ? '探测当前索引字段，提前提醒 SQL 失能字段（在 Lucene 里不受影响）' : '请先选择索引'" @click="doSchema" :disabled="!index || busy">
+<button class="btn ghost sm" v-tip="index ? '探测当前索引字段，提前提醒 SQL 失能字段（在 Lucene 里不受影响）' : '请先选择索引'" @click="doSchema" :disabled="!index || busy">
   <ShieldAlert :size="12" :class="{ spinning: schemaBusy }" /> {{ schemaBusy ? '体检中…' : '字段体检' }}
 </button>
 <button class="btn ghost sm" @click="showSyntax = !showSyntax">
   <BookOpen :size="12" /> 语法手册
 </button>
-<button class="btn ghost sm" @click="copyLink" title="URL 即查询现场：复制链接发同事，打开即复现">
+<button class="btn ghost sm" @click="copyLink" v-tip="'URL 即查询现场：复制链接发同事，打开即复现'">
   <Link2 :size="12" /> 复制链接
 </button>
 <!-- 页内历史入口（四视图统一，DslQueryView 弹窗范式）——doRun 一直在
  push mode=lucene 历史（此前页内零出口 -->
-<button class="btn ghost sm" data-test="open-hist" @click="histOpen = true" title="查询历史"><History :size="12" /> 历史</button>
+<button class="btn ghost sm" data-test="open-hist" @click="histOpen = true" v-tip="'查询历史'"><History :size="12" /> 历史</button>
 <button class="btn ghost sm" @click="doFav" :disabled="!qs.trim()">
   <Star :size="12" /> 收藏
 </button>
-<button class="btn primary sm" :title="index && qs.trim() ? '执行 Lucene 查询' : '请先选择索引并输入查询语句'" @click="doRun" :disabled="!index || !qs.trim() || busy">
+<button class="btn primary sm" v-tip="index && qs.trim() ? '执行 Lucene 查询' : '请先选择索引并输入查询语句'" @click="doRun" :disabled="!index || !qs.trim() || busy">
   <Play :size="12" :class="{ spinning: qr.running.value }" /> {{ qr.running.value ? '执行中（' + (qr.elapsedMs.value / 1000).toFixed(1) + 's）…' : '执行' }} <span class="kbd inline">⏎</span>
 </button>
 <button v-if="qr.running.value" class="btn sm" @click="qr.cancel()"><X :size="12" /> 取消</button>
@@ -58,7 +58,7 @@
           <span class="lc-lossy-list mono">{{ carriedLossy.join('、') }}</span>
           <span class="lc-lossy-hint">这些条件当前缺失——需要完整语义请回查询工作台用 DSL 通道执行。</span>
         </div>
-        <button class="btn ghost xs lc-lossy-x" aria-label="关闭翻译缺失提示" title="关闭提示" @click="carriedLossy = []"><X :size="12" /></button>
+        <button class="btn ghost xs lc-lossy-x" aria-label="关闭翻译缺失提示" v-tip="'关闭提示'" @click="carriedLossy = []"><X :size="12" /></button>
       </div>
       <div class="lc-editor">
         <div class="lc-card-hd">
@@ -71,21 +71,21 @@
             </label>
             <!-- 558b 批：size/from/order 裸 label 补中文释义 title（悬停可读，纯属性追加）。
                  size/from 原生 number 升档 NInputNumber（min/max 语义保留；受控单点绑定口径不变） -->
-            <label class="lc-inp"><span title="每页返回条数 · 上限 10000">size</span>
+            <label class="lc-inp"><span v-tip="'每页返回条数 · 上限 10000'">size</span>
               <n-input-number :value="size" :min="1" :max="10000" size="small" :show-button="false"
-                class="lc-ii sm" title="每页返回条数 · 上限 10000" @change="onSizeChange" />
+                class="lc-ii sm" v-tip="'每页返回条数 · 上限 10000'" @change="onSizeChange" />
             </label>
-            <label class="lc-inp"><span title="跳过条数 · 翻页偏移">from</span>
+            <label class="lc-inp"><span v-tip="'跳过条数 · 翻页偏移'">from</span>
               <n-input-number :value="from" :min="0" size="small" :show-button="false"
-                class="lc-ii sm" title="跳过条数 · 翻页偏移" @update:value="(v: number | null) => (from = v ?? 0)" />
+                class="lc-ii sm" v-tip="'跳过条数 · 翻页偏移'" @update:value="(v: number | null) => (from = v ?? 0)" />
             </label>
             <!-- size/from/order 三件套补齐第四件——sort 裸 label 挂中文释义 title -->
-            <label class="lc-inp"><span title="排序字段（可排序类型，_score/_doc 可手输）">sort</span>
+            <label class="lc-inp"><span v-tip="'排序字段（可排序类型，_score/_doc 可手输）'">sort</span>
               <!-- type-filter 只出可排序类型（同 PIT/构建器排序行口径）；伪字段 _score/_doc 手输保留。
  排序场景 date/long 提前（时间与数值是最常排序族） -->
               <FieldPicker v-model="sortField" :index="index" :type-filter="SORTABLE_TYPES" :type-priority="['date','long']" placeholder="ts / @timestamp" />
             </label>
-            <label class="lc-inp"><span title="排序方向 desc 降序 asc 升序">order</span>
+            <label class="lc-inp"><span v-tip="'排序方向 desc 降序 asc 升序'">order</span>
               <!-- 原生 select 换 NSelect（系统蓝下拉与设计语言割裂），desc/asc 语义不变 -->
               <n-select v-model:value="sortOrder" :options="ORDER_OPTS" size="tiny" style="width:84px" />
             </label>
@@ -201,7 +201,7 @@
           </span>
           <div class="lc-hd-r">
             <!-- 原始 IO 快查——最近一次 /cluster/lucene-search 请求/响应原文（ioRecorder 记录环） -->
-            <button class="btn ghost xs" data-test="raw-io" aria-label="查看原始 IO（Lucene 检索）" title="最近一次检索请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo"><Terminal :size="11" /> 原始 IO</button>
+            <button class="btn ghost xs" data-test="raw-io" aria-label="查看原始 IO（Lucene 检索）" v-tip="'最近一次检索请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo"><Terminal :size="11" /> 原始 IO</button>
             <!-- 换共享 Pagination——：表格视图分页随 QRT 内建分页行
  （页码/页大小/翻页事件全量内建），顶部分页器只剩 JSON 视图在用（JSON 无 QRT）；
  聚焦 JSON 工具行的分页器同步保留 -->
@@ -229,7 +229,7 @@
               </div>
               <!-- 1439：改词/改排序未重跑时结果还是上一次的——DSL/索引工作区同款芯片 -->
               <span v-if="resultStale" class="pill warn stale-chip" role="status"
-                title="当前查询已修改但还没执行——下方结果仍来自上一次执行（回车或点执行更新）">结果已过期</span>
+                v-tip="'当前查询已修改但还没执行——下方结果仍来自上一次执行（回车或点执行更新）'">结果已过期</span>
               <button class="btn ghost xs" @click="exportJsonl">
                 <FileDown :size="11" /> JSONL
               </button>
@@ -250,7 +250,7 @@
               <FileDown :size="11" /> JSONL
             </button>
             <button class="btn ghost xs" @click="exportCsv" :disabled="!hits.length"
-              title="导出全部命中为 CSV">
+              v-tip="'导出全部命中为 CSV'">
               <FileDown :size="11" /> CSV
             </button>
           </div>

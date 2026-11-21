@@ -215,12 +215,12 @@ describe('561 E：jsonc.highlightDslJson（DSL 语义键 j-clause 档）', () =>
 describe('561 F：LuceneQueryView 架构分析/执行钮动态 title（479 禁用原因在 else 支）', () => {
   it('字段体检钮：index 在場出功能描述、缺索引保留「请先选择索引」', () => {
     const v = read('views/LuceneQueryView.vue');
-    expect(v).toContain('<button class="btn ghost sm" :title="index ? \'探测当前索引字段，提前提醒 SQL 失能字段（在 Lucene 里不受影响）\' : \'请先选择索引\'" @click="doSchema"');
+    expect(v).toContain('<button class="btn ghost sm" v-tip="index ? \'探测当前索引字段，提前提醒 SQL 失能字段（在 Lucene 里不受影响）\' : \'请先选择索引\'" @click="doSchema"');
   });
 
   it('执行钮：双条件（索引+查询词）齐出功能描述，否则保留 479 禁用原因原文', () => {
     const v = read('views/LuceneQueryView.vue');
-    expect(v).toContain('<button class="btn primary sm" :title="index && qs.trim() ? \'执行 Lucene 查询\' : \'请先选择索引并输入查询语句\'" @click="doRun"');
+    expect(v).toContain('<button class="btn primary sm" v-tip="index && qs.trim() ? \'执行 Lucene 查询\' : \'请先选择索引并输入查询语句\'" @click="doRun"');
   });
 });
 

@@ -3,12 +3,12 @@
     <div class="gn-hd">
       <NodeSelectBox :id="node.id" />
       <!-- 拖拽源只在 grip 柄（与 cn/bgn/wnr 同语言）；根 draggable 会劫持参数表的文本选择 -->
-      <span class="gn-grip" title="拖拽排序（按住拖动）；Alt+↑/↓ 上移/下移" draggable="true" @dragstart.stop="onDragStart" @dragend="endDrag">⋮⋮</span>
-      <span class="gn-op mono" title="未内置富表单的算子，以结构化参数表编辑（零降级）">{{ node.op === '__raw__' ? '自定义查询' : node.op }}</span>
+      <span class="gn-grip" v-tip="'拖拽排序（按住拖动）；Alt+↑/↓ 上移/下移'" draggable="true" @dragstart.stop="onDragStart" @dragend="endDrag">⋮⋮</span>
+      <span class="gn-op mono" v-tip="'未内置富表单的算子，以结构化参数表编辑（零降级）'">{{ node.op === '__raw__' ? '自定义查询' : node.op }}</span>
       <span class="gn-tag">结构化</span>
       <span style="flex:1"></span>
-      <button aria-label="包成 bool 组" class="btn sm ghost" title="包成 bool 组" @click="$emit('wrap')"><Group :size="12" /></button>
-      <button aria-label="删除" class="btn sm ghost danger" title="删除" @click="$emit('remove')"><X :size="12" /></button>
+      <button aria-label="包成 bool 组" class="btn sm ghost" v-tip="'包成 bool 组'" @click="$emit('wrap')"><Group :size="12" /></button>
+      <button aria-label="删除" class="btn sm ghost danger" v-tip="'删除'" @click="$emit('remove')"><X :size="12" /></button>
     </div>
     <!-- 【W3b】multi_match/query_string 等的 fields/field 字段键接字段源：
  有 mapping 时字段键行（含 fields 数组逐项）渲染 FieldSelect，无字段源回落裸键值表零降级 -->

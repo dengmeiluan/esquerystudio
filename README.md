@@ -293,7 +293,7 @@ public ConsoleHostIntegration esQueryStudioHostIntegration() {
 <dependency>
     <groupId>io.github.dengmeiluan</groupId>
     <artifactId>esquerystudio-console</artifactId>
-    <version>1.0.78</version>
+    <version>1.0.79</version>
 </dependency>
 ```
 

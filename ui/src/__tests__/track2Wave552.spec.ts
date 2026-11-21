@@ -42,7 +42,7 @@ describe('552 ①：XmigrateView 原始 IO 钮常驻化（三档模式全可见�
     expect(cfgSec, '.xm-cfg 分节自身保留（拉取预览钮不动）').toContain('@click="fetchCfg"');
   });
   it('钮形/取数特征/弹窗挂载零触（rawIo545 锁语义保全）', () => {
-    expect(xm).toContain('title="最近一次迁移接口调用的请求/响应原文"');
+    expect(xm).toContain("v-tip=\"'最近一次迁移接口调用的请求/响应原文'\"");
     expect(xm).toContain("ioRecorder.last('/xmigrate/')");
     expect(xm).toContain('<RawIoModal v-model:show="rawIoShow" :rec="rawIoRec" />');
   });
@@ -149,7 +149,7 @@ describe('552 ③：QueryHistoryPanel 可选 curl action（行为锁）', () => 
        mkTab+激活跳转归宿主 histNewTab）：枚举字面同步更新，curl 在册语义零回退 */
     expect(qhp).toMatch(/actions\?: \('play' \| 'fill' \| 'copy' \| 'curl' \| 'del' \| 'rename' \| 'fav' \| 'newtab'\)\[\];/);
     expect(qhp).toMatch(/\(e: 'curl', it: HistRow\): void;/);
-    expect(qhp).toMatch(/<button v-if="actions\.includes\('curl'\)" aria-label="复制为 curl" class="btn xs ghost" title="复制为 curl" @click="\$emit\('curl', it\)">/);
+    expect(qhp).toMatch(/<button v-if="actions\.includes\('curl'\)" aria-label="复制为 curl" class="btn xs ghost" v-tip="'复制为 curl'" @click="\$emit\('curl', it\)">/);
   });
 });
 
@@ -168,7 +168,7 @@ describe('552 ④：DevToolsView 历史行 curl 接线 + body 截断摘要', () 
     expect(dt).toContain("sub: h.body ? (h.body.length > 80 ? h.body.slice(0, 80) + '…' : h.body) : undefined,");
   });
   it('面板可选 sub 行：不传不渲染（既有宿主零增量）', () => {
-    expect(qhp).toContain('<div v-if="it.sub" class="qhp-sub mono" :title="it.sub">{{ it.sub }}</div>');
+    expect(qhp).toContain('<div v-if="it.sub" class="qhp-sub mono" v-tip="it.sub">{{ it.sub }}</div>');
   });
 });
 
@@ -197,7 +197,7 @@ describe('552 ⑥：XmigrateView 配置预览行数三档（xm.cfgRows 10/20/40�
   it('档位循环钮在 .xm-cfg 分节（消费形态照抄 IlmView 宽/CV 高钮）', () => {
     const cfgSec = xm.slice(xm.indexOf('class="xm-cfg"'), xm.indexOf('<div class="xm-actions">'));
     expect(cfgSec).toContain('@click="cycleCfgRows"');
-    expect(cfgSec).toContain(`:title="'配置预览行数档：' + cfgCapRows + ' 行（点击切换）'"`);
+    expect(cfgSec).toContain(`v-tip="'配置预览行数档：' + cfgCapRows + ' 行（点击切换）'"`);
   });
   it('JsonArea 两路 readonly 接线零触（rows 仍走 cfgRows）', () => {
     expect(xm).toContain(':rows="cfgRows(cfgMappingText)"');

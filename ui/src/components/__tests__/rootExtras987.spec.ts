@@ -100,8 +100,8 @@ describe('987 post_filter 一等编辑', () => {
     if (!t.ok) throw new Error('parse failed');
     const { host, cur } = mount(t.tree);
     await tick();
-    expect(host.querySelector('[title="移除 post_filter 键"]'), '有内容默认展开').not.toBeNull();
-    (host.querySelector('[title="移除 post_filter 键"]') as HTMLElement).click();
+    expect(host.querySelector('button[aria-label="移除 post_filter 键"]'), '有内容默认展开').not.toBeNull();
+    (host.querySelector('button[aria-label="移除 post_filter 键"]') as HTMLElement).click();
     await tick();
     expect(cur.value.postFilter).toBeNull();
     expect(serializeTree(cur.value)).toEqual({});
@@ -135,7 +135,7 @@ describe('987 collapse 结构化编辑', () => {
     if (!t.ok) throw new Error('parse failed');
     const { host, cur } = mount(t.tree);
     await tick();
-    (host.querySelector('[title="折叠参数（inner_hits…）"]') as HTMLElement).click();
+    (host.querySelector('button[aria-label="折叠参数（inner_hits…）"]') as HTMLElement).click();
     await tick();
     const val = host.querySelector('.gp-jq-json'); /* 控件升级随迁：inner_hits 走快捷行 + JsonArea 整段位（Monaco stub 内） */
     expect(val, 'inner_hits 走 JSON 文本位').toBeTruthy();
@@ -150,7 +150,7 @@ describe('987 collapse 结构化编辑', () => {
     if (!t.ok) throw new Error('parse failed');
     const { host, cur } = mount(t.tree);
     await tick();
-    (host.querySelector('[title="移除 collapse 键"]') as HTMLElement).click();
+    (host.querySelector('button[aria-label="移除 collapse 键"]') as HTMLElement).click();
     await tick();
     expect(cur.value.collapse).toBeNull();
     expect(serializeTree(cur.value)).toEqual({});

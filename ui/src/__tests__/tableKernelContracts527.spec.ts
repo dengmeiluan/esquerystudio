@@ -11,6 +11,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createApp, h, nextTick } from 'vue';
 import { createPinia } from 'pinia';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+/* 单元格提示已迁 v-tip 指令（DOM 无 title 属性）——「提示恒 raw」改源码锚 */
+const QRT_SRC = readFileSync(join(__dirname, '../components/QueryResultTable.vue'), 'utf8');
 
 vi.mock('../api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../api')>();
@@ -169,8 +174,8 @@ describe('QRT 按值语义档（527 契约：rows 型 fieldTypes 缺列采样推
     expect(tds[3].classList.contains('num-col')).toBe(false); /* 无过半形态 → 不判 */
     /* date 语义档驱动显示本地化（ISO 的 T 形态 → 本地 'YYYY-MM-DD HH:mm:ss'） */
     expect(tds[1].textContent?.trim()).toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/);
-    /* title 恒 raw（铁律不涉） */
-    expect(tds[1].getAttribute('title')).toBe('2024-01-02T03:04:05Z');
+    /* 提示恒 raw（铁律不涉；v-tip 绑 cellMeta full） */
+    expect(QRT_SRC).toContain('v-tip="cell === null || cell === undefined ? \'\' : (cellMeta[ri]?.[ci]?.full || \'\')"');
     /* 类型徽标/双层列头：五百二十八批 Lead 裁决扩权（解除 171 批「无映射整体单层」承诺）
        ——rows 型按值采样档也出徽标，headers 随徽标文本拼接（原 76 批精确断言随扩权同步更新） */
     const headers = [...host.querySelectorAll('thead th')].map(th => th.textContent?.trim());

@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { createApp, h, ref, computed } from 'vue';
 import { RUNTIME_FIELD_CTX } from '../builder/runtimeFieldContext';
 import FieldSelect from '../builder/FieldSelect.vue';
+import { vTip } from '../../directives/vTip';
 
 function mount(fields: string[], types: Record<string, string> = {}, model = '', rt?: { names: string[]; edits: string[] }) {
   const host = document.createElement('div');
@@ -20,6 +21,8 @@ function mount(fields: string[], types: Record<string, string> = {}, model = '',
       edit: (n: string) => rt.edits.push(n),
     });
   }
+  /* 组件模板用 v-tip（main.ts 全局注册），自建 app 须注册同款指令浮层才在 */
+  app.directive('tip', vTip);
   app.mount(host);
   return { host, val };
 }
@@ -54,7 +57,9 @@ describe('FieldSelect', () => {
     const chip = host.querySelector('.fs-nos') as HTMLButtonElement;
     expect(chip, '缺 script 运行时字段应出徽标').not.toBeNull();
     expect(chip.textContent).toContain('无 script');
-    expect(chip.getAttribute('title')).toContain('不会产出值');
+    /* host 已挂 body（浮层通道要求宿主在文档内）：focusin 键盘通道立即显示 */
+    chip.dispatchEvent(new Event('focusin'));
+    expect(document.getElementById('vt-tip')?.textContent ?? '').toContain('不会产出值');
     chip.click();
     expect(rt.edits).toEqual(['title_len']);
 

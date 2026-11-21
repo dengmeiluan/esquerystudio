@@ -4,7 +4,7 @@
       <!-- 页内历史入口（四视图统一范式，SqlConsoleView 同款）——预估成功一直在
  push('reindex-preview') 历史（补），此前页内零出口只写不显 -->
       <template #actions>
-        <button class="btn ghost sm" data-test="open-hist" @click="histOpen = true" title="查询历史"><History :size="12" /> 历史</button>
+        <button class="btn ghost sm" data-test="open-hist" @click="histOpen = true" v-tip="'查询历史'"><History :size="12" /> 历史</button>
       </template>
     </PageHeader>
     <div class="rp-bar">
@@ -47,11 +47,11 @@
             <div class="card-t sm">预估结果</div>
             <!-- 带现场去高级 Reindex：源索引 + 当前过滤器经 sessionStorage carry 契约（ReindexAdvancedView 消费即注入）。
  .rp-adv 空壳 div 退役（仅包单钮出 margin）——类直接挂钮，右对齐/间距归钮自身 -->
-            <button class="btn sm ghost rp-adv" :disabled="!source" :title="'将源索引与当前过滤器带入高级 Reindex 配置页（不立即执行）'" @click="goAdvanced">
+            <button class="btn sm ghost rp-adv" :disabled="!source" v-tip="'将源索引与当前过滤器带入高级 Reindex 配置页（不立即执行）'" @click="goAdvanced">
               <Wand2 :size="12" /> 带过滤条件去高级 Reindex
             </button>
             <!-- 原始 IO 快查——最近一次 /cluster/reindex-preview 请求/响应原文（ioRecorder 记录环） -->
-            <button class="btn sm ghost" data-test="raw-io" aria-label="查看原始 IO（Reindex 预估）" title="最近一次预估请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
+            <button class="btn sm ghost" data-test="raw-io" aria-label="查看原始 IO（Reindex 预估）" v-tip="'最近一次预估请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
           </div>
         <!-- G3-B5：失败面板独立于数据分支放容器顶部（ 审查教训形态）——
  有旧预估时重跑失败仍有渲染出口，且旧预估保留 -->
@@ -70,7 +70,7 @@
           <div v-if="result.docs === 0" class="rp-zero">⚠ 过滤后 0 命中——Reindex 无意义：调整查询过滤器或换源索引再估</div>
           <!-- rp-meta 逐像素手写复刻合并 MetaStrip 统一件（IndexHub/Overview 同范式）：
  docs/源 bytes/avg-doc/目标预估四段走 items，两处 hi 强调走 info 档，:title 兜底全文 -->
-          <MetaStrip class="rp-meta-pos" :items="rpMeta" :title="rpMetaTip" />
+          <MetaStrip class="rp-meta-pos" :items="rpMeta" v-tip.long="rpMetaTip" />
 
           <div class="rp-bar2">
             <div class="card-t sm">相对源占比可视化</div>

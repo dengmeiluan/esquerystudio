@@ -68,8 +68,11 @@
           <!-- -D3：分组快捷键速查面板（? 开关）。-13：goto 登记表已迁至 utils/hotkeys.ts，
  面板由该表渲染，不再是需要手工同步的第二份数据 -->
           <HotkeyPanel :show="helpOpen" @close="helpOpen = false" />
-          <SceneResumeTip :show="!!resumeScene" :label="resumeScene?.label || ''"
+          <SceneResumeTip :show="!!resumeScene && !xmTipOn" :label="resumeScene?.label || ''"
             @resume="onResumeScene" @close="resumeScene = null" />
+          <!-- 1122：迁移作业级恢复提示（在跑/被中断前置到进站第一眼）。
+               任务级优先：它在场时路由级现场提示暂避同一位点，关闭/消费后自动回来 -->
+          <XmJobResumeTip @active-change="v => xmTipOn = v" />
         </n-dialog-provider>
       </n-message-provider>
     </n-notification-provider>
@@ -90,6 +93,7 @@ import CmdPalette from './components/CmdPalette.vue';
 import ConfirmModal from './components/ConfirmModal.vue';
 import HotkeyPanel from './components/HotkeyPanel.vue';
 import SceneResumeTip from './components/SceneResumeTip.vue';
+import XmJobResumeTip from './components/XmJobResumeTip.vue';
 import { confirmState, resolveConfirm } from './composables/confirm';
 import WelcomeWizard from './components/WelcomeWizard.vue';
 import LoginOverlay from './components/LoginOverlay.vue';
@@ -574,6 +578,9 @@ function bootstrapIdentity() {
    右下正是结果表末行与回顶钮所在，一进站先压住数据。现在落左下、常驻，
    直到用户点「继续上次」或「关闭」。 */
 const resumeScene = ref<{ label: string; fullPath: string } | null>(null);
+/* 1122：迁移作业级恢复提示是否在场（XmJobResumeTip 上报）——在场时路由级 SceneResumeTip
+   暂避（两条固定提示同落左下会叠位），作业提示关闭/消费后路由级自动回来，行为不变 */
+const xmTipOn = ref(false);
 function onResumeScene() {
   const s = resumeScene.value;
   resumeScene.value = null;

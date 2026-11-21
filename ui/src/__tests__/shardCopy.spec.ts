@@ -20,7 +20,7 @@ describe('shards 分布复制（133 批）', () => {
   });
 
   it('「复制分布表」按钮接线且不挤掉诊断按钮', () => {
-    expect(src).toMatch(/<button class="btn sm ghost" title="复制分片分布表（Markdown）" @click="copyShardTable">/);
+    expect(src).toMatch(/<button class="btn sm ghost" v-tip="'复制分片分布表（Markdown）'" @click="copyShardTable">/);
     expect(src).toMatch(/诊断未分配原因/);
   });
 

@@ -29,7 +29,10 @@ function mount(dsl: Record<string, unknown>) {
   return { host, cur };
 }
 const ser = (cur: { value: QueryTree }) => JSON.stringify(serializeTree(cur.value));
-const btn = (host: HTMLElement, title: string) => host.querySelector<HTMLButtonElement>(`button[title^="${title}"]`);
+const btn = (host: HTMLElement, label: string) => host.querySelector<HTMLButtonElement>(`button[aria-label^="${label}"]`);
+/* 「+ 高级」等 icon+文本钮迁 v-tip 后无 aria-label（可见文本即可访问名），按可见文本锚定 */
+const btnText = (host: HTMLElement, text: string) =>
+  [...host.querySelectorAll('button')].find(b => b.textContent?.trim() === text) as HTMLButtonElement | undefined;
 
 /* 1002：带面板实例 ref 的挂具——extras 域写通道 commitTree 直接调用（生产由
    DslQueryView 把 RootExtrasPane 的 update:tree 路由进来） */
@@ -189,7 +192,7 @@ describe('993 高级算子菜单 ↑↓ 键盘导航', () => {
   it('打开菜单输入过滤 → ↓ 游标高亮 → Enter 插游标项（非首个命中）', async () => {
     const { host, last } = mountGroup();
     await tick();
-    const advBtn = host.querySelector('button[title^="高级算子"]') as HTMLButtonElement;
+    const advBtn = btnText(host, '高级')!;
     advBtn.click();
     await tick();
     const q = document.body.querySelector('.adv-q') as HTMLInputElement;
@@ -215,7 +218,7 @@ describe('993 高级算子菜单 ↑↓ 键盘导航', () => {
   it('未导航 Enter 仍首个命中（既有语义不回归）', async () => {
     const { host, last } = mountGroup();
     await tick();
-    (host.querySelector('button[title^="高级算子"]') as HTMLButtonElement).click();
+    btnText(host, '高级')!.click();
     await tick();
     const q = document.body.querySelector('.adv-q') as HTMLInputElement;
     q.value = 'geo_dis';

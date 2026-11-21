@@ -4,6 +4,7 @@ import { createApp, h, ref } from 'vue';
 import ClauseNode from '../components/builder/ClauseNode.vue';
 import QueryTreePane from '../components/builder/QueryTreePane.vue';
 import { parseTree, serializeTree, type LeafNode, type QueryTree } from '../utils/queryAst';
+import { vTip } from '../directives/vTip';
 
 const TYPES: Record<string, string> = { title: 'text', 'title.keyword': 'keyword' };
 const mk = (patch: Partial<LeafNode> = {}): LeafNode => ({
@@ -20,6 +21,7 @@ function mountLeaf(node: LeafNode, types: Record<string, string> = TYPES) {
       'onUpdate:node': (n: LeafNode) => { cur.value = n; },
     }),
   });
+  app.directive('tip', vTip); /* 建议钮提示已迁 v-tip 指令，注册后经浮层读取 */
   apps.push(app); app.mount(host);
   return { host, cur };
 }
@@ -32,7 +34,9 @@ describe('1056 .keyword 子域建议', () => {
     const { host, cur } = mountLeaf(mk());
     const btn = host.querySelector<HTMLButtonElement>('.cn-kwfix');
     expect(btn, '建议入口必须在场').toBeTruthy();
-    expect(btn!.title).toContain('title.keyword');
+    /* 建议钮提示已迁 v-tip 指令（DOM 无 title 属性）：focusin 通道立即显示单例浮层 #vt-tip */
+    btn!.dispatchEvent(new Event('focusin', { bubbles: false }));
+    expect(document.getElementById('vt-tip')?.textContent ?? '').toContain('title.keyword');
     btn!.click();
     await new Promise(r => setTimeout(r, 0));
     expect(cur.value.field).toBe('title.keyword');

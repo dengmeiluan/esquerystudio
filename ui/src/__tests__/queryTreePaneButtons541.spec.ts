@@ -45,12 +45,12 @@ describe('五百四十一批：QueryTreePane 四枚举钮收敛为两枚状态�
     expect(script, 'hasDisabled 应从树内 disabled 字段推导（leafStats 递归统计）').toMatch(/leafStats\.value\.disabled/);
   });
 
-  it('原语义保留：显隐条件原样 + 四条 title 原文', () => {
+  it('原语义保留：显隐条件原样 + 四条提示文案原文（v-tip 绑定）', () => {
     expect(tpl).toContain('<template v-if="tree.root.type === \'bool\'">');
     expect(tpl).toContain('<template v-if="!isPlainMatchAll">');
-    expect(tpl).toContain('title="折叠全部嵌套组"');
-    expect(tpl).toContain('title="展开全部嵌套组"');
-    expect(tpl).toContain('title="全部条件恢复参与匹配"');
-    expect(tpl).toContain('title="全部条件临时停用（不删除，可恢复）"');
+    expect(tpl).toContain('v-tip="\'折叠全部嵌套组\'"');
+    expect(tpl).toContain('v-tip="\'展开全部嵌套组\'"');
+    expect(tpl).toContain('v-tip="\'全部条件恢复参与匹配\'"');
+    expect(tpl).toContain('v-tip="\'全部条件临时停用（不删除，可恢复）\'"');
   });
 });

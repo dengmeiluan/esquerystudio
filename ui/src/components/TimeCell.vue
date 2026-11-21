@@ -3,7 +3,7 @@
  悬浮给带时区的绝对时间（精确、跨机器无歧义）。
  这个组合此前已在 NotifyCenter / DslQueryView / OverviewView /
  RestView / XmigrateView 五处自发形成，此处固化成组件后推广。 -->
-  <span class="tc mono" :title="fmtTimeTz(ts)">{{ body }}</span>
+  <span class="tc mono" v-tip="fmtTimeTz(ts)">{{ body }}</span>
 </template>
 
 <script setup lang="ts">

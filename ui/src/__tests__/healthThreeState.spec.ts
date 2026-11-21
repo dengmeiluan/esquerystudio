@@ -51,6 +51,7 @@ import DiagView from '../views/DiagView.vue';
 import HealthReportView from '../views/HealthReportView.vue';
 import TopologyView from '../views/TopologyView.vue';
 import WatcherView from '../views/WatcherView.vue';
+import { vTip } from '../directives/vTip';
 
 async function settle(n = 12) {
   for (let i = 0; i < n; i++) { await nextTick(); await Promise.resolve(); }
@@ -66,6 +67,8 @@ async function mountView(comp: any, hash = '#/') {
   await router.push('/');
   await router.isReady();
   const app = createApp({ render: () => h(comp) });
+  /* id 截断全名提示已迁 v-tip 浮层（1120 批前为根 title 属性）——注册指令供浮层文本断言 */
+  app.directive('tip', vTip);
   app.use(pinia);
   app.use(router);
   const host = document.createElement('div');
@@ -265,12 +268,13 @@ describe('G2-B6/C4/C5 WatcherView：首载骨架 + 过滤致空 + id title', () 
     app.unmount();
   });
 
-  it('watch id 截断后 title 全名可达（§9.5）', async () => {
+  it('watch id 截断后浮层全名可达（§9.5；v-tip 迁移）', async () => {
     watcherFn.mockResolvedValue(WATCH_RAW);
     const { app, host } = await mountView(WatcherView);
     const id = host.querySelector('.wt-card-id');
     expect(id, 'watch id 必须渲染').toBeTruthy();
-    expect(id!.getAttribute('title')).toBe('my-watch-001');
+    (id as HTMLElement).dispatchEvent(new Event('focusin', { bubbles: false }));
+    expect(document.getElementById('vt-tip')?.textContent ?? '').toBe('my-watch-001');
     app.unmount();
   });
 });

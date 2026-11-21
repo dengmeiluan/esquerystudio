@@ -11,18 +11,18 @@
       @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
       @keydown.enter.prevent="onEnter"
     />
-    <span class="hn-count mono" :class="{ zero: !count }" :title="count ? `命中 ${count} 处：Enter 下一个 / Shift+Enter 上一个` : '无命中'">
+    <span class="hn-count mono" :class="{ zero: !count }" v-tip="count ? `命中 ${count} 处：Enter 下一个 / Shift+Enter 上一个` : '无命中'">
       <template v-if="count">{{ current }}/{{ count }}</template>
       <template v-else>0 命中</template>
     </span>
     <button
       type="button" class="hn-btn" :disabled="!count"
-      :title="'上一个（Shift+Enter）'" aria-label="上一个命中（Shift+Enter）"
+      v-tip="'上一个（Shift+Enter）'" aria-label="上一个命中（Shift+Enter）"
       @click="emit('prev')"
     ><ChevronUp :size="12" /><span v-if="!compact" class="hn-btn-t">上一个</span></button>
     <button
       type="button" class="hn-btn" :disabled="!count"
-      :title="'下一个（Enter）'" aria-label="下一个命中（Enter）"
+      v-tip="'下一个（Enter）'" aria-label="下一个命中（Enter）"
       @click="emit('next')"
     ><ChevronDown :size="12" /><span v-if="!compact" class="hn-btn-t">下一个</span></button>
   </span>

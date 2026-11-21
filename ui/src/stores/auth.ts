@@ -539,8 +539,8 @@ export const useAuthStore = defineStore('auth', () => {
     '/xmigrate/jobs',
     /* 结构同步在目标集群建索引（自适应剔除源侧非兼容配置）：迁移写面，与 start 同档（后端同源） */
     '/xmigrate/sync-structure',
-    /* 能力对比/结构 diff 只读但与探测面同档、运行中调速与 abort 同门（后端拦截器同源对拍） */
-    '/xmigrate/compare-capabilities', '/xmigrate/diff-structure', '/xmigrate/throttle',
+    /* 能力对比/结构 diff/等价性验证只读但与探测面同档、运行中调速与 abort 同门（后端拦截器同源对拍） */
+    '/xmigrate/compare-capabilities', '/xmigrate/diff-structure', '/xmigrate/verify-equivalence', '/xmigrate/throttle',
     /* adhoc 写动词与后端逐一同步：abort 不单列（首行 /abort 已覆盖该子串）、
        retry 复用原配置重跑（与 start 同险须档内登记） */
     'adhoc-rebuild/start', 'adhoc-rebuild/confirm-switch', 'adhoc-rebuild/retry',

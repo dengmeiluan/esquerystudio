@@ -54,8 +54,8 @@ describe('A②：WorkbenchLayout 独占态还原竖轨（553 批，隐藏侧原�
     const fnAt = wl.indexOf('function isMaxHidden');
     expect(wl.slice(fnAt, fnAt + 300)).toMatch(/maximizedId\.value != null && spec\.maximizable === true && maximizedId\.value !== spec\.id/);
   });
-  it('竖轨悬停提示「点此还原」（title/aria 同源）', () => {
-    expect(wl).toMatch(/:title="restoreRailTitle\(spec\)" :aria-label="restoreRailTitle\(spec\)"/);
+  it('竖轨悬停提示「点此还原」（tip/aria 同源）', () => {
+    expect(wl).toMatch(/v-tip="restoreRailTitle\(spec\)" :aria-label="restoreRailTitle\(spec\)"/);
     expect(wl).toContain('点此还原对半分栏');
   });
   it('竖轨视觉语言在场：行布局竖排直立轨（ResizablePane 折叠竖标轨同语言）+stacked 横向退化', () => {

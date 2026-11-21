@@ -31,6 +31,6 @@ describe('导航/切换卡键盘可达（371 批）', () => {
 
   it('DiagView 重建锁 KPI 下钻卡 role+tabindex+Enter（373 起 Enter+Space 双键）', () => {
     /* v3.0.1 三横幅重造:重建锁 KPI 卡退役,下钻迁到 dg-meta 串内 dg-meta-link(Enter+Space 双键契约延续) */
-    expect(dg).toMatch(/<span class="dg-meta-link" role="button" tabindex="0" title="点击查看锁明细（系统索引 · 分布式锁）" @click="router\.push\('\/system'\)" @keydown\.enter\.prevent="router\.push\('\/system'\)" @keydown\.space\.prevent="router\.push\('\/system'\)">/);
+    expect(dg).toMatch(/<span class="dg-meta-link" role="button" tabindex="0" v-tip="'点击查看锁明细（系统索引 · 分布式锁）'" @click="router\.push\('\/system'\)" @keydown\.enter\.prevent="router\.push\('\/system'\)" @keydown\.space\.prevent="router\.push\('\/system'\)">/);
   });
 });

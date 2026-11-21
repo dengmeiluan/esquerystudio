@@ -26,6 +26,7 @@ import { join } from 'node:path';
 import { createApp, h, nextTick, defineComponent } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import { createRouter, createMemoryHistory } from 'vue-router';
+import { vTip } from '../directives/vTip';
 
 const read = (p: string) => readFileSync(join(__dirname, p), 'utf-8');
 const qh = read('../views/QueryHubView.vue');
@@ -106,6 +107,7 @@ async function mountView(comp: any, path = '/'): Promise<Mounted> {
   document.body.appendChild(host);
   const app = createApp({ render: () => h(comp) });
   apps.push(app);
+  app.directive('tip', vTip); /* 档循环钮 title 已迁 v-tip：键盘通道浮层文本可断言 */
   app.use(pinia);
   app.use(router);
   app.config.warnHandler = () => {};
@@ -199,7 +201,7 @@ describe('558 二：AR 四件（源码锁）', () => {
     expect(ar).toContain('<div class="pi-ja-wrap" :style="{ height: piH }">');
     expect(ar, 'CSS 定高字面退役（高度归档值绑定）').not.toMatch(/\.pi-ja-wrap \{[^}]*height:/);
     expect(ar, '档循环钮在场（pasteH data-ar-paste-h 同范式）').toContain('data-ar-pi-h');
-    expect(ar).toContain(`:title="'粘贴区高度档：' + piH + '（点击循环）'"`);
+    expect(ar).toContain(`v-tip="'粘贴区高度档：' + piH + '（点击循环）'"`);
   });
 
   it('③收尾报告 .dsl 补滚动钳：max(240px, 42vh) 站内口径，超长不再撑页', () => {
@@ -255,7 +257,8 @@ describe('558 四：PickCurrentIdxBtn 契约（自读 pickedIdx / 逐字锚 / �
     await settle();
     const btn = host.querySelector<HTMLButtonElement>('[data-test="use-current-idx"]');
     expect(btn, 'pickedIdx 在场钮必须渲染').toBeTruthy();
-    expect(btn!.getAttribute('title'), 'title 与内联钮逐字一致').toBe('用当前索引：gamma_idx（覆盖当前输入）');
+    /* 钮提示已迁 v-tip 指令（DOM 无 title 属性）——「与内联钮逐字一致」改源码锚 */
+    expect(read('../components/PickCurrentIdxBtn.vue')).toContain("v-tip=\"'用当前索引：' + store.pickedIdx + '（覆盖当前输入）'\"");
     expect(btn!.getAttribute('aria-label'), 'icon-only 可达性（pickedIdxSync528 同锚）').toBe('用当前索引：填入顶栏选中的索引');
     expect(btn!.className).toContain('btn ghost sm');
     expect(btn!.querySelector('svg'), 'Crosshair 图标在场').toBeTruthy();
@@ -311,10 +314,14 @@ describe('558 五：AR 行为网（err-bar 现场回看 + piH 档循环落盘）
     expect(wrap, '弹窗 JsonArea wrapper 在场').toBeTruthy();
     const cyc = document.querySelector<HTMLButtonElement>('[data-ar-pi-h]');
     expect(cyc, '档循环钮在场').toBeTruthy();
-    expect(cyc!.getAttribute('title'), '默认档=原定高字面（零漂移）').toBe('粘贴区高度档：min(60vh, 600px)（点击循环）');
+    cyc!.focus(); /* 原生 title 已迁 v-tip：focus 键盘通道即时显示单例浮层 #vt-tip */
+    await settle();
+    const pop = document.getElementById('vt-tip');
+    expect(pop, 'v-tip 浮层在场（键盘通道）').toBeTruthy();
+    expect(pop!.textContent, '默认档=原定高字面（零漂移）').toBe('粘贴区高度档：min(60vh, 600px)（点击循环）');
     cyc!.click();
     await settle();
-    expect(cyc!.getAttribute('title'), '进第二档（title 实时回显当前档）').toBe('粘贴区高度档：min(70vh, 720px)（点击循环）');
+    expect(pop!.textContent, '进第二档（v-tip 实时回显当前档）').toBe('粘贴区高度档：min(70vh, 720px)（点击循环）');
     expect(localStorage.getItem('esquerystudio.pref.adhoc.piH'), 'usePref 落盘').toBe('"min(70vh, 720px)"');
   });
 });

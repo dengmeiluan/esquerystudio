@@ -10,12 +10,12 @@
     <div v-for="(r, i) in rows" :key="i" class="aop-row">
       <span class="aop-idx mono">{{ i + 1 }}</span>
       <input class="inp mono aop-key" :value="r.key"
-             placeholder="_count / _key / 子聚合名" title="排序键：_count=文档数、_key=桶键、子聚合名或 stats.sum 度量路径"
+             placeholder="_count / _key / 子聚合名" v-tip="'排序键：_count=文档数、_key=桶键、子聚合名或 stats.sum 度量路径'"
              role="combobox" aria-autocomplete="list" :aria-expanded="kcOpen ? 'true' : 'false'" :aria-controls="kcListId"
              @focus="onKeyComboFocus(i, $event)" @input="setKey(i, ($event.target as HTMLInputElement).value)" @keydown="onKeyComboKey" />
-      <n-select class="aop-dir" size="tiny" :value="r.dir" :options="DIR_OPTIONS" title="排序方向"
+      <n-select class="aop-dir" size="tiny" :value="r.dir" :options="DIR_OPTIONS" v-tip="'排序方向'"
                 @update:value="v => setDir(i, v)" />
-      <button aria-label="删除排序行" class="btn sm ghost danger" title="删除该排序" @click="delRow(i)">
+      <button aria-label="删除排序行" class="btn sm ghost danger" v-tip="'删除该排序'" @click="delRow(i)">
         <X :size="12" />
       </button>
     </div>

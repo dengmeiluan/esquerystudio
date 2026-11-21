@@ -80,14 +80,14 @@ describe('1120 MCP 工具面单轨', () => {
     expect(browserMcpSrc).toContain('tools: browserGroupTools(),');
     expect(browserMcpSrc).not.toContain('151 legacy actions');
     expect(browserMcpSrc).not.toContain('legacy arguments');
-    expect(browserMcpSrc).toContain('<b>17 groups</b><span>166 actions</span>');
+    expect(browserMcpSrc).toContain('<b>17 groups</b><span>167 actions</span>');
     /* 本地 Node 桥：同款严格归一，callTool 只做实现层分发 */
     expect(localMcpSrc).toContain('单轨归一：客户端只允许 17 个 action 组');
     expect(localMcpSrc).toContain('async function callTool(name, args = {}) {');
     expect(localMcpSrc, 'callTool 不得再自行归一（归一只在协议入口做一次）').not.toContain('= normalizeGroupCall(name, args)');
     expect(localMcpSrc).not.toContain('151 legacy actions');
     expect(localMcpSrc).not.toContain('legacy arguments');
-    expect(localMcpSrc).toContain('<b>17 groups</b><span>166 actions</span>');
+    expect(localMcpSrc).toContain('<b>17 groups</b><span>167 actions</span>');
     /* 面板：目录计数与组数同源，复制面挂组级工具 */
     expect(panelSrc).toContain('totalActionCount');
     expect(panelSrc).toContain('browserGroupTools(true)');

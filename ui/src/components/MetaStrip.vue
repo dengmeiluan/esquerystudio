@@ -1,6 +1,6 @@
 <template>
   <!-- 统一 inline 元信息串（IndexHubView .ih-meta 同款范式合并）：
- 值亮(b tabular-nums)+单位弱化+标签暗(i)，· 分隔，flex-wrap 窄屏换行，tip 走 :title 兜底。
+ 值亮(b tabular-nums)+单位弱化+标签暗(i)，· 分隔，flex-wrap 窄屏换行，tip 走 v-tip 浮层。
  tone 走语义 token 色；to 可选点击跳转（键盘可达：role=link + Enter）。默认插槽承接自定义段，
  起其前自动补段间分隔（消费方手写 ih-meta-sep/dg-slot-sep/tv-meta-ksep 等随之退役）。 -->
   <div class="ms">
@@ -11,7 +11,7 @@
       <span v-if="it.text" class="ms-i ms-t">{{ it.text }}</span>
       <span
         v-else
-        class="ms-i" :class="{ link: !!it.to, help: !it.to && !!it.tip }" :title="it.tip || undefined"
+        class="ms-i" :class="{ link: !!it.to, help: !it.to && !!it.tip }" v-tip="it.tip || undefined"
         :role="it.to ? 'link' : undefined" :tabindex="it.to ? 0 : undefined"
         @click="it.to && go(it)" @keydown.enter.prevent="it.to && go(it)"
       >
@@ -40,7 +40,7 @@ export interface MetaStripItem {
   unit?: string;
   /** 值语义色档 */
   tone?: 'ok' | 'warn' | 'err' | 'info';
-  /** 全量文本兜底（title；有 tip 无 to 时 cursor:help） */
+  /** 全量文本兜底（v-tip 浮层；有 tip 无 to 时 cursor:help） */
   tip?: string;
   /** 可选点击跳转（键盘 Enter 同路） */
   to?: RouteLocationRaw;

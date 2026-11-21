@@ -19,7 +19,7 @@
           <!-- 原始 IO 快查——本页最近一次扫描（GET index-settings）或下发
  （POST index-settings/update）请求/响应原文（ioRecorder 记录环；两通道同族公共前缀
  last 取最近一条，plan/preview 双语义；页头恒渲染位，预览卡头有勾选门控不落钮） -->
-          <button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（优化向导）" title="最近一次扫描/下发（index-settings 读写）请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
+          <button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（优化向导）" v-tip="'最近一次扫描/下发（index-settings 读写）请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
         </template>
       </PageHeader>
     </div>
@@ -52,7 +52,7 @@
         <div class="io-cur-grid">
           <div v-for="[k, v] in currentEntries" :key="k" class="io-cur-row">
             <!-- G183：裸英文键根治——悬停出目录中文释义+示例（英文键留检索） -->
-            <span class="io-k" :title="ioHint(k)">{{ k }}</span>
+            <span class="io-k" v-tip="ioHint(k)">{{ k }}</span>
             <span class="io-v">{{ v ?? '—' }}</span>
           </div>
         </div>
@@ -65,7 +65,7 @@
           <span>优化建议 <StatusPill class="io-recs-cnt" tone="n" :label="String(recs.length)" /></span>
           <span class="io-recs-r">
             <!-- 建议导出 JSON（存档/带出走变更评审） -->
-            <button class="btn sm ghost" :disabled="!recs.length" title="导出全部建议为 JSON（存档/带出评审）" @click="exportRecs">
+            <button class="btn sm ghost" :disabled="!recs.length" v-tip="'导出全部建议为 JSON（存档/带出评审）'" @click="exportRecs">
               <FileDown :size="12" /> 导出
             </button>
             <!-- 全选开关：原生 checkbox 升档 NCheckbox（:checked/@update:checked 等价迁移） -->

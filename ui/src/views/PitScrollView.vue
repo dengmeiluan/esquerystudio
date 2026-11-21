@@ -19,7 +19,7 @@
 </button>
 <!-- 原始请求/响应快查弹窗（RawIo 第六波，558b 先例同形态；
  数据源=api.ts ioRecorder 记录环，路径子串 '/cluster/pit'=本页 open/search/close 三通道） -->
-<button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（PIT 读写）" title="最近一次 PIT 开启/拉取/关闭请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
+<button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（PIT 读写）" v-tip="'最近一次 PIT 开启/拉取/关闭请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
     </template>
     </PageHeader>
 </div>
@@ -59,7 +59,7 @@
           <label class="pt-lb"><span>sort order</span>
             <!-- W3c：原生 select 升档 NSelect（档值/文案零变化；_shard_doc 仅 asc，disabled 语义保留） -->
             <n-select v-model:value="sortOrder.v" class="pt-order-sel" size="small" :options="ORDER_OPTS" :disabled="shardDoc"
-              :title="shardDoc ? '_shard_doc 仅支持 asc（desc 会被 ES 400）' : ''" />
+              v-tip="shardDoc ? '_shard_doc 仅支持 asc（desc 会被 ES 400）' : ''" />
           </label>
           <label class="pt-lb"><span>filter DSL （可选）</span>
             <JsonArea ref="ptJaRef" v-model="filterDsl" :dsl-assist="dslAssist" :rows="4" placeholder="{&quot;term&quot;:{&quot;status&quot;:&quot;ACTIVE&quot;}}   留空即 match_all" />
@@ -72,7 +72,7 @@
         <div class="pt-progress">
           <div class="pt-num">
 {{ fetched }}<span class="pt-num-u"> / {{ totalGte ? '+' : '' }}{{ total || '?' }}</span>
-            <span v-if="totalGte" class="pt-num-gte" title="track_total_hits 截断：总数为下界而非精确值">（命中数为下界）</span>
+            <span v-if="totalGte" class="pt-num-gte" v-tip="'track_total_hits 截断：总数为下界而非精确值'">（命中数为下界）</span>
 </div>
           <div class="pt-bar-wrap">
             <div class="pt-bar" :style="{ width: total ? Math.min(100, fetched / total * 100) + '%' : (fetched > 0 ? '4%' : '0%') }"></div>
@@ -96,7 +96,7 @@
               <FileDown :size="12" /> 导出 JSONL（{{ buffer.length }}）
             </button>
             <!-- CSV 导出（全量 buffer，列=_id+_source 键并集，与 JSONL 同数据源） -->
-            <button class="btn ghost sm" @click="exportCsv" :disabled="!buffer.length" title="导出全部已拉取条目为 CSV（Excel 可直开）">
+            <button class="btn ghost sm" @click="exportCsv" :disabled="!buffer.length" v-tip="'导出全部已拉取条目为 CSV（Excel 可直开）'">
               <FileDown :size="12" /> CSV
             </button>
           </div>
@@ -107,7 +107,7 @@
         <!-- 1439：条件改了但没重置——已拉取条目来自本次滚动开始时的条件（裸文本头 + 条件芯片） -->
         <div class="pt-card-hd">预览（最近 100 条）
           <span v-if="pitFilterChanged" class="pill warn stale-chip" role="status"
-            title="筛选条件/排序已修改——下方已拉取条目来自本次滚动开始时的条件；点「重置」后重新开始才会生效">条件已修改</span>
+            v-tip="'筛选条件/排序已修改——下方已拉取条目来自本次滚动开始时的条件；点「重置」后重新开始才会生效'">条件已修改</span>
         </div>
         <!-- 预览表聚焦放大（423 同款推广） -->
         <FocusableSurface pane-id="pit.preview" title="预览表" :enabled="focusPaneId === 'pit.preview'"
@@ -117,7 +117,7 @@
             <button class="btn ghost sm" @click="exportJsonl" :disabled="!buffer.length">
               <FileDown :size="12" /> 导出 JSONL（{{ buffer.length }}）
             </button>
-            <button class="btn ghost sm" @click="exportCsv" :disabled="!buffer.length" title="导出全部已拉取条目为 CSV（Excel 可直开）">
+            <button class="btn ghost sm" @click="exportCsv" :disabled="!buffer.length" v-tip="'导出全部已拉取条目为 CSV（Excel 可直开）'">
               <FileDown :size="12" /> CSV
             </button>
             <!-- 暂停/重置在聚焦态可达 -->

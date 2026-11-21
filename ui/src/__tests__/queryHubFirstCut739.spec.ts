@@ -183,16 +183,15 @@ describe('739 G145 深链预填自展开（体验断链·头号）', () => {
 });
 
 describe('739 G141 模式钮 essence 悬浮可达（注释失实+铁律 F）', () => {
-  it('红锚：六钮 title=各自 essence 精确（修前全 null）+死渲染 span 退役', async () => {
+  it('红锚：六钮提示=各自 essence 精确（修前全 null）+死渲染 span 退役', async () => {
     const { host } = await mountAt(QueryHubView, '/search');
     const btns = Array.from(host.querySelectorAll<HTMLButtonElement>('.qh-mode'));
     expect(btns.length, '六模式钮').toBe(6);
-    QUERY_MODES.forEach((m, i) => {
-      expect(btns[i].getAttribute('title'), `G141 病灶：${m.t} 钮无 essence 悬浮`).toBe(m.essence);
-    });
+    /* 钮提示已迁 v-tip 指令（DOM 无 title 属性）——essence 接线改源码锚（逐钮同一绑定） */
+    expect(read('../views/QueryHubView.vue')).toContain('v-tip="m.essence"');
     /* 死渲染退役：副行 span 不再进 DOM（修前 display:none 占位在场） */
     expect(host.querySelectorAll('.qh-mode .qh-mode-tx span.qh-mode-e').length, '副行死渲染须退役').toBe(0);
-    /* essence 不进可见文本（title 悬浮通道零泄漏） */
+    /* essence 不进可见文本（悬浮通道零泄漏） */
     expect(host.textContent).not.toContain('全能主力');
   });
 });
@@ -313,7 +312,7 @@ describe('739 G140 场景条旧壳三组死样式退役（源码锁；737 G131 �
 describe('739 G141 源码锁（essence 接线+死渲染清零+注释对齐）', () => {
   it(':title=m.essence 字面在场+副行死族零残留+失实注释对齐', () => {
     const v = read('../views/QueryHubView.vue');
-    expect(v).toContain(':title="m.essence"'); // G141 接线
+    expect(v).toContain('v-tip="m.essence"'); // G141 接线
     expect(v.match(/qh-mode-e/g), '副行死渲染/死样式/注释零残留').toBeNull();
     /* 注释对齐：顶部注释宣称悬浮（修前宣称「副行」与实现不符） */
     expect(v).toContain('essence 悬浮是选型指南');

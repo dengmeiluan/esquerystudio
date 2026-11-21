@@ -1,5 +1,5 @@
 <template>
-  <label v-if="bus?.enabled.value" class="nsb" :title="checked ? '取消选择（Shift+点击连续范围）' : '选择该条件（Shift+点击连续范围，可批量停用/复制/删除）'" @click.stop @mousedown.stop="onDown">
+  <label v-if="bus?.enabled.value" class="nsb" v-tip="checked ? '取消选择（Shift+点击连续范围）' : '选择该条件（Shift+点击连续范围，可批量停用/复制/删除）'" @click.stop @mousedown.stop="onDown">
     <n-checkbox :checked="checked" size="small" :aria-label="(checked ? '取消选择条件 ' : '选择条件 ') + id"
       @update:checked="onChange" />
   </label>

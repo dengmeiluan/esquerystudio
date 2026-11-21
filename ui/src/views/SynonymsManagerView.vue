@@ -12,7 +12,7 @@
 <!-- 原始请求/响应快查弹窗（RawIo 第六波，558b 先例同形态；
  路径子串取写通道 '/cluster/synonyms-upsert'——GET analysis-settings 被
  Analysis/Mapping/Analyze 三页污染，548 MappingDesigner '/cluster/mapping-put' 同先例勿用） -->
-<button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（同义词下发）" title="最近一次同义词字典下发请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo">
+<button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（同义词下发）" v-tip="'最近一次同义词字典下发请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo">
   <Terminal :size="12" /> 原始 IO
 </button>
       </template>
@@ -86,7 +86,7 @@
               <Zap :size="12" :class="{ spinning: busy }" /> 热重载
             </button>
             <button v-if="canOps" class="btn primary sm" :disabled="!index || !parsed.length || busy || saveBlockReason !== ''"
-                    :title="saveBlockReason || '下发并热重载'" @click="doSave">
+                    v-tip="saveBlockReason || '下发并热重载'" @click="doSave">
               <Send :size="12" /> 下发 & 重载
             </button>
           </div>

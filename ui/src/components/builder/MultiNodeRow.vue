@@ -2,16 +2,16 @@
   <div class="mnr" :data-nid="node.id">
     <div class="mnr-hd" tabindex="0" @contextmenu.prevent="openRowMenu" @keydown.self="onRowMenuKey">
       <NodeSelectBox :id="node.id" />
-      <span class="mnr-grip" title="拖拽排序（按住拖动）；Alt+↑/↓ 上移/下移" draggable="true" @dragstart.stop="onDragStart" @dragend="endDrag">⋮⋮</span>
+      <span class="mnr-grip" v-tip="'拖拽排序（按住拖动）；Alt+↑/↓ 上移/下移'" draggable="true" @dragstart.stop="onDragStart" @dragend="endDrag">⋮⋮</span>
       <span class="mnr-op">{{ MULTI_LABELS[node.op] || node.op }}</span>
       <code class="mnr-fk mono">{{ node.op }}</code>
       <span style="flex:1"></span>
-      <button aria-label="参数（negative_boost 等）" class="btn sm ghost" :class="{ on: showParams }" title="参数（negative_boost 等）"
+      <button aria-label="参数（negative_boost 等）" class="btn sm ghost" :class="{ on: showParams }" v-tip="'参数（negative_boost 等）'"
               @click="showParams = !showParams">
         <SlidersHorizontal :size="12" />
       </button>
-      <button aria-label="包成 bool 组" class="btn sm ghost" title="包成 bool 组" @click="emit('wrap')"><Group :size="12" /></button>
-      <button aria-label="删除" class="btn sm ghost danger" title="删除" @click="emit('remove')"><X :size="12" /></button>
+      <button aria-label="包成 bool 组" class="btn sm ghost" v-tip="'包成 bool 组'" @click="emit('wrap')"><Group :size="12" /></button>
+      <button aria-label="删除" class="btn sm ghost danger" v-tip="'删除'" @click="emit('remove')"><X :size="12" /></button>
     </div>
     <div v-if="showParams" class="mnr-params">
       <GenericParams :value="node.params" :schema="paramSchema" path-prefix="" @update="onParams" />
@@ -20,7 +20,7 @@
       <div class="mnr-part-hd">
         <span class="mnr-part-tx">{{ meta.partLabel[k] }}</span>
         <span style="flex:1"></span>
-        <button class="btn sm ghost" :title="'在此分区加子查询'" @click="addChild(k)"><Plus :size="11" /> 子查询</button>
+        <button class="btn sm ghost" v-tip="'在此分区加子查询'" @click="addChild(k)"><Plus :size="11" /> 子查询</button>
       </div>
       <NodeRenderer
         v-for="c in childrenOf(k)" :key="c.node.id"

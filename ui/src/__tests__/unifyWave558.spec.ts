@@ -16,6 +16,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { vTip } from '../directives/vTip';
 
 const read = (p: string) => readFileSync(join(__dirname, p), 'utf-8');
 
@@ -78,6 +79,7 @@ async function mountView(comp: any, opts: { hash?: string } = {}) {
   const host = document.createElement('div');
   document.body.appendChild(host);
   const app = createApp({ render: () => h(comp) });
+  app.directive('tip', vTip); /* 档循环钮提示已迁 v-tip：focus 键盘通道浮层文本可断言 */
   app.use(pinia);
   app.use(router);
   app.config.warnHandler = () => {};
@@ -221,13 +223,20 @@ describe('UpdateByQueryView ubq.scriptH 合并 useTierCycle（）', () => {
     const View = (await import('../views/UpdateByQueryView.vue')).default;
     const w = await mountView(View);
     const hBtn = () => w.host.querySelector<HTMLButtonElement>('[data-test="ubq-script-h"]')!;
-    expect(hBtn().getAttribute('title'), '历史末档读档直用').toBe('脚本编辑器高度档：max(220px, 72vh)');
+    /* 档位钮提示已迁 v-tip 指令（DOM 无 title 属性）——focus 键盘通道即时显示
+       单例浮层 #vt-tip，档切换时 updated 钩子实时回显当前档（track2Wave558 同法） */
+    const tipText = async () => {
+      hBtn().focus();
+      await settle();
+      return document.getElementById('vt-tip')?.textContent ?? '';
+    };
+    expect(await tipText(), '历史末档读档直用').toBe('脚本编辑器高度档：max(220px, 72vh)');
     hBtn().click();
     await settle();
-    expect(hBtn().getAttribute('title'), '末档循环回首档').toBe('脚本编辑器高度档：max(110px, 42vh)');
+    expect(await tipText(), '末档循环回首档').toBe('脚本编辑器高度档：max(110px, 42vh)');
     hBtn().click();
     await settle();
-    expect(hBtn().getAttribute('title'), '顺档推进').toBe('脚本编辑器高度档：max(150px, 56vh)');
+    expect(await tipText(), '顺档推进').toBe('脚本编辑器高度档：max(150px, 56vh)');
     await wait(0);
     expect(localStorage.getItem('esquerystudio.pref.ubq.scriptH'), '落盘键不变（零迁移）').toBe(JSON.stringify('max(150px, 56vh)'));
     w.unmount();

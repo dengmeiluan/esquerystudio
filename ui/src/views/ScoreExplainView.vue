@@ -18,9 +18,9 @@
           <div class="se-card-hd"><FileJson :size="12" /> Query（自动注入 explain:true）
             <!-- 编辑框高度三档循环钮（ra.script-h 同款形态），useTierCycle('se.edH') 跨会话记忆 -->
             <button class="btn ghost xs" style="margin-left:auto" data-test="se-ed-h"
-              :title="'Query 编辑框高度档：' + edH" @click="cycleEdH">高</button>
+              v-tip="'Query 编辑框高度档：' + edH" @click="cycleEdH">高</button>
             <!-- 原始 IO 快查——本页最近一次 search-raw（explain）请求/响应原文（ioRecorder 记录环） -->
-            <button class="btn ghost xs" data-test="raw-io" aria-label="查看原始 IO（打分解剖）" title="最近一次打分解剖请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo"><Terminal :size="11" /> 原始 IO</button>
+            <button class="btn ghost xs" data-test="raw-io" aria-label="查看原始 IO（打分解剖）" v-tip="'最近一次打分解剖请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo"><Terminal :size="11" /> 原始 IO</button>
           </div>
           <JsonArea ref="seJaRef" v-model="dsl" :dsl-assist="dslAssist" :rows="6" fill @submit="run" />
           <!-- lintDsl 静态体检提示条（SearchSandboxView join 串形态同款，随输入实时重估，
@@ -76,17 +76,17 @@
              @contextmenu.prevent="openHitMenu($event, h)" @keydown="onHitMenuKey($event, h)" data-row-nav @keydown.self="rowArrowNav">
           <div class="se-hit-hd" role="button" tabindex="0" :aria-expanded="openIdx === i" @click="openIdx = openIdx === i ? -1 : i" @keydown.enter.prevent="openIdx = openIdx === i ? -1 : i" @keydown.space.prevent="openIdx = openIdx === i ? -1 : i">
             <span class="se-rank">#{{ i + 1 }}</span>
-            <span class="se-id" :title="h._id">{{ h._id }}</span>
+            <span class="se-id" v-tip="h._id">{{ h._id }}</span>
             <span class="se-score-bar-wrap">
               <span class="se-score-bar" :style="{ width: scorePct(h._score) + '%' }" />
             </span>
             <span class="se-score">{{ fmtScore(h._score) }}</span>
-            <span v-if="h.matched_queries?.length" class="se-mq" :title="h.matched_queries.join(', ')">
+            <span v-if="h.matched_queries?.length" class="se-mq" v-tip="h.matched_queries.join(', ')">
               <Tags :size="10" /> {{ h.matched_queries.length }} 子句
             </span>
-            <button aria-label="复制原始 explanation JSON" class="btn ghost xs" @click.stop="copyExplain(h)" title="复制原始 explanation JSON"><Copy :size="10" /></button>
-            <button aria-label="带当前 query 去「排名侦探」审问这个文档" class="btn ghost xs se-link" @click.stop="gotoWhy(h)" title="带当前 query 去「排名侦探」审问这个文档"><SearchCheck :size="10" /></button>
-            <button aria-label="去「查询 X 光」给这个文档做词频取证" class="btn ghost xs se-link" @click.stop="gotoXray(h)" title="去「查询 X 光」给这个文档做词频取证"><ScanSearch :size="10" /></button>
+            <button aria-label="复制原始 explanation JSON" class="btn ghost xs" @click.stop="copyExplain(h)" v-tip="'复制原始 explanation JSON'"><Copy :size="10" /></button>
+            <button aria-label="带当前 query 去「排名侦探」审问这个文档" class="btn ghost xs se-link" @click.stop="gotoWhy(h)" v-tip="'带当前 query 去「排名侦探」审问这个文档'"><SearchCheck :size="10" /></button>
+            <button aria-label="去「查询 X 光」给这个文档做词频取证" class="btn ghost xs se-link" @click.stop="gotoXray(h)" v-tip="'去「查询 X 光」给这个文档做词频取证'"><ScanSearch :size="10" /></button>
             <ChevronDown :size="12" class="se-caret" :class="{ open: openIdx === i }" />
           </div>
           <div v-if="openIdx === i" class="se-hit-body">

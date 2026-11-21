@@ -10,7 +10,12 @@
  *     勾掉后新事件到达不打扰（scrollTop 保持用户翻动位置）；
  *   ③ 跨天分组——事件按天分段（dayLabel 单源：今天/昨天/MM-DD），最新天在上；
  *   ④ 折叠记忆共存——升级后 CollapsePanel 开合仍落 xm-detail-open-keys（1121 锁不破）。
- * 挂具范式同 xmDetailEvents1121（全真挂载 + api mock；详情 n-modal teleport 查 document）。
+ * 再升级三能（⑤⑥⑦）：
+ *   ⑤ 单事件钻取——事件行点击内联展开：完整时间戳/level/type 芯片 + message 全文不截断
+ *     + 复制钮（copyText 实参=该事件 message）；再点同行收起；
+ *   ⑥ 关键字搜索——头部关键字输入按 message 过滤（大小写不敏感），与档位芯片 AND 叠加；
+ *   ⑦ JSONL 独立导出——导出钮把当前筛选后事件落 .jsonl 文件（每行 {ts,level,type,message}）。
+ * 挂具范式同 xmDetailEvents1121（全真挂载 + api/copyText/downloadText mock；详情 n-modal teleport 查 document）。
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createApp, h, nextTick } from 'vue';
@@ -20,6 +25,8 @@ import XmigrateView from '../views/XmigrateView.vue';
 
 const xbJobs = vi.fn();
 const xbEvents = vi.fn();
+const copyTextFn = vi.fn();
+const downloadTextFn = vi.fn();
 
 vi.mock('../api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../api')>();
@@ -39,6 +46,15 @@ vi.mock('../api', async (importOriginal) => {
         events: (...a: any[]) => xbEvents(...a),
       },
     },
+  };
+});
+/* copyText/downloadText 打桩 spy（utils/format 其余导出保真）——复制/导出断言只认实参 */
+vi.mock('../utils/format', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../utils/format')>();
+  return {
+    ...actual,
+    copyText: (...a: any[]) => copyTextFn(...a),
+    downloadText: (...a: any[]) => downloadTextFn(...a),
   };
 });
 
@@ -95,6 +111,8 @@ beforeEach(() => {
   sessionStorage.clear();
   xbJobs.mockReset().mockResolvedValue([DETAIL_JOB]);
   xbEvents.mockReset().mockResolvedValue({ events: MIX_EVENTS });
+  copyTextFn.mockReset().mockResolvedValue(true);
+  downloadTextFn.mockReset().mockReturnValue(undefined);
   (Element.prototype as any).scrollIntoView = vi.fn();
 });
 
@@ -276,4 +294,132 @@ describe('1122 时间线 ④：折叠记忆共存', () => {
     expect(sec.querySelector('.xm-ev-day'), '跨天段头在场').toBeTruthy();
     app.unmount();
   }, 10000);
+});
+
+/* ═══ ⑤⑥⑦ 再升级三能：单事件钻取 / 关键字搜索 / JSONL 独立导出 ═══ */
+describe('1122 时间线 ⑤：单事件钻取（行点击内联展开）', () => {
+  it('点事件行展开完整时间戳/level/type + message 全文；复制钮 copyText 实参=该事件 message；再点收起', async () => {
+    const { app, host } = await mountXm();
+    const sec = await openDetailWithEvents(host);
+    expect(sec.querySelector('[data-test="xm-evt-detail"]'), '未点击前无展开区').toBeNull();
+    /* 点首行（今天段 DONE）：展开区内联出现在行后 */
+    (sec.querySelector('[data-test="xm-ev-row-0"]') as HTMLElement).click();
+    await settle(2);
+    const detail = sec.querySelector('[data-test="xm-evt-detail"]') as HTMLElement;
+    expect(detail, '点击后展开区在场').toBeTruthy();
+    expect(detail.textContent).toContain('level=info');
+    expect(detail.textContent).toContain('type=DONE');
+    expect(detail.textContent, '完整时间戳（fmtTime 日期档，比行首 HH:mm:ss 更长）').toMatch(/\d{4}/);
+    expect(detail.querySelector('.xm-ev-d-msg')!.textContent).toBe('迁移完成');
+    /* 复制钮：copyText 实参=该事件 message 全文 */
+    (detail.querySelector('[data-test="xm-evt-copy"]') as HTMLButtonElement).click();
+    await settle(2);
+    expect(copyTextFn).toHaveBeenCalledWith('迁移完成');
+    /* 再点同行收起 */
+    (sec.querySelector('[data-test="xm-ev-row-0"]') as HTMLElement).click();
+    await settle(2);
+    expect(sec.querySelector('[data-test="xm-evt-detail"]'), '再点同行收起').toBeNull();
+    app.unmount();
+  }, 10000);
+
+  it('长 message 钻取全文不截断（pre 完整承载，无省略号裁剪）', async () => {
+    const LONG = '超长事件消息' + 'x'.repeat(300);
+    xbEvents.mockResolvedValue({ events: [{ ts: NOW, stage: 'BULK_FAIL', message: LONG, level: 'error' }] });
+    const { app, host } = await mountXm();
+    const sec = await openDetailWithEvents(host);
+    (sec.querySelector('[data-test="xm-ev-row-0"]') as HTMLElement).click();
+    await settle(2);
+    const pre = sec.querySelector('[data-test="xm-evt-detail"] .xm-ev-d-msg') as HTMLElement;
+    expect(pre.textContent!.length, '展开区 message 全文（300+ 前缀字符）').toBe(LONG.length);
+    expect(pre.textContent).toBe(LONG);
+    app.unmount();
+  }, 10000);
+});
+
+describe('1122 时间线 ⑥：关键字搜索（与档位芯片 AND 叠加）', () => {
+  it('输入关键字只剩 message 命中行；清空恢复全集', async () => {
+    const { app, host } = await mountXm();
+    const sec = await openDetailWithEvents(host);
+    const kw = sec.querySelector('[data-test="xm-evt-kw"]') as HTMLInputElement;
+    kw.value = 'bulk';
+    kw.dispatchEvent(new Event('input'));
+    await settle(2);
+    let lines = [...sec.querySelectorAll('.xm-ev')];
+    expect(lines.length, '关键字 bulk 只剩 BULK_FAIL 行').toBe(1);
+    expect(lines[0].textContent).toContain('bulk 写入被拒');
+    /* 清空恢复全集 */
+    kw.value = '';
+    kw.dispatchEvent(new Event('input'));
+    await settle(2);
+    expect(sec.querySelectorAll('.xm-ev').length, '清空关键字恢复 4 行').toBe(4);
+    app.unmount();
+  }, 10000);
+
+  it('AND 叠加：芯片「错误」+ 无命中关键字 → 空态「当前筛选无命中事件」；换作业关键字复位', async () => {
+    const { app, host } = await mountXm();
+    const sec = await openDetailWithEvents(host);
+    (sec.querySelector('[data-test="xm-evt-filter-error"]') as HTMLButtonElement).click();
+    await settle(2);
+    const kw = sec.querySelector('[data-test="xm-evt-kw"]') as HTMLInputElement;
+    kw.value = '门禁词不在错误事件里';
+    kw.dispatchEvent(new Event('input'));
+    await settle(2);
+    expect(sec.querySelector('[data-test="xm-evt-empty"]'), '芯片+关键字双滤无命中 → 空态').toBeTruthy();
+    expect(sec.querySelectorAll('.xm-ev').length).toBe(0);
+    /* 换作业重开详情：关键字与档位同拍复位（新事件集的旧词命中无意义） */
+    kw.value = 'bulk';
+    kw.dispatchEvent(new Event('input'));
+    await settle(2);
+    (document.querySelector('.xm-detail-ft .btn:last-child') as HTMLButtonElement).click();
+    await settle(2);
+    (host.querySelector('[aria-label^="作业详情"]') as HTMLButtonElement).click();
+    await settle();
+    const sec2 = document.querySelector('[data-test="xm-detail-events"]')!;
+    const kw2 = sec2.querySelector('[data-test="xm-evt-kw"]') as HTMLInputElement;
+    expect(kw2.value, '换作业关键字复位为空').toBe('');
+    expect(sec2.querySelectorAll('.xm-ev').length, '复位后全集 4 行').toBe(4);
+    app.unmount();
+  }, 12000);
+});
+
+describe('1122 时间线 ⑦：JSONL 独立导出（当前筛选后事件集）', () => {
+  it('全部档导出：文件名带 jobId，每行 {ts,level,type,message}，行数=事件数', async () => {
+    const { app, host } = await mountXm();
+    const sec = await openDetailWithEvents(host);
+    (sec.querySelector('[data-test="xm-evt-export"]') as HTMLButtonElement).click();
+    await settle(2);
+    expect(downloadTextFn).toHaveBeenCalledTimes(1);
+    const [fname, body, mime] = downloadTextFn.mock.calls[0] as [string, string, string];
+    expect(fname).toBe('xm-events-j-tl.jsonl');
+    expect(mime).toBe('application/x-ndjson');
+    const rows = body.split('\n').map((l: string) => JSON.parse(l));
+    expect(rows.length).toBe(4);
+    expect(rows[0]).toEqual({ ts: NOW, level: 'info', type: 'DONE', message: '迁移完成' });
+    expect(rows[1]).toEqual({ ts: NOW - 5000, level: 'error', type: 'BULK_FAIL', message: 'bulk 写入被拒' });
+    app.unmount();
+  }, 10000);
+
+  it('筛选后导出只含筛选集（错误档 1 行）；无命中时 warning 不下载', async () => {
+    const { app, host } = await mountXm();
+    const sec = await openDetailWithEvents(host);
+    (sec.querySelector('[data-test="xm-evt-filter-error"]') as HTMLButtonElement).click();
+    await settle(2);
+    (sec.querySelector('[data-test="xm-evt-export"]') as HTMLButtonElement).click();
+    await settle(2);
+    const [fname, body] = downloadTextFn.mock.calls[0] as [string, string];
+    expect(fname).toBe('xm-events-j-tl.jsonl');
+    const rows = body.split('\n').map((l: string) => JSON.parse(l));
+    expect(rows.length, '错误档导出只含命中行').toBe(1);
+    expect(rows[0].type).toBe('BULK_FAIL');
+    /* 关键字无命中 → 导出前 warning 拦截（downloadText 不再被调用） */
+    const kw = sec.querySelector('[data-test="xm-evt-kw"]') as HTMLInputElement;
+    kw.value = '绝不命中的词';
+    kw.dispatchEvent(new Event('input'));
+    await settle(2);
+    downloadTextFn.mockClear();
+    (sec.querySelector('[data-test="xm-evt-export"]') as HTMLButtonElement).click();
+    await settle(2);
+    expect(downloadTextFn, '空集不下载文件').not.toHaveBeenCalled();
+    app.unmount();
+  }, 12000);
 });

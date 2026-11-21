@@ -1,6 +1,6 @@
 <template>
   <aside class="snav" :class="{ icon: store.navIcon }">
-    <div class="brand" :title="store.navIcon ? brandTitle : ''">
+    <div class="brand" v-tip="store.navIcon ? brandTitle : ''">
       <div class="brand-logo">
         <!-- W5 线宽收口：logo 2.2 / 导航 1.9 / 其余默认 2 三档分裂是同组件细节噪音——
              统一 lucide 默认 2（不显式写 stroke-width，与全站图标同拍） -->
@@ -49,12 +49,12 @@
       </div>
       <div v-for="g in grouped" :key="g.id" class="nav-group">
         <!-- 组标题与图标态分隔线同时常驻：两态高度互补渐变，宽度动画全程不跳行高 -->
-        <div class="nav-g-hd" role="button" tabindex="0" :aria-expanded="isOpen(g)" :title="packTip(g.id)" @click="toggleGroup(g.id)" @keydown.enter.prevent="toggleGroup(g.id)" @keydown.space.prevent="toggleGroup(g.id)">
+        <div class="nav-g-hd" role="button" tabindex="0" :aria-expanded="isOpen(g)" v-tip="packTip(g.id)" @click="toggleGroup(g.id)" @keydown.enter.prevent="toggleGroup(g.id)" @keydown.space.prevent="toggleGroup(g.id)">
           <ChevronDown :size="11" class="nav-g-caret" :class="{ closed: !isOpen(g) }" />
           <span class="nav-g-nm">{{ g.name }}</span>
           <span class="nav-g-cnt">{{ g.items.length }}</span>
         </div>
-        <div class="nav-g-sep" :title="g.name"></div>
+        <div class="nav-g-sep" v-tip="g.name"></div>
         <!-- 分组折叠：grid-rows 0fr↔1fr 连续过渡，替代 v-if 瞬跳 -->
         <div class="nav-g-body" :class="{ closed: !store.navIcon && !isOpen(g) }">
           <div class="nav-g-in">
@@ -68,14 +68,14 @@
               <div
                 class="nav-item" :class="{ on: isActive }" @click="navigate"
                 role="link" tabindex="0" @keydown.enter.prevent="() => navigate()"
-                :title="itemTip(item)"
+                v-tip="itemTip(item)"
               >
                 <component :is="icons[item.icon]" :size="15" class="nav-ic" />
                 <span class="nav-name"><MarkText :text="item.name" :kw="navQuery" /></span>
                 <span
                   v-if="item.minVer && store.verBelow(item.minVer)"
                   class="nav-ver"
-                  :title="`当前集群 ES ${store.esVersion}，此功能需要 ES ${item.minVer}+，进入后相关接口可能不可用`"
+                  v-tip="`当前集群 ES ${store.esVersion}，此功能需要 ES ${item.minVer}+，进入后相关接口可能不可用`"
                 >需 {{ item.minVer }}+</span>
                 <span class="kbd nav-key">{{ item.key }}</span>
               </div>
@@ -86,20 +86,20 @@
     </nav>
 
     <div class="nav-foot">
-      <div class="foot-row" :title="footTitle">
+      <div class="foot-row" v-tip="footTitle">
         <span class="dot" :class="dotCls"></span>
         <span class="foot-tx">{{ footTx }}</span>
       </div>
-      <div class="foot-row dim" title="⌘K / Ctrl+K 打开命令面板">
+      <div class="foot-row dim" v-tip="'⌘K / Ctrl+K 打开命令面板'">
         <Command :size="12" />
         <span class="foot-tx">⌘K 命令面板</span>
       </div>
       <!-- 当前版本号可见（发版核验最后一米：UI 即所见版本） -->
-      <div class="foot-row dim" :title="ui.product.name + ' 当前版本 ' + STARTER_VERSION">
+      <div class="foot-row dim" v-tip="ui.product.name + ' 当前版本 ' + STARTER_VERSION">
         <span class="foot-tx mono v-num">v{{ STARTER_VERSION }}</span>
       </div>
       <!-- 速查面板鼠标入口（? 键之外的第二可达路径；点击发事件总线） -->
-      <button class="foot-row dim foot-btn" title="键盘速查（快捷键 ?）" @click="store.emit('open-hotkeys')">
+      <button class="foot-row dim foot-btn" v-tip="'键盘速查（快捷键 ?）'" @click="store.emit('open-hotkeys')">
         <Keyboard :size="12" />
         <span class="foot-tx">? 键盘速查</span>
       </button>

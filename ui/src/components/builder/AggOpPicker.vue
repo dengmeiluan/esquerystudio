@@ -16,7 +16,7 @@
         @focus="onFocus"
         @keydown="onKey"
       />
-      <button v-if="modelValue" aria-label="清空聚合类型" class="agp-x" title="清空" tabindex="-1"
+      <button v-if="modelValue" aria-label="清空聚合类型" class="agp-x" v-tip="'清空'" tabindex="-1"
         @mousedown.prevent="choose('')"><X :size="11" /></button>
     </div>
 

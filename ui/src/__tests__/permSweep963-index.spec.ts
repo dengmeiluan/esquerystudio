@@ -43,7 +43,7 @@ describe('963-1 CreateIndexModal：创建/别名两端点分门（点位+Enter+�
     expect(cim).toContain(':disabled="!canSubmit || creating || !canCreate"');
   });
   it('别名输入按 canAlias 禁用并 title 说明', () => {
-    expect(cim).toContain(':disabled="!canAlias" title="别名挂载需别名管理权限"');
+    expect(cim).toContain(`:disabled="!canAlias" v-tip="'别名挂载需别名管理权限'"`);
   });
   it('doCreate 首行 canCreate 早退；带别名但无别名权限时先拦（防索引建成别名 403 半成品）', () => {
     expect(cim).toMatch(/async function doCreate\(\) \{\r?\n\s+\/\*[^\n]*\*\/\r?\n\s+if \(!canCreate\.value\) \{ store\.notify\('warning', '新建索引需索引创建权限'\); return; \}/);

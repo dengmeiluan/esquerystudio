@@ -7,7 +7,7 @@
     <div class="ddm">
       <!-- 索引名芯片——对比的是哪个索引一目了然，点击直达索引工作区 -->
       <div class="ddm-top" v-if="index">
-        <button type="button" class="ddm-idx mono" :title="index + '（点击打开索引工作区）'" @click="gotoIndex">
+        <button type="button" class="ddm-idx mono" v-tip="index + '（点击打开索引工作区）'" @click="gotoIndex">
           {{ index }} <ExternalLink :size="11" />
         </button>
       </div>
@@ -34,17 +34,17 @@
           <thead>
             <tr>
               <th class="p">字段</th>
-              <th class="v"><span class="th-tag base">基准</span><span class="th-id mono" :title="hits[baseIdx]?._id">{{ shortId(hits[baseIdx]?._id) }}</span></th>
+              <th class="v"><span class="th-tag base">基准</span><span class="th-id mono" v-tip="hits[baseIdx]?._id">{{ shortId(hits[baseIdx]?._id) }}</span></th>
               <th v-for="(h, ti) in targetHits" :key="ti" class="v">
-                <span class="th-tag">#{{ targetNo(ti) }}</span><span class="th-id mono" :title="h?._id">{{ shortId(h?._id) }}</span>
+                <span class="th-tag">#{{ targetNo(ti) }}</span><span class="th-id mono" v-tip="h?._id">{{ shortId(h?._id) }}</span>
               </th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="r in rows" :key="r.path" :class="'k-' + r.status">
-              <td class="p mono" :title="r.path" tabindex="0" @contextmenu.prevent="openCellMenu($event, r, -1)" @keydown="onCellMenuKey($event, r, -1)"><MarkText :text="r.path" :kw="pathKw" /></td>
-              <td class="v mono cell" :title="fmt(r.base)" tabindex="0" role="button" :aria-label="'复制基线值 ' + r.path" @contextmenu.prevent="openCellMenu($event, r, 0)" @keydown="onCellMenuKey($event, r, 0)" @keydown.enter.prevent="copyCell(r.path, r.base)" @keydown.space.prevent="copyCell(r.path, r.base)" @click="copyCell(r.path, r.base)">{{ fmt(r.base) }}<Copy v-if="r.base !== undefined" :size="10" class="c-ic" /></td>
-              <td v-for="(tv, ti) in r.targets" :key="ti" class="v mono cell" :class="cellCls(r.kinds[ti])" :title="fmt(tv)" tabindex="0" role="button" :aria-label="'复制目标值 ' + r.path" @contextmenu.prevent="openCellMenu($event, r, ti + 1)" @keydown="onCellMenuKey($event, r, ti + 1)" @keydown.enter.prevent="copyCell(r.path, tv)" @keydown.space.prevent="copyCell(r.path, tv)" @click="copyCell(r.path, tv)">
+              <td class="p mono" v-tip="r.path" tabindex="0" @contextmenu.prevent="openCellMenu($event, r, -1)" @keydown="onCellMenuKey($event, r, -1)"><MarkText :text="r.path" :kw="pathKw" /></td>
+              <td class="v mono cell" v-tip="fmt(r.base)" tabindex="0" role="button" :aria-label="'复制基线值 ' + r.path" @contextmenu.prevent="openCellMenu($event, r, 0)" @keydown="onCellMenuKey($event, r, 0)" @keydown.enter.prevent="copyCell(r.path, r.base)" @keydown.space.prevent="copyCell(r.path, r.base)" @click="copyCell(r.path, r.base)">{{ fmt(r.base) }}<Copy v-if="r.base !== undefined" :size="10" class="c-ic" /></td>
+              <td v-for="(tv, ti) in r.targets" :key="ti" class="v mono cell" :class="cellCls(r.kinds[ti])" v-tip="fmt(tv)" tabindex="0" role="button" :aria-label="'复制目标值 ' + r.path" @contextmenu.prevent="openCellMenu($event, r, ti + 1)" @keydown="onCellMenuKey($event, r, ti + 1)" @keydown.enter.prevent="copyCell(r.path, tv)" @keydown.space.prevent="copyCell(r.path, tv)" @click="copyCell(r.path, tv)">
                 {{ fmt(tv) }}<Copy v-if="tv !== undefined" :size="10" class="c-ic" />
               </td>
             </tr>

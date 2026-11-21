@@ -338,6 +338,10 @@ describe('XmigrateView：目标索引回填 + PageHeader 统一（528 批）', (
       destCreateMode: 'NONE', tuneMode: 'AGGRESSIVE',
       slices: null, batchSize: null, scrollKeepAliveSec: null, forceMerge: false,
     }));
+    /* w2 挂载把 pickedIdx 回填值持久化进了 workbench 草稿（localStorage，新稿优先）；
+       清掉它才走「旧会话稿一次性迁移」路径——真实用户流里 sessionStorage 旧稿本就不跨
+       页签存活，此清理即还原该用例原语义：有用户草稿时草稿优先于 pickedIdx 回填 */
+    localStorage.removeItem('esquerystudio.xmigrate.workbench-v1');
     localStorage.setItem('es_picked', 'pre_dest');
     const w3 = await mountView(View);
     expect(w3.host.querySelectorAll<HTMLInputElement>('.xm-idx-inp')[1]?.value, '用户草稿/已输值优先，不覆盖').toBe('drafted_dest');

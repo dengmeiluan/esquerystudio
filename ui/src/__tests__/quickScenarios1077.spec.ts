@@ -123,7 +123,7 @@ describe('1077 双输入 UI 接线', () => {
     expect(src).toContain('quickTaskAvailability(t, taskFields.fields.value)');
     expect(src).toContain('按当前 mapping 自动匹配');
     expect(src).toContain(':disabled="!taskReady(t)"');
-    expect(src).toContain(":title=\"taskTitle(t)\"");
+    expect(src).toContain("v-tip=\"taskTitle(t)\"");
     expect(src).toContain(":class=\"{ 'qh-task-off': !taskReady(t) }\"");
   });
 

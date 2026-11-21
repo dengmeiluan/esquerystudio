@@ -114,7 +114,7 @@ describe('五百三十二批两换壳：ReconcileReportDrawer + MatchMatrixView 
 
   it('rrd：状态列 StatusPill 语义 + 索引列 goHub 芯片 + 内核 export/空态/骨架接线', () => {
     expect(rrd).toMatch(/<StatusPill :tone="STATUS_TONE\[value\] \?\? 'n'" :label="value" \/>/);
-    expect(rrd).toMatch(/<button class="rr-go" :aria-label="'打开索引工作区：' \+ value" title="打开索引工作区" @click\.stop="gotoHub\(value\)">/);
+    expect(rrd).toMatch(/<button class="rr-go" :aria-label="'打开索引工作区：' \+ value" v-tip="'打开索引工作区'" @click\.stop="gotoHub\(value\)">/);
     expect(rrd).toContain("router.push({ path: '/indices', query: { idx } })");
     expect(rrd).toContain('export-name="reconcile-report"');
     expect(rrd).toContain(':loading="loading"');
@@ -230,7 +230,7 @@ describe('五百三十二批 export-name 全批', () => {
 describe('五百三十二批杂项锚', () => {
   it('IndexHub：索引列表 store.size 裸串 → semBytes 同页口径（title 恒 raw）', () => {
     expect(ih).toContain('{{ semBytes(idx[\'store.size\']) }}');
-    expect(ih).toMatch(/:title="`存储 \$\{idx\['store\.size'\] \|\| '-'\} · \$\{idx\.pri\}\/\$\{idx\.rep\} 分片 · 创建 \$\{fmtDate\(idx\['creation\.date\.string'\]\)\}`"/);
+    expect(ih).toMatch(/v-tip="`存储 \$\{idx\['store\.size'\] \|\| '-'\} · \$\{idx\.pri\}\/\$\{idx\.rep\} 分片 · 创建 \$\{fmtDate\(idx\['creation\.date\.string'\]\)\}`"/);
   });
   it('IndexHub：查询 tab JsonArea 接 lintDsl 划线（PitScrollView 同款挂法，只消费既有出口）', () => {
     expect(ih).toContain("import { lintDsl } from '../utils/dslLint';");

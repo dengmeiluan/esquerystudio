@@ -351,6 +351,79 @@ public class CrossClusterMigrateService {
                 destConn == null ? null : resolveConn(destConn), destIndex);
     }
 
+    /** 连接档案解析器（id → 含密连接）：由持有 ConnStore 的装配层注入（Web Controller 构造时），
+     * 供 {@link #verifyEquivalence(String, String, String, String, String, Integer, List, String, Integer)}
+     * 的 id 形态在服务内完成档案解析；未注入时 id 形态明确报错（不静默降级）。 */
+    private volatile java.util.function.Function<String, RemoteClusterConn> connProfileResolver;
+
+    public void setConnProfileResolver(java.util.function.Function<String, RemoteClusterConn> resolver) {
+        this.connProfileResolver = resolver;
+    }
+
+    /**
+     * 迁移后等价性验证（verify_equivalence，只读）的统一入口：
+     * <ul>
+     * <li><b>jobId 形态</b>：从作业档案取 srcConnId/sourceIndex/destIndex（作业未记录源连接
+     * 档案时拒绝——与 reconcile 同口径）；destConnId 仍可选（缺省/host=宿主集群）。</li>
+     * <li><b>srcConnId+sourceIndex 形态</b>：同 sync_structure 的档案校验（srcConnId 必须是
+     * 已存档案；destConnId 可选缺省宿主；destIndex 可选缺省 sourceIndex）。</li>
+     * </ul>
+     * 连接档案经 {@link #setConnProfileResolver} 注入的解析器取密（密码明文仅服务端流转）；
+     * 作业归属（创建者本人或 ADMIN）与连接写键校验在 Web/MCP 调用层完成（与 resume 同口径）。
+     * 参数钳制（sampleSize 默认 100 钳 10..500、aggSize 默认 10 钳 1..50）、对比语义与返回
+     * 契约见 {@link StructureSyncService#verifyEquivalence}。
+     */
+    public Map<String, Object> verifyEquivalence(String jobId, String srcConnId, String sourceIndex,
+            String destConnId, String destIndex, Integer sampleSize, List<String> sampleFields,
+            String aggField, Integer aggSize) {
+        if (jobId != null && !jobId.trim().isEmpty()) {
+            MigrateJobES job = progress(jobId.trim());
+            String jobSrc = job.getSrcConnId();
+            if (jobSrc == null || jobSrc.trim().isEmpty()) {
+                throw new IllegalArgumentException(
+                        "该作业未记录源连接档案，无法验证（历史手输连接的作业不支持）: " + jobId.trim());
+            }
+            srcConnId = jobSrc;
+            sourceIndex = job.getSourceIndex();
+            destIndex = job.getDestIndex();
+        }
+        String connId = srcConnId == null ? "" : srcConnId.trim();
+        if (connId.isEmpty()) {
+            throw new IllegalArgumentException("srcConnId 不能为空（或提供 jobId 从作业档案取参）");
+        }
+        String destId = destConnId == null ? null
+                : (destConnId.trim().isEmpty() || "host".equalsIgnoreCase(destConnId.trim())
+                        ? null : destConnId.trim());
+        return verifyEquivalence(resolveProfile(connId), sourceIndex, destId,
+                destId == null ? null : resolveProfile(destId), destIndex,
+                sampleSize, sampleFields, aggField, aggSize);
+    }
+
+    /** 已解析连接形态（Web 层完成档案解析与鉴权后透传）；核心对比委托
+     * {@link StructureSyncService#verifyEquivalence}，源/目标连接均经 {@link #resolveConn}
+     * 变量解析（与 syncStructure 同口径）。 */
+    public Map<String, Object> verifyEquivalence(RemoteClusterConn srcConn, String sourceIndex,
+            String destConnId, RemoteClusterConn destConn, String destIndex, Integer sampleSize,
+            List<String> sampleFields, String aggField, Integer aggSize) {
+        return structureSync.verifyEquivalence(resolveConn(srcConn), sourceIndex, destConnId,
+                destConn == null ? null : resolveConn(destConn), destIndex,
+                sampleSize, sampleFields, aggField, aggSize);
+    }
+
+    /** 已存连接档案取密（含明文密码，仅服务端流转）；解析器未装配/档案不存在明确报错。 */
+    private RemoteClusterConn resolveProfile(String connId) {
+        java.util.function.Function<String, RemoteClusterConn> resolver = connProfileResolver;
+        if (resolver == null) {
+            throw new IllegalStateException("连接档案解析器未装配（verifyEquivalence 的 id 形态需要 ConnStore 注入）: "
+                    + connId);
+        }
+        RemoteClusterConn conn = resolver.apply(connId);
+        if (conn == null) {
+            throw new IllegalArgumentException("连接不存在或已被删除: " + connId);
+        }
+        return conn;
+    }
+
     /**
      * 集群能力探测（MCP {@code probe_capabilities} / 预检复用）：对指定已存连接探测
      * 版本/发行版/厂商推断/插件清单/节点规模；{@code index} 给出时附索引画像

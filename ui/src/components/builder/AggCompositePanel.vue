@@ -8,16 +8,16 @@
          非投影形态（多键源项）不进面板（外层门控）留守自由表零丢失。 -->
     <div v-for="(r, i) in rows" :key="i" class="acp-row">
       <span class="acp-idx mono">{{ i + 1 }}</span>
-      <n-select class="acp-type" size="tiny" :value="r ? r.typeKey : 'term'" :options="TYPE_OPTIONS" title="分桶类型"
+      <n-select class="acp-type" size="tiny" :value="r ? r.typeKey : 'term'" :options="TYPE_OPTIONS" v-tip="'分桶类型'"
                 @update:value="v => setType(i, v)" />
       <template v-if="r">
         <FieldSelect :model-value="String(r.inner.field ?? '')" :fields="fields" :types="types"
                      @update:model-value="v => onInner(i, { ...(r.inner as Record<string, unknown>), field: v })" />
         <button aria-label="源内参" class="btn sm ghost" :class="{ on: innerIdx === i }"
-                title="源内参（interval/calendar_interval/format…）" @click="innerIdx = innerIdx === i ? null : i">
+                v-tip="'源内参（interval/calendar_interval/format…）'" @click="innerIdx = innerIdx === i ? null : i">
           <SlidersHorizontal :size="12" />
         </button>
-        <button aria-label="删除该源" class="btn sm ghost danger" title="删除该源" @click="delRow(i)">
+        <button aria-label="删除该源" class="btn sm ghost danger" v-tip="'删除该源'" @click="delRow(i)">
           <X :size="12" />
         </button>
         <div v-if="innerIdx === i" class="acp-inner">

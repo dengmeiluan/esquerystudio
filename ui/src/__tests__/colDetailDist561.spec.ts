@@ -15,10 +15,15 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createApp, h, nextTick, reactive } from 'vue';
 import { createPinia } from 'pinia';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 import { useColStats } from '../composables/useColStats';
 import ColDetailModal from '../components/ColDetailModal.vue';
 import { isNonSemanticType, NUMERIC_TYPES_RE, isRangeType } from '../utils/typeTiers';
+
+/* 桶提示已迁 v-tip 指令（DOM 无 title 属性），格式语义改源码锚 */
+const CDM_SRC = readFileSync(join(__dirname, '../components/ColDetailModal.vue'), 'utf8');
 
 const ROWS = [
   { v: 0 },
@@ -109,7 +114,7 @@ describe('ColDetailModal 分布段（五百六十一批）', () => {
     document.body.innerHTML = '';
   });
 
-  it('dist 非空：渲染 8 桶 mini 条形，桶 :title=「from~to: count」', async () => {
+  it('dist 非空：渲染 8 桶 mini 条形，桶提示「from~to: count」（v-tip 绑定）', async () => {
     await mountWith(mkStats({
       bins: [
         { from: 0, to: 1, count: 1 }, { from: 1, to: 2, count: 0 }, { from: 2, to: 3, count: 0 },
@@ -121,9 +126,7 @@ describe('ColDetailModal 分布段（五百六十一批）', () => {
     expect(seg, '分布段应渲染').toBeTruthy();
     const bars = [...document.body.querySelectorAll('.rt-cd-bar')] as HTMLElement[];
     expect(bars.length, '8 桶').toBe(8);
-    expect(bars[0]!.title, '首桶 title 格式').toBe('0~1: 1');
-    expect(bars[7]!.title, '末桶 title 格式').toBe('7~8: 1');
-    expect(bars[1]!.title, '零值桶 title 仍标 count').toBe('1~2: 0');
+    expect(CDM_SRC, '桶提示格式「from~to: count」（含零值桶）').toContain('v-tip="`${b.from}~${b.to}: ${b.count}`"');
   });
 
   it('桶高归一：最高桶 fill 100%、零值桶 0%', async () => {

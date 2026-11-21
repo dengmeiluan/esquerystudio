@@ -2,8 +2,8 @@
   <div ref="rootEl" class="bgn" :class="{ folded: collapsed }" :data-nid="node.id">
     <div class="bgn-hd" tabindex="0" @contextmenu.prevent="openRowMenu" @keydown.self="onRowMenuKey">
       <NodeSelectBox :id="node.id" />
-      <span class="bgn-grip" title="拖拽整组排序（按住拖动）" draggable="true" @dragstart.stop="onDragStart" @dragend="endDrag">⋮⋮</span>
-      <button aria-label="折叠或展开整组" class="btn sm ghost" :title="collapsed ? '展开整组' : '折叠整组'"
+      <span class="bgn-grip" v-tip="'拖拽整组排序（按住拖动）'" draggable="true" @dragstart.stop="onDragStart" @dragend="endDrag">⋮⋮</span>
+      <button aria-label="折叠或展开整组" class="btn sm ghost" v-tip="collapsed ? '展开整组' : '折叠整组'"
               @click="collapsed = !collapsed">
 <ChevronRight v-if="collapsed" :size="12" /><ChevronDown v-else :size="12" />
 </button>
@@ -11,17 +11,17 @@
       <!-- 折叠态摘要：非空分区 occur(子句数) 一眼可读（折叠态按 node.id 进 scoped draft） -->
       <span v-if="collapsed" class="bgn-sum mono">{{ occSummary || '空组' }}</span>
       <span style="flex:1"></span>
-      <button aria-label="组参数（minimum_should_match / boost 等）" class="btn sm ghost" :class="{ on: showParams }" title="组参数（minimum_should_match / boost 等）"
+      <button aria-label="组参数（minimum_should_match / boost 等）" class="btn sm ghost" :class="{ on: showParams }" v-tip="'组参数（minimum_should_match / boost 等）'"
               @click="showParams = !showParams">
 <SlidersHorizontal :size="12" />
 </button>
-      <button aria-label="复制整组" class="btn sm ghost" title="复制整组（含子条件，插到本组之后）" @click="emit('duplicate', node.id)"><Copy :size="12" /></button>
-      <button aria-label="把本组包进新的父组" class="btn sm ghost" title="把本组包进新的父组" @click="emit('wrap')"><Group :size="12" /></button>
+      <button aria-label="复制整组" class="btn sm ghost" v-tip="'复制整组（含子条件，插到本组之后）'" @click="emit('duplicate', node.id)"><Copy :size="12" /></button>
+      <button aria-label="把本组包进新的父组" class="btn sm ghost" v-tip="'把本组包进新的父组'" @click="emit('wrap')"><Group :size="12" /></button>
       <button aria-label="解散本组，子句按原语义并入父组" v-if="canDissolve && !Object.keys(node.params).length" class="btn sm ghost"
-              title="解散本组，子句按原语义并入父组" @click="emit('dissolve')">
+              v-tip="'解散本组，子句按原语义并入父组'" @click="emit('dissolve')">
 <Ungroup :size="12" />
 </button>
-      <button aria-label="删除整组" class="btn sm ghost danger" title="删除整组" @click="emit('remove')"><X :size="12" /></button>
+      <button aria-label="删除整组" class="btn sm ghost danger" v-tip="'删除整组'" @click="emit('remove')"><X :size="12" /></button>
     </div>
     <template v-if="!collapsed">
     <div v-if="showParams" class="bgn-params">
@@ -38,20 +38,20 @@
  底色用既有 --*-soft token；中文为主 key 弱化 -->
         <span class="bgn-pill" :class="'p-' + o"><i></i>{{ OCCUR_LABEL[o] }}<code>{{ o }}</code></span>
         <span style="flex:1"></span>
-        <button class="btn sm ghost" title="在此分区加条件" @click="addClause(o)"><Plus :size="11" /> 条件</button>
-        <button class="btn sm ghost" title="在此分区加嵌套子组" @click="addGroup(o)"><Group :size="11" /> 子组</button>
+        <button class="btn sm ghost" v-tip="'在此分区加条件'" @click="addClause(o)"><Plus :size="11" /> 条件</button>
+        <button class="btn sm ghost" v-tip="'在此分区加嵌套子组'" @click="addGroup(o)"><Group :size="11" /> 子组</button>
         <!-- 1036：粘贴子树（跨查询剪贴暂存，parseQueryNode 重建全新 id） -->
-        <button v-if="stashNonEmpty" class="btn sm ghost" title="粘贴子树（上次「复制子树」的条件，含嵌套）"
+        <button v-if="stashNonEmpty" class="btn sm ghost" v-tip="'粘贴子树（上次「复制子树」的条件，含嵌套）'"
                 @click="pasteStash(o)"><ClipboardPaste :size="11" /> 粘贴</button>
         <!-- 985：高级算子菜单——multi_match/geo 系/ids/script/复合容器等非常用算子的插入入口
              （ClauseNode 下拉只能切换已有条件的算子，这里是「新建即高级」通道） -->
-        <button class="btn sm ghost" :aria-expanded="advOpen === o" title="高级算子（多字段全文/地理/脚本/复合容器…）"
+        <button class="btn sm ghost" :aria-expanded="advOpen === o" v-tip="'高级算子（多字段全文/地理/脚本/复合容器…）'"
                 @click.stop="toggleAdv(o, $event)"><Layers :size="11" /> 高级</button>
         <!-- 1036：复制组子树（含嵌套分区，跨查询剪贴） -->
-        <button v-if="o === shownOccur[0]" class="btn sm ghost" title="复制组子树（含嵌套分区，可粘贴到任意条件组）"
+        <button v-if="o === shownOccur[0]" class="btn sm ghost" v-tip="'复制组子树（含嵌套分区，可粘贴到任意条件组）'"
                 aria-label="复制组子树（跨查询粘贴用）" @click="copyGroup"><ClipboardCopy :size="11" /> 复制组</button>
         <button v-if="pinned.includes(o) && !childrenOf(o).length" aria-label="收起此空分区" class="btn sm ghost"
-                title="收起此空分区" @click="unpin(o)">
+                v-tip="'收起此空分区'" @click="unpin(o)">
 <X :size="11" />
 </button>
       </div>
@@ -86,7 +86,7 @@
         <template v-for="g in advGroups" :key="g.group">
           <div class="adv-g">{{ g.group }}</div>
           <button v-for="op in g.ops" :key="op" class="adv-i" :class="{ act: advFlat[advCursor] === op }" type="button"
-                  :title="op + ' · ' + labelOfOp(op)" @click="addAdvanced(op)">
+                  v-tip="op + ' · ' + labelOfOp(op)" @click="addAdvanced(op)">
             <span>{{ labelOfOp(op) }}</span><code class="mono">{{ op }}</code>
           </button>
         </template>

@@ -124,6 +124,7 @@ describe('ColFilterPopover 组件契约（五百二十四批）', () => {
     const state = await mountCfp();
     const kwInp = document.querySelector('.cfp .cfp-kw') as HTMLInputElement;
     expect(kwInp.placeholder).toBe('搜索值（共 3 个不同值）…');
+    expect(kwInp.getAttribute('aria-label'), '值内搜索输入带中文 aria-label（与区间/包含输入同口径）').toBe('name 值内搜索');
     kwInp.value = 'an';
     kwInp.dispatchEvent(new Event('input', { bubbles: true }));
     await tick(2);

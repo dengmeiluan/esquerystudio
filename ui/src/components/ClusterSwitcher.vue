@@ -2,11 +2,11 @@
   <!-- 集群切换器——数据面目标（宿主 / 自定义连接），控制面永远走宿主 -->
   <n-popover trigger="click" placement="bottom-start" :show="menuOpen" @update:show="v => menuOpen = v" raw :show-arrow="false">
     <template #trigger>
-      <button class="cs-chip mono" :class="[{ remote: store.isRemote, none: !store.hostVisible && !store.isRemote }, curEnv ? 'env-' + curEnv.toLowerCase() : '']" :title="chipTip" :aria-expanded="menuOpen">
+      <button class="cs-chip mono" :class="[{ remote: store.isRemote, none: !store.hostVisible && !store.isRemote }, curEnv ? 'env-' + curEnv.toLowerCase() : '']" v-tip="chipTip" :aria-expanded="menuOpen">
         <component :is="store.isRemote ? Globe : Server" :size="12" />
         <span class="cs-name">{{ chipText }}</span>
         <span v-if="curEnv" class="cs-env" :class="'e-' + curEnv.toLowerCase()">{{ curEnv }}</span>
-        <span v-if="curVersion" class="cs-ver mono" :title="legacyTarget ? '老版本 ES 兼容模式：7.x 专属能力自动禁用' : '当前集群版本（GET / 探测）'">v{{ curVersion }}<template v-if="legacyTarget"> · 兼容</template></span>
+        <span v-if="curVersion" class="cs-ver mono" v-tip="legacyTarget ? '老版本 ES 兼容模式：7.x 专属能力自动禁用' : '当前集群版本（GET / 探测）'">v{{ curVersion }}<template v-if="legacyTarget"> · 兼容</template></span>
         <ChevronDown :size="11" class="cs-caret" />
       </button>
     </template>
@@ -19,13 +19,13 @@
         <Check v-if="!store.isRemote" :size="12" class="cs-check" />
       </div>
       <div v-for="c in sortedConns" :key="c.id" class="cs-item" :class="{ on: store.target === c.id, stale: c.syncState === 'STALE' }" role="button" tabindex="0" :aria-label="'切换到 ' + c.name" @mousedown.stop @click="pickTarget(c.id, c.name)" @contextmenu.prevent="openConnMenu($event, c)" @keydown="onConnKey($event, c)">
-        <span class="cs-hdot" :class="hdotCls(c.health)" :title="hdotTip(c.health)"></span>
+        <span class="cs-hdot" :class="hdotCls(c.health)" v-tip="hdotTip(c.health)"></span>
         <Globe :size="12" />
         <span class="cs-item-name">{{ c.name }}</span>
-        <span v-if="c.env" class="cs-env" :class="'e-' + c.env.toLowerCase()" :title="envTip(c.env)">{{ c.env }}<span v-if="c.env === 'PROD'" class="cs-ro">生产</span></span>
-        <span v-if="c.syncState === 'STALE'" class="cs-stale" title="连接中心已无此连接(自动同步源失联);确认不再需要可在管理弹窗删除">源已失联</span>
-        <span v-if="c.authType === 'API_KEY'" class="cs-ak mono" title="API Key 认证">AK</span>
-        <span v-if="verOf(c)" class="cs-ver mono" title="服务端版本（探活自动识别）">v{{ verOf(c) }}</span>
+        <span v-if="c.env" class="cs-env" :class="'e-' + c.env.toLowerCase()" v-tip="envTip(c.env)">{{ c.env }}<span v-if="c.env === 'PROD'" class="cs-ro">生产</span></span>
+        <span v-if="c.syncState === 'STALE'" class="cs-stale" v-tip="'连接中心已无此连接(自动同步源失联);确认不再需要可在管理弹窗删除'">源已失联</span>
+        <span v-if="c.authType === 'API_KEY'" class="cs-ak mono" v-tip="'API Key 认证'">AK</span>
+        <span v-if="verOf(c)" class="cs-ver mono" v-tip="'服务端版本（探活自动识别）'">v{{ verOf(c) }}</span>
         <span class="cs-item-sub mono">{{ c.host }}:{{ c.port }}</span>
         <Check v-if="store.target === c.id" :size="12" class="cs-check" />
       </div>
@@ -74,35 +74,35 @@
             :data-cid="c.id" tabindex="0" @keydown="onRowKey($event, c.id)"
             @dragover.prevent="onDragOver($event, c.id)" @drop.prevent="onDrop($event, c.id)">
             <button class="cm-grip" :class="{ 'grip-on': sortMode === 'manual' }" draggable="true" :aria-label="'拖动调整 ' + c.name + ' 顺序（自动切手动档）'"
-              title="拖动调整顺序（自动切手动档）；聚焦行 Ctrl+↑/↓ 也可"
+              v-tip="'拖动调整顺序（自动切手动档）；聚焦行 Ctrl+↑/↓ 也可'"
               @dragstart="onDragStart($event, c.id)" @dragend="onDragEnd">⋮⋮</button>
             <div class="cm-row-main">
-              <span class="cs-hdot" :class="hdotCls(c.health)" :title="hdotTip(c.health)"></span>
+              <span class="cs-hdot" :class="hdotCls(c.health)" v-tip="hdotTip(c.health)"></span>
               <span class="cm-row-name">{{ c.name }}</span>
-              <span v-if="c.env" class="cs-env" :class="'e-' + c.env.toLowerCase()" :title="envTip(c.env)">{{ c.env }}<span v-if="c.env === 'PROD'" class="cs-ro">生产</span></span>
-              <span v-if="c.syncState === 'STALE'" class="cs-stale" title="连接中心已无此连接(自动同步源失联);确认不再需要可删除">源已失联</span>
+              <span v-if="c.env" class="cs-env" :class="'e-' + c.env.toLowerCase()" v-tip="envTip(c.env)">{{ c.env }}<span v-if="c.env === 'PROD'" class="cs-ro">生产</span></span>
+              <span v-if="c.syncState === 'STALE'" class="cs-stale" v-tip="'连接中心已无此连接(自动同步源失联);确认不再需要可删除'">源已失联</span>
             </div>
             <div class="cm-row-aux">
               <template v-if="c.health?.status === 'GREEN'"><span class="cm-lat mono" :class="{ 'cm-lat-warn': (c.health?.latencyMs ?? 0) >= 1000 }">{{ c.health?.latencyMs }}ms</span></template>
               <template v-else-if="c.health?.status === 'RED'"><span class="cm-lat cm-lat-err">异常</span></template>
               <template v-else><span class="cm-lat cm-lat-idle">未探测</span></template>
-              <span v-if="verOf(c)" class="cs-ver mono" title="服务端版本（探活自动识别，据此做版本分叉与能力门禁）">v{{ verOf(c) }}</span>
+              <span v-if="verOf(c)" class="cs-ver mono" v-tip="'服务端版本（探活自动识别，据此做版本分叉与能力门禁）'">v{{ verOf(c) }}</span>
             </div>
             <div class="cm-row-sub">
               <span class="cm-row-ep mono">{{ c.scheme }}://{{ c.host }}:{{ c.port }}</span>
               <span v-if="c.username" class="cm-row-ep mono">{{ c.username }}{{ c.hasPassword ? ' / ●●●' : '' }}</span>
-              <span v-if="c.authType === 'API_KEY'" class="cs-ak mono" title="API Key 认证">AK</span>
+              <span v-if="c.authType === 'API_KEY'" class="cs-ak mono" v-tip="'API Key 认证'">AK</span>
             </div>
             <div class="cm-row-ops">
               <button class="cm-icob" :disabled="probingId === c.id" @click="probeConn(c)"
-                :title="probingId === c.id ? '探活中…' : '立即探活：GET / 测连通与时延'" :aria-label="'立即探活：' + c.name">
+                v-tip="probingId === c.id ? '探活中…' : '立即探活：GET / 测连通与时延'" :aria-label="'立即探活：' + c.name">
                 <Activity :size="13" :class="{ spinning: probingId === c.id }" />
               </button>
               <!-- ⋯ 次级菜单退役改图标直出（hover-reveal；ADMIN 门控不变同步更新 permGating） -->
               <template v-if="canAdmin">
-                <button class="cm-icob" :disabled="testingId === c.id" @click="testExisting(c.id)" title="测试连接（含认证）" :aria-label="'测试连接：' + c.name"><PlugZap :size="13" /></button>
-                <button class="cm-icob" @click="editConn(c)" title="编辑" :aria-label="'编辑连接：' + c.name"><Pencil :size="13" /></button>
-                <button class="cm-icob danger" @click="delConn(c)" title="删除连接" :aria-label="'删除连接：' + c.name"><Trash2 :size="13" /></button>
+                <button class="cm-icob" :disabled="testingId === c.id" @click="testExisting(c.id)" v-tip="'测试连接（含认证）'" :aria-label="'测试连接：' + c.name"><PlugZap :size="13" /></button>
+                <button class="cm-icob" @click="editConn(c)" v-tip="'编辑'" :aria-label="'编辑连接：' + c.name"><Pencil :size="13" /></button>
+                <button class="cm-icob danger" @click="delConn(c)" v-tip="'删除连接'" :aria-label="'删除连接：' + c.name"><Trash2 :size="13" /></button>
               </template>
             </div>
           </div>
@@ -132,42 +132,42 @@
       <div class="cm-form">
       <div class="cm-grid">
         <div class="cm-f">
-          <label>名称</label>
-          <input v-model.trim="form.name" class="ipt" placeholder="如 生产集群 / UAT" />
+          <label :for="'cs-name-' + uid">名称</label>
+          <input v-model.trim="form.name" :id="'cs-name-' + uid" class="ipt" placeholder="如 生产集群 / UAT" />
         </div>
         <div class="cm-f wide">
-          <label>连接串</label>
-          <input v-model.trim="form.url" class="ipt mono" placeholder="http://host:9200 或 http://user:pass@host:9200" />
+          <label :for="'cs-url-' + uid">连接串</label>
+          <input v-model.trim="form.url" :id="'cs-url-' + uid" class="ipt mono" placeholder="http://host:9200 或 http://user:pass@host:9200" />
         </div>
         <!-- 连接中心自动同步批·API Key 认证:认证方式切换(渐进披露,账密为默认) -->
         <div class="cm-f wide">
           <label>认证方式</label>
           <div class="cm-roles">
             <button v-for="a in AUTH_OPTS" :key="a.k" class="cm-role-btn" :class="{ on: form.authType === a.k }"
-              type="button" :aria-pressed="form.authType === a.k" :title="a.tip" @click="form.authType = a.k">{{ a.t }}</button>
+              type="button" :aria-pressed="form.authType === a.k" v-tip="a.tip" @click="form.authType = a.k">{{ a.t }}</button>
           </div>
         </div>
         <template v-if="form.authType !== 'API_KEY'">
           <div class="cm-f">
-            <label>用户名（可空）</label>
-            <input v-model.trim="form.username" class="ipt mono" autocomplete="off" placeholder="elastic" />
+            <label :for="'cs-user-' + uid">用户名（可空）</label>
+            <input v-model.trim="form.username" :id="'cs-user-' + uid" class="ipt mono" autocomplete="off" placeholder="elastic" />
           </div>
           <div class="cm-f">
-            <label>密码（编辑时留空=保留旧密码）</label>
+            <label :for="'cs-pass-' + uid">密码（编辑时留空=保留旧密码）</label>
           <!-- type=text + pw-mask：防浏览器密码管理器劫持 -->
-          <input v-model="form.password" class="ipt mono pw-mask" type="text" autocomplete="off" placeholder="可空" />
+          <input v-model="form.password" :id="'cs-pass-' + uid" class="ipt mono pw-mask" type="text" autocomplete="off" placeholder="可空" />
           </div>
         </template>
         <div v-else class="cm-f wide">
-          <label>API Key（编辑时留空=保留旧 Key）</label>
-          <input v-model="form.password" class="ipt mono pw-mask" type="text" autocomplete="off" placeholder="base64 的 id:api_key" />
+          <label :for="'cs-key-' + uid">API Key（编辑时留空=保留旧 Key）</label>
+          <input v-model="form.password" :id="'cs-key-' + uid" class="ipt mono pw-mask" type="text" autocomplete="off" placeholder="base64 的 id:api_key" />
         </div>
         <!-- minRole 退役——连接可见性与操作授权由「连接菜单 × 读写档位」RBAC 决定 -->
         <div class="cm-f wide">
           <label>环境标识（纯展示：切换器/顶栏据此着色警示，生产红色）</label>
           <div class="cm-roles">
             <button v-for="e in ENV_OPTS" :key="e.k" class="cm-role-btn" :class="{ on: form.env === e.k }"
-              :title="e.tip" @click="form.env = e.k">
+              v-tip="e.tip" @click="form.env = e.k">
 {{ e.t }}
 </button>
           </div>
@@ -339,6 +339,9 @@ const emptyForm = () => ({
   env: '' as string, authType: 'BASIC' as string,
 });
 const form = ref(emptyForm());
+/* 表单输入 label for/id 关联用的实例唯一后缀——顶栏可能同时挂多个本组件实例（多页签），
+ id 撞车会让 label 关联指错输入，随机后缀隔离（HistoryChart 同惯例） */
+const uid = Math.random().toString(36).slice(2, 8);
 
 /* 健康状态点样式/提示（GREEN 绿 / RED 红 / UNKNOWN 灰） */
 function hdotCls(h?: ConnHealth) {

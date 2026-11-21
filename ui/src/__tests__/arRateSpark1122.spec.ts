@@ -97,7 +97,7 @@ async function eyeJob(host: HTMLElement, jobId: string) {
   const rows = [...host.querySelectorAll('table.qrt-tbl tbody tr')];
   const row = rows.find(tr => (tr.textContent || '').includes(jobId));
   expect(row, `作业行必须渲染：${jobId}`).toBeTruthy();
-  (row!.querySelector('button[title="查看任务详情"]') as HTMLButtonElement).click();
+  (row!.querySelector('button[aria-label="查看任务详情"]') as HTMLButtonElement).click();
   await settle(10);
 }
 

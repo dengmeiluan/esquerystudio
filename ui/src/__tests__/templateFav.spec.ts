@@ -53,7 +53,7 @@ describe('TemplateGallery 模板收藏写侧（六十九批）', () => {
     await mountView();
     const store = useAppStore();
     const before = (store.favorites || []).length;
-    const favBtns = [...host.querySelectorAll('.tg-c-actions button[title*="收藏"]')] as HTMLButtonElement[];
+    const favBtns = [...host.querySelectorAll('.tg-c-actions button[aria-label*="收藏"]')] as HTMLButtonElement[];
     expect(favBtns.length, '模板卡片应有收藏钮').toBeGreaterThan(10);
     favBtns[0].click();
     for (let i = 0; i < 4; i++) { await nextTick(); await Promise.resolve(); }

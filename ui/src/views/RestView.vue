@@ -20,7 +20,7 @@
           <!-- W3-T11：选中端点后不在 ep.methods 内的方法置灰+title 提示（未选端点/自由文本=全可用） -->
           <button v-for="m in METHODS" :key="m" :class="{ on: method === m }" :data-m="m"
             :disabled="!!curEp && !curEp.methods.includes(m)"
-            :title="curEp && !curEp.methods.includes(m) ? `该端点不支持 ${m}（可用：${curEp.methods.join('/')}）` : undefined"
+            v-tip="curEp && !curEp.methods.includes(m) ? `该端点不支持 ${m}（可用：${curEp.methods.join('/')}）` : undefined"
             @click="method = m">
 {{ m }}
 </button>
@@ -29,10 +29,10 @@
         <EndpointPathInput v-model="path" class="inp mono rt-path" placeholder="/_cluster/health"
           @endpoint="onEndpoint" @enter="send" />
         <button v-if="canSendAny" class="btn primary sm" :disabled="sending || !path.trim() || !currentSendable"
-          :title="currentSendable ? (scopeAdvisory || undefined) : scopeDenyHint" @click="send">
+          v-tip="currentSendable ? (scopeAdvisory || undefined) : scopeDenyHint" @click="send">
           <Send :size="13" /> {{ sending ? '发送中（' + (qr.elapsedMs.value / 1000).toFixed(1) + 's）…' : '发送' }}
         </button>
-        <span v-if="canAdmin && !currentSendable" class="rt-scope-dim" role="status" :title="scopeDenyHint">非 ADMIN 仅数据面</span>
+        <span v-if="canAdmin && !currentSendable" class="rt-scope-dim" role="status" v-tip="scopeDenyHint">非 ADMIN 仅数据面</span>
         <button v-if="sending" class="btn sm" @click="qr.cancel()"><X :size="12" /> 取消</button>
       </div>
       <!-- 常用 snippet -->
@@ -41,12 +41,12 @@
         <span v-for="s in SNIPPETS" :key="s.path" class="chip mono" role="button" tabindex="0" :aria-label="'填入示例：' + s.label" @click="applySnippet(s)" @keydown.enter.prevent="applySnippet(s)" @keydown.space.prevent="applySnippet(s)">{{ s.label }}</span>
         <!-- W3-T11：端点带 body 骨架时出——直接覆盖现有 body（对齐 snippet 填充的无确认交互）；
  T11 复审 M1：显隐与 body 编辑区同口径加 hasBody——GET/HEAD 无 body 区且发送不带 body，按钮同隐 -->
-        <button v-if="curEp?.body && hasBody" class="btn sm ghost" title="填入该端点的请求体骨架（覆盖现有 body）" @click="insertBody">
+        <button v-if="curEp?.body && hasBody" class="btn sm ghost" v-tip="'填入该端点的请求体骨架（覆盖现有 body）'" @click="insertBody">
           <Braces :size="12" /> 插入 body 骨架
         </button>
-        <button class="btn sm ghost rt-hist-btn" :disabled="!path.trim()" title="收藏当前请求（方法+路径+body），可在收藏夹一键回放至本页" @click="saveFav"><Star :size="12" /> 收藏</button>
+        <button class="btn sm ghost rt-hist-btn" :disabled="!path.trim()" v-tip="'收藏当前请求（方法+路径+body），可在收藏夹一键回放至本页'" @click="saveFav"><Star :size="12" /> 收藏</button>
         <button class="btn sm ghost rt-hist-btn" @click="histOpen = true"><History :size="12" /> 历史</button>
-        <button class="btn sm ghost rt-hist-btn" title="查看当前身份在本页与当前连接下允许的操作（与后端拦截器判定同源）" @click="permOpen = true"><Shield :size="12" /> 我的权限</button>
+        <button class="btn sm ghost rt-hist-btn" v-tip="'查看当前身份在本页与当前连接下允许的操作（与后端拦截器判定同源）'" @click="permOpen = true"><Shield :size="12" /> 我的权限</button>
       </div>
       <!-- body（W6：dslAssist 按端点/path 语义分档补全）。
  lintDsl 静态体检提示条（SearchSandboxView join 串形态同款，随输入实时重估，
@@ -57,7 +57,7 @@
         <!-- body 编辑器弹性档「高」钮 + usePref 记忆（ubq.scriptH 三档循环同款形态）——
  首档 100% 沿既有块流 min-height max(180px,42vh) 兜底形态，后续档恒 ≥ 兜底不破口径 -->
         <div class="rt-ed-hd">
-          <button class="btn ghost xs" data-test="rest-body-h" :title="'body 编辑器高度档：' + restEdH" @click="cycleRestEdH">高</button>
+          <button class="btn ghost xs" data-test="rest-body-h" v-tip="'body 编辑器高度档：' + restEdH" @click="cycleRestEdH">高</button>
         </div>
         <!-- P0-1：编辑器划线通道挂点（banner 保留双通道，见 script queueRtLintMarkers） -->
         <MonacoEditor ref="rtBodyMonaco" v-model="body" :height="restEdH" :language="bodyLang" class="rt-body-ed" :dsl-assist="dslAssist" />
@@ -82,7 +82,7 @@
         <TookBadge v-if="elapsed != null" :ms="elapsed" title="请求耗时" />
         <!-- W2 批：大响应截断徽标（点击=复制取全文，copyResp 走 respParsed 完整原文） -->
         <button v-if="respTruncated" class="btn sm ghost" data-rt-trunc
-          title="响应过大，仅截断展示前 512 KB；点击复制完整原文" @click="copyResp">
+          v-tip="'响应过大，仅截断展示前 512 KB；点击复制完整原文'" @click="copyResp">
           已截断 · {{ truncSize }} · 复制取全文
         </button>
         <div class="rt-spacer"></div>
@@ -92,8 +92,8 @@
           <input v-model="searchExpr" class="inp mono rt-search" placeholder="搜索响应…" @keydown.enter.prevent="searchExpr.trim() && ($event.shiftKey ? hitPrev() : hitNext())" @keydown.esc.prevent="searchExpr = ''" />
           <span v-if="searchExpr.trim()" class="mono rt-mc">{{ hitCur }}/{{ matchCount }}</span>
           <span v-if="searchExpr.trim()" class="rt-hn">
-            <button type="button" class="btn sm ghost" :disabled="!matchCount" title="上一个匹配 (Shift+Enter)" @click="hitPrev">↑</button>
-            <button type="button" class="btn sm ghost" :disabled="!matchCount" title="下一个匹配 (Enter)" @click="hitNext">↓</button>
+            <button type="button" class="btn sm ghost" :disabled="!matchCount" v-tip="'上一个匹配 (Shift+Enter)'" @click="hitPrev">↑</button>
+            <button type="button" class="btn sm ghost" :disabled="!matchCount" v-tip="'下一个匹配 (Enter)'" @click="hitNext">↓</button>
           </span>
           <input v-model="jqExpr" class="inp mono rt-jq" placeholder="JQ 过滤响应（回车应用）" @keydown.enter="applyJq" @blur="jqCheck(jqExpr)" @keydown.esc.prevent="jqExpr = ''" />
           <div v-if="jqHint" class="il-hint" :class="'il-' + jqLevel">{{ jqHint }}</div>
@@ -102,7 +102,7 @@
         <button v-if="respErr && canSendAny" class="btn sm" :disabled="sending" @click="send"><RefreshCw :size="11" :class="{ spinning: sending }" /> 重试</button>
         <!-- 原始 IO 快查——最近一次 /cluster/raw 透传请求/响应原文（ioRecorder 记录环；
  置动作群末尾不进 resp-only 分组，失败响应同样可查） -->
-        <button class="btn sm ghost" data-test="raw-io" aria-label="查看原始 IO（REST 直连）" title="最近一次透传请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
+        <button class="btn sm ghost" data-test="raw-io" aria-label="查看原始 IO（REST 直连）" v-tip="'最近一次透传请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
       </div>
       <div ref="respBox" class="scroll-y rt-resp-scroll" tabindex="0" @contextmenu.prevent="openRespMenu" @keydown="onRespMenuKey">
         <!-- respErr 裸 pre → highlightJson v-html（转义安全，jsonc.ts 单一出处）——

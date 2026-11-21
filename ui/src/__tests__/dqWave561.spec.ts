@@ -139,8 +139,8 @@ describe('⑥ 文档弹窗两处 Monaco 定高接 useTierCycle（dq.docH/dq.docH
        560 约定先例，高度档值锁意图零触；本体锚 edFontModal669.spec D 段） */
     expect(dq).toContain('<MonacoEditor v-if="docEditMode" v-model="docEditText" :height="docH" :font-size="dqFont" />');
     expect(dq).toContain('<MonacoEditor v-model="newDocText" :height="docHNew" :font-size="dqFont" />');
-    expect(dq).toMatch(/:title="'编辑器高度档：' \+ docH \+ '（点击循环）'"/);
-    expect(dq).toMatch(/:title="'编辑器高度档：' \+ docHNew \+ '（点击循环）'"/);
+    expect(dq).toMatch(/v-tip="'编辑器高度档：' \+ docH \+ '（点击循环）'"/);
+    expect(dq).toMatch(/v-tip="'编辑器高度档：' \+ docHNew \+ '（点击循环）'"/);
   });
 
   it('裸定高形态不回潮（docModalHeightsAssist 负锚延续）', () => {

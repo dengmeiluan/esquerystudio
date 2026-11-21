@@ -30,7 +30,7 @@
  751 G185/747 G161 族同款） -->
           <button class="btn primary sm qx-run" @click="runValidate" :disabled="!index || busy"><Play :size="12" :class="{ spinning: busy }" /> {{ busy ? '透视中…' : '透视' }}</button>
           <!-- 原始 IO 快查——本页最近一次 validate-query 请求/响应原文（ioRecorder 记录环） -->
-          <button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（透视校验）" title="最近一次透视校验请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIoValidate"><Terminal :size="12" /> 原始 IO</button>
+          <button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（透视校验）" v-tip="'最近一次透视校验请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIoValidate"><Terminal :size="12" /> 原始 IO</button>
         </div>
         <JsonArea ref="qxJaRef" v-model="dsl" :dsl-assist="dslAssist" :rows="6" fill />
         <!-- 行内 lint 兜底条（此前本页 lint 只有 setMarkers 编辑器划线单通道——
@@ -63,7 +63,7 @@
         <b>{{ vr.valid ? '查询合法' : '查询非法' }}</b>
         <!-- 裸 ES 串换 friendlyEsError 显示（title 保原文可悬停回看；
  vrErr 标题行 已是此口径，结论档漏网补齐） -->
-        <span v-if="vr.error" class="qx-verr" :title="vr.error">{{ friendlyEsError(vr.error) }}</span>
+        <span v-if="vr.error" class="qx-verr" v-tip="vr.error">{{ friendlyEsError(vr.error) }}</span>
       </div>
       <div v-for="(ex, i) in vr?.explanations || []" :key="i" class="qx-card" tabindex="0"
         @contextmenu.prevent="openExMenu($event, ex)" @keydown="onExMenuKey($event, ex)" data-row-nav @keydown.self="rowArrowNav">
@@ -99,12 +99,12 @@
     <template v-else>
       <div class="qx-row">
 <!-- G191：tv 输入行 label 悬停中文释义（英文键留检索=745 G156 双语同款） -->
-        <label class="qx-inp grow"><span title="要取证的文档 _id">doc _id</span>
+        <label class="qx-inp grow"><span v-tip="'要取证的文档 _id'">doc _id</span>
           <!-- placeholder 补来源引导（_explain 404 档 esError 文案同方向：
  不存在的 id 先去数据浏览页找一个真实的） -->
           <input v-model="tvId" class="qx-ii wide" placeholder="要取证的文档 _id（可在数据浏览页复制）" @keyup.enter="runTv" />
         </label>
-        <label class="qx-inp grow"><span title="要取词频的字段列表，逗号分隔；空 = 全部 text 字段">fields</span>
+        <label class="qx-inp grow"><span v-tip="'要取词频的字段列表，逗号分隔；空 = 全部 text 字段'">fields</span>
           <!-- 【W3b】text 置顶（typePriority 只重排候选分组，「空 = 全部 text 字段」语义下 text 是主战场），候选集不变 -->
           <FieldPicker v-model="tvFields" :index="index" multi placeholder="逗号分隔，空 = 全部 text 字段" width="100%" class="qx-ii wide" :type-priority="['text']" />
         </label>
@@ -112,14 +112,14 @@
         <button class="btn primary sm" @click="runTv" :disabled="!index || !tvId || busy"><Play :size="12" :class="{ spinning: busy }" /> {{ busy ? '取证中…' : '取证' }}</button>
         <!-- 原始 IO 快查——本页最近一次 term-vectors 请求/响应原文（ioRecorder 记录环；
  词频结果卡头在 v-for 内，钮落取证操作行防每字段卡重复） -->
-        <button class="btn ghost sm" data-test="raw-io-tv" aria-label="查看原始 IO（词频取证）" title="最近一次词频取证请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIoTv"><Terminal :size="12" /> 原始 IO</button>
+        <button class="btn ghost sm" data-test="raw-io-tv" aria-label="查看原始 IO（词频取证）" v-tip="'最近一次词频取证请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIoTv"><Terminal :size="12" /> 原始 IO</button>
       </div>
       <!-- tvErr 错误条补 role=alert（vrErr 面板 同款，失败反馈可被读屏播报） -->
       <div v-if="tvErr" role="alert" class="qx-verdict bad"><XCircle :size="15" /> {{ tvErr }}</div>
       <div v-for="(fv, fname) in tvData" :key="fname" class="qx-card">
         <div class="qx-card-hd">
           <BarChart3 :size="12" /> {{ fname }}
-          <span class="qx-fstat" title="字段全局统计：doc_count=该字段的文档总数，sum_ttf=该字段的词频总和">
+          <span class="qx-fstat" v-tip="'字段全局统计：doc_count=该字段的文档总数，sum_ttf=该字段的词频总和'">
             字段全局：doc_count={{ fmtNum(fv.field_statistics?.doc_count) }} ·
             sum_ttf={{ fmtNum(fv.field_statistics?.sum_ttf) }}
           </span>
@@ -139,8 +139,8 @@
                    @input="setTvTool(fname, 'max', ($event.target as HTMLInputElement).value)" />
           </label>
           <span class="qx-tv-n mono">{{ tvViewMap[fname]?.rows.length ?? 0 }}/{{ tvViewMap[fname]?.total ?? 0 }}</span>
-          <button class="btn xs ghost" :disabled="!tvViewMap[fname]?.rows.length" @click="copyTv(fname, 'tsv')" title="词频表复制为 TSV（Excel/飞书直贴）">TSV</button>
-          <button class="btn xs ghost" :disabled="!tvViewMap[fname]?.rows.length" @click="copyTv(fname, 'md')" title="词频表复制为 Markdown（文档/群聊直贴）">MD</button>
+          <button class="btn xs ghost" :disabled="!tvViewMap[fname]?.rows.length" @click="copyTv(fname, 'tsv')" v-tip="'词频表复制为 TSV（Excel/飞书直贴）'">TSV</button>
+          <button class="btn xs ghost" :disabled="!tvViewMap[fname]?.rows.length" @click="copyTv(fname, 'md')" v-tip="'词频表复制为 Markdown（文档/群聊直贴）'">MD</button>
         </div>
         <!-- term 统计裸表换 QRT rows 型（qrtRowsSwap529 先例，先列锚清单再动手）——
  排序/列漏斗/右键/导出归内核；每卡工具行（kw/区间/TSV·MD 复制）留视图
@@ -157,7 +157,7 @@
         >
           <template #cell-term="{ value }">
             <MarkText :text="value" :kw="tvTools[fname]?.kw ?? ''" />
-            <button aria-label="把这个词送去「分词实验室」看各 analyzer 怎么切" class="qx-term-link" @click="gotoAnalyzer(String(value))" title="把这个词送去「分词实验室」看各 analyzer 怎么切"><FlaskConical :size="10" /></button>
+            <button aria-label="把这个词送去「分词实验室」看各 analyzer 怎么切" class="qx-term-link" @click="gotoAnalyzer(String(value))" v-tip="'把这个词送去「分词实验室」看各 analyzer 怎么切'"><FlaskConical :size="10" /></button>
           </template>
           <template #cell-稀有度="{ value }"><span class="qx-rare" :class="rareClsOf(String(value))">{{ value }}</span></template>
         </QueryResultTable>

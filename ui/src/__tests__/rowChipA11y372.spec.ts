@@ -36,7 +36,7 @@ describe('交互行/芯片键盘可达（372 批）', () => {
        语义，aria-label 全名可达），契约等价上移。 */
     expect(dg).toMatch(/<template #row-actions="\{ row \}">/);
     expect(dg).toMatch(/<button class="btn ghost xs" :aria-label="'按节点 ' \+ \(row\[0\] \|\| ''\) \+ ' 采热线程'"/);
-    expect(dg).toMatch(/title="按此节点采热线程" @click\.stop="loadHot\(String\(row\[0\] \|\| ''\)\)"/);
+    expect(dg).toMatch(/v-tip="'按此节点采热线程'" @click\.stop="loadHot\(String\(row\[0\] \|\| ''\)\)"/);
   });
 
   it('AdhocRebuild 折叠行 role+tabindex+Enter（aria-label 随开合态；373 起 Enter+Space 双键）', () => {

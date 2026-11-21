@@ -17,7 +17,7 @@ describe('刷新钮 busy 反馈统一（419 批）', () => {
   });
 
   it('AdhocRebuild 刷新钮：jobsLoading 禁用+旋转+finally 复位（连点守卫）', () => {
-    expect(ad).toMatch(/:disabled="jobsLoading" @click="loadJobs\(\)" title="刷新任务列表"><RefreshCw :size="12" :class="\{ spinning: jobsLoading \}" \/>/);
+    expect(ad).toMatch(/:disabled="jobsLoading" @click="loadJobs\(\)" v-tip="'刷新任务列表'"><RefreshCw :size="12" :class="\{ spinning: jobsLoading \}" \/>/);
     expect(ad).toMatch(/const jobsLoading = ref\(false\);/);
     const body = ad.slice(ad.indexOf('const jobsLoading = ref(false);'), ad.indexOf('const jobsLoading = ref(false);') + 700);
     expect(body).toContain('if (jobsLoading.value) return;');

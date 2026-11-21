@@ -12,7 +12,7 @@
       <!-- 导出当前过滤结果为 JSON（与 92 批 RestView 历史导出同语义——
  100 条上限下旧查询找得到也带得走） -->
       <!-- title 诚实化——导出/导入闭环（合并导入按 mode+查询+索引去重 -->
-      <button class="btn xs ghost" :disabled="!shown.length" title="导出当前过滤结果为 JSON（备份/带出，供检索或存档）" @click="exportShown">
+      <button class="btn xs ghost" :disabled="!shown.length" v-tip="'导出当前过滤结果为 JSON（备份/带出，供检索或存档）'" @click="exportShown">
         <FileDown :size="12" /> 导出
       </button>
       <!-- 导入合并（导出闭环消费方；同 mode+查询+索引去重） -->
@@ -21,7 +21,7 @@
  「导入成功却看不见」；默认 true，既有消费方行为零变化 -->
       <input v-if="importable" ref="importFileEl" type="file" accept=".json,application/json" style="display:none"
         aria-label="导入查询历史" @change="onImportFile" />
-      <button v-if="importable" class="btn xs ghost" title="从导出的 JSON 合并导入（同 mode+查询+索引去重）" @click="importFileEl?.click()">
+      <button v-if="importable" class="btn xs ghost" v-tip="'从导出的 JSON 合并导入（同 mode+查询+索引去重）'" @click="importFileEl?.click()">
         导入
       </button>
       <button v-if="clearable" class="btn xs ghost danger" :disabled="!items.length" @click="$emit('clear')">
@@ -39,44 +39,44 @@
         @keydown="onRowMenuKey($event, it)" data-row-nav @keydown.self="rowArrowNav"
        role="button" tabindex="0" @keydown.enter.prevent="clickable && $emit('play', it)" @keydown.space.prevent="clickable && $emit('play', it)">
         <div class="qhp-row">
-          <span v-if="it.name" class="qhp-name" :title="it.name"><MarkText :text="it.name" :kw="kw" /></span>
+          <span v-if="it.name" class="qhp-name" v-tip="it.name"><MarkText :text="it.name" :kw="kw" /></span>
           <span v-if="showMode && it.mode" class="qhp-mode" :data-mode="it.mode">{{ modeLabel(it.mode) }}</span>
           <!-- 索引名芯片化——点击直达索引工作区（.stop 不触发整行回放） -->
-          <span v-if="it.index" class="qhp-idx mono qhp-idx-go" :title="it.index + '（点击打开索引工作区）'" tabindex="0" role="button" @keydown.enter.prevent.stop="gotoIndex(it.index)" @keydown.space.prevent.stop="gotoIndex(it.index)" @click.stop="gotoIndex(it.index)"><MarkText :text="it.index" :kw="kw" /></span>
+          <span v-if="it.index" class="qhp-idx mono qhp-idx-go" v-tip="it.index + '（点击打开索引工作区）'" tabindex="0" role="button" @keydown.enter.prevent.stop="gotoIndex(it.index)" @keydown.space.prevent.stop="gotoIndex(it.index)" @click.stop="gotoIndex(it.index)"><MarkText :text="it.index" :kw="kw" /></span>
           <!-- 1071：参数化 SQL 的参数条数徽标——回放会连同这些值恢复，避免用户以为只回放了文本 -->
-          <span v-if="it.params" class="qhp-params mono" :title="'SQL 参数（回放时一并恢复）：' + it.params">{{ paramsTag(it.params) }}</span>
+          <span v-if="it.params" class="qhp-params mono" v-tip="'SQL 参数（回放时一并恢复）：' + it.params">{{ paramsTag(it.params) }}</span>
           <span v-if="it.ok === false" class="qhp-fail" role="img" aria-label="上次执行失败"
-                :title="it.error ? '上次执行失败：' + it.error : '上次执行失败——回放可重试'"></span>
+                v-tip="it.error ? '上次执行失败：' + it.error : '上次执行失败——回放可重试'"></span>
           <span
             v-if="it.took != null" class="qhp-took" :class="tookClass(it.took)"
-            :title="props.tookTip || `ES 分片执行耗时 ${it.took}ms（took 字段，不含网络往返与序列化，端到端会更慢）`"
+            v-tip="props.tookTip || `ES 分片执行耗时 ${it.took}ms（took 字段，不含网络往返与序列化，端到端会更慢）`"
           >{{ fmtTook(it.took) }}</span>
           <span v-if="it.ts != null" class="qhp-time">{{ relTime(it.ts ?? 0, now) }}</span>
           <span class="qhp-acts" role="presentation" @click.stop @keydown.enter.stop>
-            <button v-if="actions.includes('play')" aria-label="回放/执行" class="btn xs ghost" title="回放/执行" @click="$emit('play', it)"><Play :size="11" /></button>
-            <button v-if="actions.includes('fill')" aria-label="仅填入" class="btn xs ghost" title="仅填入" @click="$emit('fill', it)"><CornerUpLeft :size="11" /></button>
-            <button v-if="actions.includes('copy')" aria-label="复制查询文本" class="btn xs ghost" title="复制查询文本" @click="copyIt(it)"><Copy :size="11" /></button>
+            <button v-if="actions.includes('play')" aria-label="回放/执行" class="btn xs ghost" v-tip="'回放/执行'" @click="$emit('play', it)"><Play :size="11" /></button>
+            <button v-if="actions.includes('fill')" aria-label="仅填入" class="btn xs ghost" v-tip="'仅填入'" @click="$emit('fill', it)"><CornerUpLeft :size="11" /></button>
+            <button v-if="actions.includes('copy')" aria-label="复制查询文本" class="btn xs ghost" v-tip="'复制查询文本'" @click="copyIt(it)"><Copy :size="11" /></button>
             <!-- 可选 'curl' action——行级仅 emit，curl 组装归宿主（method/path/body
  宿主行自持）；不传 'curl' 的宿主零变化（默认行为零增量） -->
-            <button v-if="actions.includes('curl')" aria-label="复制为 curl" class="btn xs ghost" title="复制为 curl" @click="$emit('curl', it)"><Terminal :size="11" /></button>
+            <button v-if="actions.includes('curl')" aria-label="复制为 curl" class="btn xs ghost" v-tip="'复制为 curl'" @click="$emit('curl', it)"><Terminal :size="11" /></button>
             <!-- 可选 'newtab' action——行级仅 emit，新 Tab 组装与激活跳转归宿主
  （method/path/body 宿主行自持，DevTools histNewTab 先例）；不传 'newtab' 的宿主
  零变化（默认行为零增量，'curl' 552 同先例） -->
-            <button v-if="actions.includes('newtab')" aria-label="回放到新 Tab" class="btn xs ghost" title="回放到新 Tab（新开一个请求标签页填入）" @click="$emit('newtab', it)"><ExternalLink :size="11" /></button>
+            <button v-if="actions.includes('newtab')" aria-label="回放到新 Tab" class="btn xs ghost" v-tip="'回放到新 Tab（新开一个请求标签页填入）'" @click="$emit('newtab', it)"><ExternalLink :size="11" /></button>
             <!-- 一键转收藏（保存的搜索）——「回放后另存」压缩为一步，保存通道由宿主接。
  行级门：仅无 mode（页内自持历史）或 mode='dsl' 行出钮——收藏存储是 DSL 语义，
  sql/lucene 等跨模式行无收藏归宿，出钮即误导 -->
             <button v-if="actions.includes('fav') && (!it.mode || it.mode === 'dsl')" aria-label="转为收藏（保存的搜索）" class="btn xs ghost"
-              title="转为收藏（保存的搜索）：免回放直接进入保存流程" @click="$emit('fav', it)"><Star :size="11" /></button>
-            <button v-if="actions.includes('rename')" aria-label="重命名" class="btn xs ghost" title="重命名（以新名覆盖此条）" @click="$emit('rename', it)"><Pencil :size="11" /></button>
-            <button v-if="actions.includes('del')" aria-label="删除此条" class="btn xs ghost" title="删除此条" @click="$emit('del', it)"><Trash2 :size="11" /></button>
+              v-tip="'转为收藏（保存的搜索）：免回放直接进入保存流程'" @click="$emit('fav', it)"><Star :size="11" /></button>
+            <button v-if="actions.includes('rename')" aria-label="重命名" class="btn xs ghost" v-tip="'重命名（以新名覆盖此条）'" @click="$emit('rename', it)"><Pencil :size="11" /></button>
+            <button v-if="actions.includes('del')" aria-label="删除此条" class="btn xs ghost" v-tip="'删除此条'" @click="$emit('del', it)"><Trash2 :size="11" /></button>
           </span>
         </div>
         <!-- query 行接 MarkText——过滤词命中查询文本时同 name/index 一样 <mark> 高亮（主过滤目标补齐可视闭环） -->
-        <div class="qhp-q mono" :title="it.query"><MarkText :text="it.query || '（无过滤 · match_all）'" :kw="kw" /></div>
+        <div class="qhp-q mono" v-tip="it.query"><MarkText :text="it.query || '（无过滤 · match_all）'" :kw="kw" /></div>
         <!-- 可选摘要行（如 body 截断摘要）——不传不渲染，既有宿主零增量；
  文本态直排（MarkText 高亮主过滤目标是 query 行职责，摘要行不上高亮） -->
-        <div v-if="it.sub" class="qhp-sub mono" :title="it.sub">{{ it.sub }}</div>
+        <div v-if="it.sub" class="qhp-sub mono" v-tip="it.sub">{{ it.sub }}</div>
       </div>
     </div>
     <!-- 1142：历史行右键 —— 同一批行级动作经共享 CellContextMenu 分组呈现（项目右键

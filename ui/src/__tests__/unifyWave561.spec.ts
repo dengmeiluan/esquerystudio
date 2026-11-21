@@ -76,7 +76,7 @@ describe('五百六十一批②：状态圆点四胞退役→MetaStrip dot 形�
   it('HealthReportView：#cell-health 色点改用（dot+value 段，中文主显文案不变，title 留槽级 span）', () => {
     const s = codeOf('views/HealthReportView.vue');
     expect(s).toContain('<MetaStrip :items="[{ dot: healthColor(String(value || \'\')), value: healthZh(value) || value }]" />');
-    expect(s, '槽级 span title 兜底保留').toMatch(/<span class="hr-cell-health" :title="String\(value \?\? ''\)">/);
+    expect(s, '槽级 span tip 兜底保留').toMatch(/<span class="hr-cell-health" v-tip="String\(value \?\? ''\)">/);
     expect(s, 'hd-g/y/r 三档色规则同步更新退役').not.toMatch(/\.hd-(g|y|r) \{/);
   });
 

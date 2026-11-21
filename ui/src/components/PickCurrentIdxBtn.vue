@@ -4,7 +4,7 @@
  按同一契约改用）。自读 store（pickedIdx），空索引整钮不渲染（根 v-if，与内联钮
  逐字等价）；点击只 emit('pick')，回填语义归消费方（各页回填目标不同，组件不猜）。 -->
   <button v-if="store.pickedIdx" type="button" class="btn ghost sm" data-test="use-current-idx"
-          :title="'用当前索引：' + store.pickedIdx + '（覆盖当前输入）'" aria-label="用当前索引：填入顶栏选中的索引"
+          v-tip="'用当前索引：' + store.pickedIdx + '（覆盖当前输入）'" aria-label="用当前索引：填入顶栏选中的索引"
           @click="emit('pick')"><Crosshair :size="13" /></button>
 </template>
 

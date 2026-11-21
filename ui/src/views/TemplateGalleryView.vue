@@ -34,7 +34,7 @@
  展开看全模板（铁律 F 信息可达），位置恒定卡头右缘（铁律 B） -->
             <button class="tg-c-expand" :aria-expanded="expanded.has(t.id) ? 'true' : 'false'"
                     :aria-label="expanded.has(t.id) ? '收起代码区' : '展开查看完整模板'"
-                    :title="expanded.has(t.id) ? '收起代码区' : '展开查看完整模板'"
+                    v-tip="expanded.has(t.id) ? '收起代码区' : '展开查看完整模板'"
                     @click="toggleExpand(t)">
               <ChevronUp v-if="expanded.has(t.id)" :size="12" />
               <ChevronDown v-else :size="12" />
@@ -43,7 +43,7 @@
         </div>
         <div class="tg-c-desc"><MarkText :text="t.desc" :kw="kw" /></div>
         <!-- D：裸 JSON 换 highlightJson（pretty(t) 已是 pretty 串，着色 + json-view 全局范式） -->
-        <pre class="tg-c-code json-view" role="button" tabindex="0" title="点击复制模板 JSON" @click="copy(t)" @keydown.enter.prevent="copy(t)" @keydown.space.prevent="copy(t)" v-html="highlightJson(pretty(t))"></pre>
+        <pre class="tg-c-code json-view" role="button" tabindex="0" v-tip="'点击复制模板 JSON'" @click="copy(t)" @keydown.enter.prevent="copy(t)" @keydown.space.prevent="copy(t)" v-html="highlightJson(pretty(t))"></pre>
         <div class="tg-c-ft">
           <span class="tg-c-tags">
             <!-- tag chip 改用 StatusPill 统一件（同语言）——「危险」语义归
@@ -52,14 +52,14 @@
             <StatusPill v-for="tag in t.tags" :key="tag" :tone="tag === '危险' ? 'r' : 'n'" :label="tag" />
           </span>
           <span class="tg-c-actions">
-            <button class="btn xs ghost" @click="copy(t)" :title="'复制到剪贴板'"><Copy :size="10" /> 复制</button>
+            <button class="btn xs ghost" @click="copy(t)" v-tip="'复制到剪贴板'"><Copy :size="10" /> 复制</button>
             <button class="btn xs ghost" @click="toSandbox(t)"><Beaker :size="10" /> 沙盒</button>
             <button class="btn xs primary" @click="toQuery(t)"><Play :size="10" /> DSL</button>
             <button :aria-pressed="isFav(t) ? 'true' : 'false'"
                     :aria-label="isFav(t) ? '取消收藏该模板' : '收藏该模板'"
                     class="btn xs ghost tg-fav" :class="{ on: isFav(t) }"
                     @click="toggleFav(t)"
-                    :title="isFav(t) ? '取消收藏' : '收藏该模板，可在收藏夹一键回放至搜索沙盒'"><Star :size="10" :fill="isFav(t) ? 'currentColor' : 'none'" /></button>
+                    v-tip="isFav(t) ? '取消收藏' : '收藏该模板，可在收藏夹一键回放至搜索沙盒'"><Star :size="10" :fill="isFav(t) ? 'currentColor' : 'none'" /></button>
           </span>
         </div>
       </div>

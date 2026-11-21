@@ -22,10 +22,10 @@
       <div class="rd-card-hd"><FileJson :size="12" /> Query（只需 query 部分，形如 {"query":{...}}）
         <!-- 编辑框高度三档循环钮（ra.script-h 同款形态），useTierCycle('rd.edH') 跨会话记忆 -->
         <button class="btn ghost xs" style="margin-left:auto" data-test="rd-ed-h"
-          :title="'Query 编辑框高度档：' + edH" @click="cycleEdH">高</button>
+          v-tip="'Query 编辑框高度档：' + edH" @click="cycleEdH">高</button>
         <!-- 原始 IO 快查——本页最近一次 _explain 请求/响应原文（ioRecorder 记录环；
  A/B 对决双发 Promise.all，last 取到的是后完成者——通常 B 文档，A 文档原文在环内更早记录） -->
-        <button class="btn ghost xs" data-test="raw-io" aria-label="查看原始 IO（排名侦探）" title="最近一次 _explain 请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo"><Terminal :size="11" /> 原始 IO</button>
+        <button class="btn ghost xs" data-test="raw-io" aria-label="查看原始 IO（排名侦探）" v-tip="'最近一次 _explain 请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo"><Terminal :size="11" /> 原始 IO</button>
       </div>
       <JsonArea ref="rdJaRef" v-model="dsl" :dsl-assist="dslAssist" :rows="6" fill @submit="runActive" />
       <!-- lintDsl 静态体检提示条（SearchSandboxView join 串形态同款，随输入实时重估，

@@ -12,7 +12,7 @@ const v = readFileSync(join(__dirname, '../views/DslQueryView.vue'), 'utf-8');
 
 describe('DslQuery → DevTools 直达（473 批）', () => {
   it('工具行按钮存在且 resp 门控', () => {
-    expect(v).toMatch(/<button class="btn sm" @click="openInDevTools" :disabled="!resp" title="把当前索引与 DSL 带到 DevTools 多标签控制台[^"]*">/);
+    expect(v).toMatch(/<button class="btn sm" @click="openInDevTools" :disabled="!resp" v-tip="'把当前索引与 DSL 带到 DevTools 多标签控制台[^']*'">/);
     expect(v).toContain('<TerminalSquare :size="13" /> DevTools');
   });
 

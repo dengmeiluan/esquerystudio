@@ -16,6 +16,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createApp, h, nextTick } from 'vue';
 import { createPinia, type Pinia } from 'pinia';
 import { createRouter, createMemoryHistory } from 'vue-router';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { useAppStore } from '../stores/app';
 
 /* 只替换网络出口与全局确认服务，视图/组件/工具全用真的 */
@@ -231,7 +233,8 @@ describe('G4 LifecycleView：数组契约 / 分源错误 / 写操作反馈', () 
     const label = host.querySelector('.lc-gantt-label');
     expect(label, '甘特行必须渲染').toBeTruthy();
     expect(label!.textContent, '策略名必须取 row.name（修复前为数组下标 "0"）').toBe('orders-hot');
-    expect(label!.getAttribute('title')).toBe('orders-hot');
+    /* 标签提示已迁 v-tip 指令（DOM 无 title 属性）——绑定 p.name 改源码锚 */
+    expect(readFileSync(join(__dirname, '../views/LifecycleView.vue'), 'utf8')).toContain('v-tip="p.name"');
     expect(host.textContent).toContain('1 个策略');
     app.unmount();
   });
@@ -262,10 +265,12 @@ describe('G4 LifecycleView：数组契约 / 分源错误 / 写操作反馈', () 
     const { app, host } = await mountView(LifecycleView);
     expect(host.textContent, '状态源失败必须页头记名（不再静默显 —）').toContain('状态拉取失败');
     expect(host.querySelector('.lc-gantt-label')?.textContent, '策略源成功甘特必须渲染').toBe('orders-hot');
-    /* 第十批：自造 good/warn/bad 类收口全局 meta-* 语义档，b.bad → b.meta-err（:title 可达语义不变）。
+    /* 第十批：自造 good/warn/bad 类收口全局 meta-* 语义档，b.bad → b.meta-err（可达语义不变）。
        五百五十批同步更新：meta-err b 再改用 StatusPill 统一件（err→r 语义映射，flattenWave550①），
-       :title 仍随统一件透传，可达语义不变 */
-    expect(host.querySelector('.lc-hd-sub .pill.r')?.getAttribute('title'), '状态失败全文必须 :title 可达（§9.5，复审 M5；550 同步更新 .pill.r 锚）').toContain('timeout');
+       状态失败全文经统一件 :title prop → 内部 v-tip 透传（DOM 无 title 属性，改源码锚） */
+    expect(host.querySelector('.lc-hd-sub .pill.r'), 'err 档胶囊在场').toBeTruthy();
+    expect(readFileSync(join(__dirname, '../views/LifecycleView.vue'), 'utf8'), '状态失败全文绑定 stsErr（可达语义不变）').toContain('<StatusPill v-if="stsErr" tone="r" label="状态拉取失败" :title="stsErr" />');
+    expect(readFileSync(join(__dirname, '../components/StatusPill.vue'), 'utf8'), '统一件内部 v-tip 透传 title').toContain('v-tip="title || undefined"');
     expect(host.querySelector('.err-bar'), '策略源成功不出 err-bar').toBeNull();
     app.unmount();
   });

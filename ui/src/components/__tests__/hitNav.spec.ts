@@ -9,6 +9,7 @@ import { createApp, h, nextTick, type App as VueApp } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
 import { createRouter, createWebHashHistory } from 'vue-router';
 import HitNav from '../HitNav.vue';
+import { vTip } from '../../directives/vTip';
 
 let app: VueApp | null = null;
 let host: HTMLDivElement | null = null;
@@ -34,6 +35,8 @@ async function mountHitNav(props: HitNavProps, handlers?: Record<string, () => v
   host = document.createElement('div');
   document.body.appendChild(host);
   app = createApp({ render: () => h(HitNav, { ...props, ...handlers } as any) });
+  /* 组件模板用 v-tip（main.ts 全局注册），自建 app 须注册同款指令浮层才在 */
+  app.directive('tip', vTip);
   app.use(createPinia());
   app.use(router);
   app.config.warnHandler = () => {};
@@ -70,11 +73,17 @@ describe('HitNav 渲染', () => {
     expect(inp.value).toBe('title');
   });
 
-  it('两个按钮都带 title（icon-only 无障碍可达）', async () => {
+  it('两个按钮都带 aria-label（icon-only 无障碍名可达）', async () => {
     const root = await mountHitNav({ count: 3, current: 1, compact: true });
-    const titles = [...root.querySelectorAll('button')].map(b => b.getAttribute('title'));
-    expect(titles.some(t => t!.includes('上一个'))).toBe(true);
-    expect(titles.some(t => t!.includes('下一个'))).toBe(true);
+    const btns = [...root.querySelectorAll('button')] as HTMLButtonElement[];
+    /* v-tip 只挂 aria-describedby（描述不兼任名字），icon-only 按钮的可访问名靠 aria-label */
+    const labels = btns.map(b => b.getAttribute('aria-label'));
+    expect(labels.some(t => (t || '').includes('上一个'))).toBe(true);
+    expect(labels.some(t => (t || '').includes('下一个'))).toBe(true);
+    /* 操作提示仍在 v-tip 浮层（focusin 键盘通道立即显示，宿主已挂 body） */
+    const prev = btns.find(b => b.getAttribute('aria-label')?.includes('上一个'))!;
+    prev.dispatchEvent(new Event('focusin'));
+    expect(document.getElementById('vt-tip')?.textContent ?? '').toContain('上一个');
   });
 });
 

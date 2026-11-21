@@ -37,6 +37,7 @@ vi.mock('../api', async (importOriginal) => {
 
 import ResultTable from '../components/ResultTable.vue';
 import QueryResultTable from '../components/QueryResultTable.vue';
+import { vTip } from '../directives/vTip';
 import type { SearchHit } from '../types';
 
 const HITS: SearchHit[] = [
@@ -53,6 +54,8 @@ document.body.appendChild(host);
 async function mountTbl(comp: any, props: Record<string, any>) {
   const app = createApp({ setup: () => () => h(comp as any, props) });
   app.use(createPinia());
+  /* 反选钮提示已迁 v-tip 浮层（1120 批前为原生 title）——注册指令供浮层文本断言 */
+  app.directive('tip', vTip);
   app.mount(host);
   apps.push(app);
   for (let i = 0; i < 10; i++) { await nextTick(); await Promise.resolve(); }
@@ -141,7 +144,8 @@ describe('RT 全选/反选口径收口（六百零六批）', () => {
     const invBtn = [...host.querySelectorAll('button')]
       .find(b => b.textContent?.trim() === '反选') as HTMLButtonElement;
     expect(invBtn, '反选钮在场').toBeTruthy();
-    expect(invBtn.getAttribute('title')).toContain('反选当前视图行');
+    invBtn.dispatchEvent(new Event('focusin', { bubbles: false }));
+    expect(document.getElementById('vt-tip')?.textContent ?? '', '反选话术走 v-tip 浮层').toContain('反选当前视图行');
     invBtn.click();
     await tick();
     // 新口径：只翻可见 {a(勾),b,d}→next={b,d} Σ=12 avg 6.00 徽标「选中 2 行」；

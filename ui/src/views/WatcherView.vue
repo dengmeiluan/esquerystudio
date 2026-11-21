@@ -8,12 +8,12 @@
  available && raw 与原 <template v-else> 骨架守卫同口径，首载不闪全 0） -->
         <!-- 执行统计 tile 墙退役后 inline 串改用 MetaStrip 统一件：started→ok/其余→warn、
  已执行恒 ok、失败>0 err 走组件 tone 档；available && raw 与原骨架守卫同口径，首载不闪全 0 -->
-        <MetaStrip v-if="available && raw" class="wt-meta" :items="wtMeta" :title="'节点 ' + fmtNum(nodeCount) + ' · Watch 数（估） ' + fmtNum(watchCount) + ' · 状态 ' + watchState + ' · 队列（当前） ' + fmtNum(queueCurrent) + ' · 已执行 ' + fmtNum(executed) + ' · 失败 ' + fmtNum(failed)" />
+        <MetaStrip v-if="available && raw" class="wt-meta" :items="wtMeta" v-tip.long="'节点 ' + fmtNum(nodeCount) + ' · Watch 数（估） ' + fmtNum(watchCount) + ' · 状态 ' + watchState + ' · 队列（当前） ' + fmtNum(queueCurrent) + ' · 已执行 ' + fmtNum(executed) + ' · 失败 ' + fmtNum(failed)" />
       </template>
       <template #actions>
 <!-- 原始请求/响应快查弹窗（RawIo 第六波，558b 先例同形态；
  路径子串 '/cluster/watcher'=本页列表拉取通道，本页独占调用者） -->
-<button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（Watcher）" title="最近一次 Watcher 列表拉取请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
+<button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（Watcher）" v-tip="'最近一次 Watcher 列表拉取请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
 <button class="btn ghost sm" @click="load" :disabled="loading">
   <RefreshCcw :size="12" :class="{ spinning: loading }" /> 刷新
 </button>
@@ -79,7 +79,7 @@
       >
         <div class="wt-card-l">
           <!-- G2-C5：长 watch id 省略 + title 全名可达（-->
-          <div class="wt-card-tt"><Bell :size="12" class="wt-card-ic" /> <span class="wt-card-id" :title="w._id"><MarkText :text="w._id" :kw="kw" /></span></div>
+          <div class="wt-card-tt"><Bell :size="12" class="wt-card-ic" /> <span class="wt-card-id" v-tip="w._id"><MarkText :text="w._id" :kw="kw" /></span></div>
           <div class="wt-card-sub">Trigger: <code><MarkText :text="triggerLabel(w)" :kw="kw" /></code></div>
           <div class="wt-card-actions" v-if="actionList(w).length > 0">
             Actions: <span v-for="a in actionList(w)" :key="a" class="wt-act"><MarkText :text="a" :kw="kw" /></span>
@@ -91,7 +91,7 @@
               <template #trigger>
                 <code
                   role="button" tabindex="0"
-                  aria-label="查看 metadata 全文" title="查看 metadata 全文"
+                  aria-label="查看 metadata 全文" v-tip="'查看 metadata 全文'"
                   @keydown.enter.prevent="onMetaKey" @keydown.space.prevent="onMetaKey"
                 >{{ shortJson(w._source.metadata) }}</code>
               </template>
@@ -101,12 +101,12 @@
         </div>
         <div class="wt-card-r">
           <button class="btn ghost sm" aria-label="编辑此 watch" :disabled="!canDevtools"
-            :title="canDevtools ? '在 DevTools 编辑此 watch（PUT 现定义入 body）' : 'DevTools 入口需要 DevTools/REST 页写权限或 ADMIN'"
+            v-tip="canDevtools ? '在 DevTools 编辑此 watch（PUT 现定义入 body）' : 'DevTools 入口需要 DevTools/REST 页写权限或 ADMIN'"
             @click="toDevToolsEdit(w)"><Pencil :size="12" /></button>
           <!-- 1153：复制 / 打开两个次级动作收进「更多」——此前三颗钮平铺在卡片右侧，
                窄屏时把 watch id 挤成省略号（空位优先级：名字 > 动作）。右键菜单同源。 -->
           <button class="btn ghost sm" :aria-label="'更多操作：' + w._id" aria-haspopup="menu"
-            :aria-expanded="watchMenu?.w?._id === w._id" title="更多操作（也可在卡片上右键）"
+            :aria-expanded="watchMenu?.w?._id === w._id" v-tip="'更多操作（也可在卡片上右键）'"
             @click.stop="openWatchMenuAt($event, w)"><Ellipsis :size="12" /></button>
         </div>
       </div>

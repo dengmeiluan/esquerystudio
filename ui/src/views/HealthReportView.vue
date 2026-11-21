@@ -4,7 +4,7 @@
       <PageHeader :icon="HeartPulse" title="一键集群体检" subtitle="10 秒扫描：状态、分片、Pending、索引健康、节点负载 · 智能打分与建议">
       <template #actions>
         <div class="hr-hd-r">
-          <button class="btn ghost sm" :disabled="!data" @click="copyReportMd" title="复制报告 Markdown（贴群/工单）">
+          <button class="btn ghost sm" :disabled="!data" @click="copyReportMd" v-tip="'复制报告 Markdown（贴群/工单）'">
             <ClipboardCopy :size="12" /> 复制 MD
           </button>
           <button class="btn ghost sm" :disabled="!data" @click="exportMd">
@@ -12,7 +12,7 @@
           </button>
           <!-- G263：原始 IO 快查（778 G259/777 G255 同构）——本页体检通道
  （GET /cluster/health-report）请求/响应原文直达 -->
-          <button class="btn sm ghost" title="最近一次集群体检（health-report）请求/响应原文（复制/cURL 回放）" @click="openRawIo">
+          <button class="btn sm ghost" v-tip="'最近一次集群体检（health-report）请求/响应原文（复制/cURL 回放）'" @click="openRawIo">
             <Terminal :size="11" /> 原始 IO
           </button>
           <button class="btn primary sm" :disabled="loading" @click="run">
@@ -109,14 +109,14 @@
             </transition>
           </Teleport>
           <!-- 对比结果 Markdown 复制（处置报告贴工单——得分差+变化清单全带出） -->
-          <button class="btn sm ghost" style="margin-left:auto" title="复制对比结果为 Markdown（工单/群聊直贴）" @click="copyDiffMd"><ClipboardCopy :size="11" /> 复制对比 MD</button>
+          <button class="btn sm ghost" style="margin-left:auto" v-tip="'复制对比结果为 Markdown（工单/群聊直贴）'" @click="copyDiffMd"><ClipboardCopy :size="11" /> 复制对比 MD</button>
         </div>
         <div v-if="diffItems.length" class="hr-diff-body">
           <div v-for="(d, i) in diffItems" :key="i" class="hr-diff-row">
             <code class="hr-diff-k mono">{{ d.k }}</code>
-            <span class="hr-diff-old" :title="d.old">{{ d.old === '' ? '（无）' : d.old }}</span>
+            <span class="hr-diff-old" v-tip="d.old">{{ d.old === '' ? '（无）' : d.old }}</span>
             <span class="hr-diff-arrow">→</span>
-            <span class="hr-diff-new" :title="d.new">{{ d.new === '' ? '（无）' : d.new }}</span>
+            <span class="hr-diff-new" v-tip="d.new">{{ d.new === '' ? '（无）' : d.new }}</span>
             <StatusPill v-if="d.pct" class="hr-diff-pct mono xs" :tone="d.tone" :label="d.pct" />
           </div>
         </div>
@@ -143,7 +143,7 @@
           <div class="hr-hero-row"><span>未分配分片</span><b>{{ data.summary?.unassigned }}</b></div>
           <!-- G265b：ES 术语 label 中文悬停释义（G55/G60/ 族；术语主显保留，
  buildReportMd 工单导出同词不动） -->
-          <div class="hr-hero-row"><span title="集群待处理任务数（pending tasks）">Pending Tasks</span><b>{{ data.summary?.pending }}</b></div>
+          <div class="hr-hero-row"><span v-tip="'集群待处理任务数（pending tasks）'">Pending Tasks</span><b>{{ data.summary?.pending }}</b></div>
           <div class="hr-hero-row"><span>不健康索引</span><b>{{ data.summary?.unhealthyIndices }}</b></div>
           <div class="hr-hero-row"><span>节点 / 高负载</span><b>{{ data.summary?.nodes }} / {{ data.summary?.hotNodes }}</b></div>
           <div class="hr-hero-row dim"><span>生成时间</span><b>{{ generatedAt }}</b></div>
@@ -163,7 +163,7 @@
             <span class="hr-msg">{{ c.message }}</span>
             <!-- 检查项复制（critical/warn 正是贴工单内容） -->
             <button class="btn ghost xs" :aria-label="'复制检查项：' + c.name"
-              title="复制此检查项（级别+名称+详情）" @click="copyCheck(c)">
+              v-tip="'复制此检查项（级别+名称+详情）'" @click="copyCheck(c)">
 <ClipboardCopy :size="10" />
 </button>
           </div>
@@ -197,14 +197,14 @@
  私造圆点与 hd-g/y/r 三档色规则退役，色值直传 dot 位（healthColor 与原三档
  同 token）；中文主显走 value 亮色段（文案不变），title 兜底仍由槽级 span 承接
  （ 锚同步更新） -->
-            <span class="hr-cell-health" :title="String(value ?? '')"><MetaStrip :items="[{ dot: healthColor(String(value || '')), value: healthZh(value) || value }]" /></span>
+            <span class="hr-cell-health" v-tip="String(value ?? '')"><MetaStrip :items="[{ dot: healthColor(String(value || '')), value: healthZh(value) || value }]" /></span>
           </template>
           <template #cell-size="{ value }">
-            <span class="mono" :title="String(value ?? '')">{{ semFormat(parseBytes(value), 'bytes')?.text ?? value }}</span>
+            <span class="mono" v-tip="String(value ?? '')">{{ semFormat(parseBytes(value), 'bytes')?.text ?? value }}</span>
           </template>
           <template #row-actions="{ row }">
             <button v-if="row[0]" class="btn ghost xs" :aria-label="'打开索引工作区（分片诊断）：' + row[0]"
-              title="打开索引工作区（分片诊断）" @click.stop="goHub(String(row[0]))"><ExternalLink :size="11" /></button>
+              v-tip="'打开索引工作区（分片诊断）'" @click.stop="goHub(String(row[0]))"><ExternalLink :size="11" /></button>
           </template>
         </QueryResultTable>
       </div>

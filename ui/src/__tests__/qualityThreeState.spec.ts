@@ -201,7 +201,7 @@ describe('G6 TemplatesView：列表三态（B1 err-bar 独立顶置 / B2 loading
     expect(host.querySelectorAll('.tv2-row').length, '首载成功必须有列表行').toBe(1);
     expect(host.textContent).toContain('logs-tpl');
     templatesFn.mockRejectedValue(new Error('connect refused'));
-    host.querySelector<HTMLButtonElement>('button[title="刷新模板列表"]')!.click();
+    host.querySelector<HTMLButtonElement>('button[aria-label="刷新模板列表"]')!.click();
     await settle();
     expect(host.querySelector('.err-bar'), '刷新失败必须出现错误条').toBeTruthy();
     expect(host.textContent).toContain('connect refused');

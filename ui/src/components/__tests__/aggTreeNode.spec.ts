@@ -88,7 +88,7 @@ describe('AggTreeNode', () => {
   it('删除 emit remove', () => {
     let fired = 0;
     const { host } = mountAgg({}, () => { fired++; });
-    (host.querySelector('[title="删除聚合"]') as HTMLElement).click();
+    (host.querySelector('[aria-label="删除聚合"]') as HTMLElement).click();
     expect(fired).toBe(1);
   });
 

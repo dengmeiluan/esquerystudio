@@ -41,6 +41,6 @@ describe('安全中心骨架/空态状态机修复（一百八十九批补）', 
 
   it('委托账号长 SSO ID 截断显示（防撑破布局，hover 全量）', () => {
     expect(sec).toMatch(/auth\.me\.username\.length > 24/);
-    expect(sec).toMatch(/:title="auth\.me\.username"/);
+    expect(sec).toMatch(/v-tip="auth\.me\.username"/);
   });
 });

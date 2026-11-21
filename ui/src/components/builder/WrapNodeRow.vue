@@ -2,7 +2,7 @@
   <div class="wnr" :data-nid="node.id">
     <div class="wnr-hd" tabindex="0" @contextmenu.prevent="openRowMenu" @keydown.self="onRowMenuKey">
       <NodeSelectBox :id="node.id" />
-      <span class="wnr-grip" title="拖拽排序（按住拖动）；Alt+↑/↓ 上移/下移" draggable="true" @dragstart.stop="onDragStart" @dragend="endDrag">⋮⋮</span>
+      <span class="wnr-grip" v-tip="'拖拽排序（按住拖动）；Alt+↑/↓ 上移/下移'" draggable="true" @dragstart.stop="onDragStart" @dragend="endDrag">⋮⋮</span>
       <span class="wnr-op">{{ WRAP_LABELS[node.op] || node.op }}</span>
       <!-- 无路由字段包装（constant_score 等）不渲染字段段；有路由字段显示键名+FieldSelect -->
       <template v-if="node.field !== null">
@@ -14,12 +14,12 @@
       </template>
       <code v-else class="wnr-fk mono">{{ node.childKey || 'query' }}</code>
       <span style="flex:1"></span>
-      <button aria-label="参数（score_mode 等）" class="btn sm ghost" :class="{ on: showParams }" title="参数（score_mode 等）"
+      <button aria-label="参数（score_mode 等）" class="btn sm ghost" :class="{ on: showParams }" v-tip="'参数（score_mode 等）'"
               @click="showParams = !showParams">
 <SlidersHorizontal :size="12" />
 </button>
-      <button aria-label="包成 bool 组" class="btn sm ghost" title="包成 bool 组" @click="emit('wrap')"><Group :size="12" /></button>
-      <button aria-label="删除" class="btn sm ghost danger" title="删除" @click="emit('remove')"><X :size="12" /></button>
+      <button aria-label="包成 bool 组" class="btn sm ghost" v-tip="'包成 bool 组'" @click="emit('wrap')"><Group :size="12" /></button>
+      <button aria-label="删除" class="btn sm ghost danger" v-tip="'删除'" @click="emit('remove')"><X :size="12" /></button>
     </div>
     <div v-if="showParams" class="wnr-params">
       <GenericParams :value="paramsView" :schema="wrapSchema" path-prefix="" @update="onParams" />
@@ -34,9 +34,9 @@
     <div v-if="pinnedIds" class="wnr-ids" role="group"
          aria-label="置顶文档 id 列表：回车或逗号添加，空输入退格删末项">
       <span class="wnr-ids-lb">置顶 ids</span>
-      <span v-for="(v, i) in pinnedIds" :key="i" class="wnr-chip mono" :title="String(v)">
+      <span v-for="(v, i) in pinnedIds" :key="i" class="wnr-chip mono" v-tip="String(v)">
         <span class="wnr-chip-v">{{ v }}</span>
-        <button type="button" class="wnr-chip-x" :aria-label="'删除 id ' + v" :title="'删除 id ' + v"
+        <button type="button" class="wnr-chip-x" :aria-label="'删除 id ' + v" v-tip="'删除 id ' + v"
                 @click="delId(i)"><X :size="10" /></button>
       </span>
       <input
@@ -50,7 +50,7 @@
     <div class="wnr-body">
       <!-- 1054：nested 内字段域提示——子条件只列 path.* 子字段；映射未展开时明示回退全量 -->
       <div v-if="nestedScope" class="wnr-scope" :class="{ warn: nestedScope.fallback }"
-           :title="nestedScope.fallback
+           v-tip="nestedScope.fallback
              ? '映射里未列出 ' + nestedScope.prefix + '.* 子字段（可能未展开 nested properties），暂列全量字段'
              : 'nested 查询只对 ' + nestedScope.prefix + ' 下的子字段生效；子条件候选已收窄，避免误选顶层字段而静默零命中'">
         {{ nestedScope.fallback ? '未发现内嵌子字段 · 暂列全量' : '内嵌域 · ' + nestedScope.fields.length + ' 字段' }}

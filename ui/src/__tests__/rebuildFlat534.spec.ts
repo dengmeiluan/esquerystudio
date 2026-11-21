@@ -101,10 +101,10 @@ describe('五百三十四批：Xmigrate 分节降层（531 去 background 后下
     expect(xm).not.toMatch(/\.xm-group \{[^}]*background/);
     /* 534 覆盖行：读侧以此为准（现行唯一生效形态，cardShellWave547 复锁） */
     expect(xm).toContain('.xm-group { margin-bottom: 0; padding: var(--sp-2) 0 0; border: 0; border-top: 1px solid var(--line); border-radius: 0; }');
-    /* 编号语义保留（rebuildMigrate531 锚） */
-    expect(xm).toContain('<span class="xm-g-num">1</span>');
-    expect(xm).toContain('<span class="xm-g-num">2</span>');
-    expect(xm).toContain('<span class="xm-g-num">3</span>');
+    /* 编号语义保留（rebuildMigrate531 锚）：三步编号升级为完成态点亮（CheckCircle2 换数字） */
+    expect(xm).toContain('<span class="xm-g-num" :class="{ done: xmStepDone(1) }" data-test="xm-step1"><CheckCircle2 v-if="xmStepDone(1)" :size="12" /><template v-else>1</template></span>');
+    expect(xm).toContain('<span class="xm-g-num" :class="{ done: xmStepDone(2) }" data-test="xm-step2"><CheckCircle2 v-if="xmStepDone(2)" :size="12" /><template v-else>2</template></span>');
+    expect(xm).toContain('<span class="xm-g-num" :class="{ done: xmStepDone(3) }" data-test="xm-step3"><CheckCircle2 v-if="xmStepDone(3)" :size="12" /><template v-else>3</template></span>');
   });
 
   it('三分节标题走全局 .sec-t 档；xm-remote border 壳退役→border-top+sec-t；src-picked 盒退役', () => {

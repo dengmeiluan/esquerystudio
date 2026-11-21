@@ -2,22 +2,22 @@
   <div class="ior">
     <div class="ior-main">
       <span v-if="kind === 'alias'" class="ior-tag">别名</span>
-      <span v-else class="ior-dot" :class="'h-' + (health || 'grey')" :title="'health: ' + (health || '-')"></span>
-      <span class="ior-name mono" :title="name"><!--
+      <span v-else class="ior-dot" :class="'h-' + (health || 'grey')" v-tip="'health: ' + (health || '-')"></span>
+      <span class="ior-name mono" v-tip="name"><!--
         --><template v-for="(seg, si) in nameSegs" :key="si"><!--
           --><mark v-if="seg.m">{{ seg.t }}</mark><!--
           --><template v-else>{{ seg.t }}</template><!--
         --></template><!--
       --></span>
       <span v-if="meta" class="ior-meta">{{ meta }}</span>
-      <button :aria-label="'复制：' + name" class="ior-copy" :title="'复制：' + name" @mousedown.stop.prevent @click.stop="doCopy">
+      <button :aria-label="'复制：' + name" class="ior-copy" v-tip="'复制：' + name" @mousedown.stop.prevent @click.stop="doCopy">
         <Copy :size="11" />
       </button>
     </div>
     <div v-if="aliases && aliases.length" class="ior-aliases">
       <span
         v-for="a in aliases" :key="a"
-        class="ior-chip" :title="'以别名查询：' + a" tabindex="0" role="button" :aria-label="'以别名查询：' + a"
+        class="ior-chip" v-tip="'以别名查询：' + a" tabindex="0" role="button" :aria-label="'以别名查询：' + a"
         @mousedown.stop.prevent @click.stop="emit('select-alias', a)"
         @keydown.enter.prevent="emit('select-alias', a)" @keydown.space.prevent="emit('select-alias', a)"
       >{{ a }}</span>

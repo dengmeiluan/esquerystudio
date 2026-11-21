@@ -135,7 +135,7 @@ async function mountWizard() {
        「找到含 jobId 的行 → 点查看详情（Eye）」语义与断言不变（table.tbl 仍归轮次表）。 */
     const rows = [...host.querySelectorAll('table.tbl tbody tr, table.qrt-tbl tbody tr')];
     const row = rows.find(tr => (tr.textContent || '').includes(jobId));
-    (row?.querySelector('button[title="查看任务详情"]') as HTMLButtonElement | undefined)?.click();
+    (row?.querySelector('button[aria-label="查看任务详情"]') as HTMLButtonElement | undefined)?.click();
     await settle();
     return !!row;
   };

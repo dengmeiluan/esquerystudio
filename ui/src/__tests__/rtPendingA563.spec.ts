@@ -20,12 +20,12 @@ const rt = readFileSync(join(SRC, 'components/ResultTable.vue'), 'utf-8');
 describe('563 方案 A:待提交变更弹层精修(变更明细卡+主次动作)', () => {
   it('头部:计数徽标 + 首条变更 docId(mono)', () => {
     expect(rt).toMatch(/<b class="pend-pop-n mono">\{\{ pendingCount \}\}<\/b>/);
-    expect(rt).toMatch(/<span class="pend-pop-id mono" :title="pendItems\[0\]\?\.id \|\| ''">\{\{ pendItems\[0\]\?\.id \|\| '' \}\}<\/span>/);
+    expect(rt).toMatch(/<span class="pend-pop-id mono" v-tip="pendItems\[0\]\?\.id \|\| ''">\{\{ pendItems\[0\]\?\.id \|\| '' \}\}<\/span>/);
   });
   it('明细列表:逐条「字段 旧值→新值 + 单条撤销」(pendItems 最多 3 条+折叠计数)', () => {
     expect(rt).toMatch(/class="pend-pop-item"/);
     expect(rt).toMatch(/<s>\{\{ jstr\(it\.oldVal\) \}\}<\/s>/);
-    expect(rt).toMatch(/title="撤销此格更改" @click="revertOne\(it\.id, it\.field\)"/);
+    expect(rt).toMatch(/v-tip="'撤销此格更改'" @click="revertOne\(it\.id, it\.field\)"/);
     expect(rt).toMatch(/const pendItems = computed/);
     expect(rt).toMatch(/pend-pop-more/);
   });

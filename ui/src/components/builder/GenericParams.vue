@@ -34,7 +34,7 @@
         <JsonArea class="gp-v gp-json gp-jq-json" :class="{ bad: !!jsonBad[row.key] }"
                   :data-path="pathPrefix + row.key"
                   :model-value="jsonText(row.key, row.val)" :rows="3"
-                  :title="jsonBad[row.key] ? 'JSON 无效，暂未写入查询树' : '其余键用 JSON 编辑（保留数字/布尔类型）'"
+                  v-tip="jsonBad[row.key] ? 'JSON 无效，暂未写入查询树' : '其余键用 JSON 编辑（保留数字/布尔类型）'"
                   @update:model-value="onJson(row.key, $event)" />
       </div>
 
@@ -44,7 +44,7 @@
                 class="gp-v gp-json" :class="{ bad: !!jsonBad[row.key] }"
                 :data-path="pathPrefix + row.key"
                 :model-value="jsonText(row.key, row.val)" :rows="3"
-                :title="jsonTitle(row.key)"
+                v-tip="jsonTitle(row.key)"
                 @update:model-value="onJson(row.key, $event)" />
       <n-select v-else-if="schemaOpt(row.key)" class="gp-v" size="tiny" :value="String(row.val)"
                 :options="(schemaOpt(row.key) || []).map(o => ({ label: o, value: o }))"
@@ -69,7 +69,7 @@
                @update:value="v => onScalar(row.key, v, row.kind)" />
       <input v-else class="inp gp-v mono" :class="{ warn: row.kind === 'numstr' }"
              :data-path="pathPrefix + row.key"
-             :value="row.raw" :title="row.kind === 'numstr' ? '非数字，将作为字符串提交' : ''"
+             :value="row.raw" v-tip="row.kind === 'numstr' ? '非数字，将作为字符串提交' : ''"
              @input="onScalar(row.key, ($event.target as HTMLInputElement).value, row.kind)" />
       <button aria-label="删除该参数键" class="btn sm ghost danger" @click="removeKey(row.key)"><X :size="12" /></button>
     </div>
@@ -81,7 +81,7 @@
     <div v-if="!isArr && pendingSchema.length" class="gp-pending" role="group" aria-label="该聚合支持的参数">
       <span class="gp-pending-lb">可加参数</span>
       <button v-for="p in pendingSchema" :key="p.key" type="button" class="gp-pkey"
-        :title="KIND_ZH[p.kind] || '文本'" @click="addSchemaKey(p)">
+        v-tip="KIND_ZH[p.kind] || '文本'" @click="addSchemaKey(p)">
         {{ '+' + p.key }}
       </button>
     </div>

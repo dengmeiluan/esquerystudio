@@ -9,6 +9,11 @@
  * 挂载：裸 createApp + pinia；useRoute mock（组件过滤词草稿按 route.path 维度）。
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+/* 行内提示已迁 v-tip 指令（DOM 无 title 属性），文案绑定改源码锚 */
+const QHP_SRC = readFileSync(join(__dirname, '../components/QueryHistoryPanel.vue'), 'utf8');
 
 vi.mock('vue-router', () => ({
   useRoute: () => ({ path: '/search' }),
@@ -126,7 +131,8 @@ describe('QueryHistoryPanel 共享面板', () => {
     });
     const chip = q('.qhp-params')!;
     expect(chip.textContent?.trim()).toBe('参数 1');
-    expect(chip.getAttribute('title')).toContain('["宁德时代"]');
+    /* 参数原文提示已迁 v-tip 指令（DOM 无 title 属性），绑定改源码锚 */
+    expect(QHP_SRC).toContain("v-tip=\"'SQL 参数（回放时一并恢复）：' + it.params\"");
     const inp = q('.qhp-filter') as HTMLInputElement;
     inp.value = '宁德';
     inp.dispatchEvent(new Event('input'));
@@ -137,14 +143,14 @@ describe('QueryHistoryPanel 共享面板', () => {
 
   it('清空/删除/播放 emit；未配置的 fill 按钮不渲染', async () => {
     const emitted = await mountPanel();
-    (qa('.qhp-acts .btn').find(b => b.getAttribute('title') === '删除此条') as HTMLElement).click();
-    (qa('.qhp-acts .btn').find(b => b.getAttribute('title') === '回放/执行') as HTMLElement).click();
+    (qa('.qhp-acts .btn').find(b => b.getAttribute('aria-label') === '删除此条') as HTMLElement).click();
+    (qa('.qhp-acts .btn').find(b => b.getAttribute('aria-label') === '回放/执行') as HTMLElement).click();
     (q('.qhp-bar .danger') as HTMLButtonElement).click();
     await nextTick();
     expect((emitted.del || []).length).toBe(1);
     expect((emitted.play || []).length).toBe(1);
     expect((emitted.clear || []).length).toBe(1);
-    expect(qa('.qhp-acts .btn').some(b => b.getAttribute('title') === '仅填入')).toBe(false);
+    expect(qa('.qhp-acts .btn').some(b => b.getAttribute('aria-label') === '仅填入')).toBe(false);
   });
 
   it('name 徽标渲染 + ts 缺省不渲染时间（五十八批保存类/模板类条目支持）', async () => {
@@ -160,7 +166,7 @@ describe('QueryHistoryPanel 共享面板', () => {
 
   it('复制：copy 钮走 copyText 并 notify', async () => {
     await mountPanel();
-    (qa('.qhp-acts .btn').find(b => b.getAttribute('title') === '复制查询文本') as HTMLElement).click();
+    (qa('.qhp-acts .btn').find(b => b.getAttribute('aria-label') === '复制查询文本') as HTMLElement).click();
     await nextTick();
     await Promise.resolve();
     expect(copyMock).toHaveBeenCalledWith('match_all');

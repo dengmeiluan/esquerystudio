@@ -1,9 +1,10 @@
 /* R99：TimeCell 接线看守。判据落在**渲染结果**上——
- * title 必须带时区、正文必须是相对时间，二者错一个这个组件就没有存在意义。
+ * v-tip 浮层必须带时区、正文必须是相对时间，二者错一个这个组件就没有存在意义。
  * 范式同 cmdPalette.spec：项目无 @vue/test-utils，用 createApp 手工 mount。 */
 import { describe, it, expect } from 'vitest';
 import { createApp, h, nextTick } from 'vue';
 import TimeCell from '../TimeCell.vue';
+import { vTip } from '../../directives/vTip';
 
 /* props 类型取组件自身的 props，而非 Record<string, unknown>——
  * 后者是被 widen 的索引类型，不满足 h() 的重载签名，vue-tsc 会报 TS2769。
@@ -12,15 +13,25 @@ type TimeCellProps = InstanceType<typeof TimeCell>['$props'];
 
 function render(props: TimeCellProps): HTMLElement {
   const host = document.createElement('div');
-  createApp({ render: () => h(TimeCell, props) }).mount(host);
+  const app = createApp({ render: () => h(TimeCell, props) });
+  /* 组件模板用 v-tip（main.ts 全局注册），自建 app 须注册同款指令浮层才在 */
+  app.directive('tip', vTip);
+  app.mount(host);
   return host.firstElementChild as HTMLElement;
 }
 
 describe('TimeCell', () => {
   const TS = 1785811977130;
 
-  it('title 带绝对时间与时区', () => {
-    expect(render({ ts: TS }).getAttribute('title')).toBe('2026-08-04 10:52:57 (UTC+8)');
+  it('v-tip 浮层带绝对时间与时区', () => {
+    const el = render({ ts: TS });
+    /* 浮层通道要求宿主在文档内（指令对离屏节点放弃显示）：
+       挂 body → focusin（键盘通道立即显示）→ 断言单例浮层 #vt-tip 文本 */
+    document.body.appendChild(el);
+    el.dispatchEvent(new Event('focusin'));
+    expect(document.getElementById('vt-tip')?.textContent ?? '').toBe('2026-08-04 10:52:57 (UTC+8)');
+    el.remove();
+    document.getElementById('vt-tip')?.remove();
   });
 
   it('正文是相对时间，不是绝对时间', () => {

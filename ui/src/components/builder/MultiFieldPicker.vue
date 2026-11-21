@@ -11,7 +11,7 @@
         <n-checkbox :data-path="f.path" :checked="sel.includes(f.path)" size="small"
                     @update:checked="v => toggleSel(f.path, v)"
                     @keydown="onRowKey($event, f)" />
-        <span class="mfp-path" :title="f.path">{{ f.path }}</span>
+        <span class="mfp-path" v-tip="f.path">{{ f.path }}</span>
         <code class="mfp-type">{{ f.type || '-' }}</code>
       </label>
       <div v-if="!visible.length" class="mfp-none">无匹配字段</div>

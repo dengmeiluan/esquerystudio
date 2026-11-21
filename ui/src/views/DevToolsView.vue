@@ -15,14 +15,14 @@
         <button class="btn ghost sm" @click="addTab">
           <Plus :size="12" /> 新 Tab
         </button>
-        <button class="btn ghost sm" :disabled="resetting" @click="reset" title="清空全部">
+        <button class="btn ghost sm" :disabled="resetting" @click="reset" v-tip="'清空全部'">
           <RotateCcw :size="12" /> 重置
         </button>
-        <button class="btn ghost sm" title="查看当前身份在本页与当前连接下允许的操作（与后端拦截器判定同源）" @click="permOpen = true"><Shield :size="12" /> 我的权限</button>
-        <button class="btn ghost sm" data-test="open-mcp" title="MCP 接入：服务端 /mcp 或浏览器模式本机 JSON-RPC" @click="mcpOpen = true">MCP</button>
+        <button class="btn ghost sm" v-tip="'查看当前身份在本页与当前连接下允许的操作（与后端拦截器判定同源）'" @click="permOpen = true"><Shield :size="12" /> 我的权限</button>
+        <button class="btn ghost sm" data-test="open-mcp" v-tip="'MCP 接入：服务端 /mcp 或浏览器模式本机 JSON-RPC'" @click="mcpOpen = true">MCP</button>
         <!-- 变量（Kibana Console「Variables」对位）——此前只在 DSL 页能管，REST 控制台
              用户按 Kibana 习惯写 ${var} 却无处填值；补同一入口，执行时按路径/JSON 体分别展开 -->
-        <button class="btn ghost sm" title="管理变量 ${var}：路径里按字符串替换，JSON 体内按类型注入" @click="varsOpen = true">
+        <button class="btn ghost sm" v-tip="'管理变量 ${var}：路径里按字符串替换，JSON 体内按类型注入'" @click="varsOpen = true">
           <Variable :size="12" /> 变量<span v-if="varsCount" class="dt-vars-n mono">{{ varsCount }}</span>
         </button>
       </template>
@@ -43,12 +43,12 @@
         <input v-if="renamingIdx === i" v-model="renameVal" class="dt-tab-ren mono" :aria-label="'重命名标签 ' + (i + 1)"
           @keydown.enter.prevent="commitRename(i)" @keydown.esc.prevent="renamingIdx = null"
           @blur="commitRename(i)" @click.stop v-focus />
-        <span v-else class="dt-tab-tt" :title="t.title + '（双击重命名）'">{{ t.title }}</span>
+        <span v-else class="dt-tab-tt" v-tip="t.title + '（双击重命名）'">{{ t.title }}</span>
         <!-- 语义色轮：执行中 tab 活体脉冲点（dot-pulse 全站语言）——busy 期间切走也看得出哪个 tab 在跑 -->
         <span v-if="t.busy" class="dt-tab-busy dot-pulse" aria-hidden="true"></span>
-        <button v-if="tabs.length > 1" class="dt-tab-x" :aria-label="'关闭标签 ' + t.title" title="关闭标签" @click.stop="closeTab(i)"><X :size="10" /></button>
+        <button v-if="tabs.length > 1" class="dt-tab-x" :aria-label="'关闭标签 ' + t.title" v-tip="'关闭标签'" @click.stop="closeTab(i)"><X :size="10" /></button>
       </div>
-      <div class="dt-tab-add" role="button" tabindex="0" aria-label="新建标签" title="新建标签" @click="addTab" @keydown.enter.prevent="addTab" @keydown.space.prevent="addTab">+</div>
+      <div class="dt-tab-add" role="button" tabindex="0" aria-label="新建标签" v-tip="'新建标签'" @click="addTab" @keydown.enter.prevent="addTab" @keydown.space.prevent="addTab">+</div>
     </div>
 
   <!-- 请求标签右键：批量关标签是浏览器标签页的肌肉记忆，此前只能逐个点 ×；分组收口避免平铺 -->
@@ -85,7 +85,7 @@
           @endpoint="onEndpoint" @keydown.ctrl.enter="run" />
         <button v-if="runVisible" class="btn primary sm btn-run-lock" @click="run"
           :disabled="cur.busy || !currentSendable"
-          :title="currentSendable ? (scopeAdvisory || '执行（Ctrl+Enter）') : scopeDenyHint">
+          v-tip="currentSendable ? (scopeAdvisory || '执行（Ctrl+Enter）') : scopeDenyHint">
           <!-- 主按钮中文化对齐两工作台（此前英文 Run 是中文界面孤例）；执行中态句式统一「执行中 X.Xs」 -->
           <Play :size="12" /> {{ cur.busy ? '执行中 ' + (qr.elapsedMs.value / 1000).toFixed(1) + 's' : '执行' }}
           <span class="kbd" style="margin-left:var(--sp-1)">Ctrl⏎</span>
@@ -97,9 +97,9 @@
           <span class="dt-perm-dim" tabindex="0" role="img" aria-label="运行需 ADMIN 角色"><ShieldAlert :size="13" /></span>
         </Tip>
         <span v-if="canAdmin && !currentSendable" class="dt-perm-dim" tabindex="0" role="status"
-          :title="scopeDenyHint">非 ADMIN 仅数据面</span>
+          v-tip="scopeDenyHint">非 ADMIN 仅数据面</span>
         <button v-if="cur.busy" class="btn sm" @click="qr.cancel()"><X :size="12" /> 取消</button>
-        <button class="btn ghost sm" @click="copyCurl" title="复制 curl">
+        <button class="btn ghost sm" @click="copyCurl" v-tip="'复制 curl'">
           <Copy :size="12" /> curl
         </button>
         <!-- 复制为代码（toJs/toPython 既有能力挂上；选择即复制）。原生 select 伪装 btn ghost sm
@@ -109,21 +109,21 @@
 	 （空态行结构恒定），与同排复制 curl 钮恒在场同口径 -->
         <n-select :value="null" :options="CODEGEN_OPTS" size="tiny" class="dt-code-sel" :consistent-menu-width="false"
           :disabled="!cur?.path" placeholder="代码"
-          title="复制为代码（fetch=前端 JavaScript 脚本 · requests=Python 脚本）" aria-label="复制为代码（fetch=前端 JavaScript 脚本 · requests=Python 脚本）"
+          v-tip="'复制为代码（fetch=前端 JavaScript 脚本 · requests=Python 脚本）'" aria-label="复制为代码（fetch=前端 JavaScript 脚本 · requests=Python 脚本）"
           @update:value="onCopyAsCode" />
         <!-- W6-T3 复制响应全文：方案 B 补刀迁往响应头常驻（域归属归位=先例；
  无数据 disabled 而非 v-if 消失——空态行结构恒定，响应头与请求头同构对称）+ curl 导入回填 -->
-        <button class="btn ghost sm" @click="curlOpen = true; curlErr = ''" title="粘贴 curl 命令回填请求">
+        <button class="btn ghost sm" @click="curlOpen = true; curlErr = ''" v-tip="'粘贴 curl 命令回填请求'">
           <ClipboardPaste :size="12" /> 从 curl 导入
         </button>
         <!-- 导出/导入请求（Kibana Console「Export / Import requests」对位）——
              导出整份编辑器内容为纯文本（保留方法行/请求体/排版），导入时每段成为一个 Tab。
              与「从 curl 导入」并存：前者是整份脚本，后者是单条命令。 -->
-        <button class="btn ghost sm" :disabled="!tabs.length" title="把当前全部 Tab 导出为 .http 文本文件（可再导入，人可读可进版本库）"
+        <button class="btn ghost sm" :disabled="!tabs.length" v-tip="'把当前全部 Tab 导出为 .http 文本文件（可再导入，人可读可进版本库）'"
           @click="exportToFile">
           <FileDown :size="12" /> 导出
         </button>
-        <button class="btn ghost sm" title="从导出的文本文件导入，每个请求成为一个 Tab" @click="importFileEl?.click()">
+        <button class="btn ghost sm" v-tip="'从导出的文本文件导入，每个请求成为一个 Tab'" @click="importFileEl?.click()">
           <FileUp :size="12" /> 导入
         </button>
         <input ref="importFileEl" type="file" class="sr-only" accept=".http,.txt,text/plain" @change="importFromFile" />
@@ -161,7 +161,7 @@
                   :show="insFieldOpen" @update:show="(v: boolean) => (insFieldOpen = v)">
                   <template #trigger>
                     <button class="btn xs" :disabled="dtBodyKind === 'none'" aria-label="插入字段"
-                      :title="dtBodyKind === 'none' ? '_bulk 档请求体是 NDJSON（动作行+文档行成对），字段插入不适用' : '从当前路径索引的字段清单选一个，在光标处插入 &quot;字段名&quot;'">
+                      v-tip="dtBodyKind === 'none' ? '_bulk 档请求体是 NDJSON（动作行+文档行成对），字段插入不适用' : '从当前路径索引的字段清单选一个，在光标处插入 &quot;字段名&quot;'">
                       <ListPlus :size="11" /> 插入字段
                     </button>
                   </template>
@@ -172,14 +172,14 @@
                   <AlignJustify :size="11" /> 格式化
                 </button>
                 <!-- 复制请求体——方案 B 改 icon-only（title/aria 承载文案） -->
-                <button class="btn ghost xs" aria-label="复制请求体" title="复制请求体原文" @click="copyBody">
+                <button class="btn ghost xs" aria-label="复制请求体" v-tip="'复制请求体原文'" @click="copyBody">
                   <Copy :size="11" />
                 </button>
                 <!-- 编辑器字号三档 seg（dt.font 落盘；请求体与响应只读面同键）。
  档位常量合并 utils/editorTiers 单源 -->
                 <span class="seg dt-font-seg" role="group" aria-label="编辑器字号档">
                   <button v-for="f in EDITOR_FONT_TIERS" :key="f" type="button" :class="{ on: edFont === f }"
-                    :title="'编辑器字号 ' + f + 'px'" @click="edFont = f">{{ f }}</button>
+                    v-tip="'编辑器字号 ' + f + 'px'" @click="edFont = f">{{ f }}</button>
                 </span>
                 <span class="dt-tb-sp"></span>
                 <!-- 「⋯」溢出菜单——低频动作收纳（menu/aria 语义；选择即关） -->
@@ -187,7 +187,7 @@
                   :show="moreOpen" @update:show="(v: boolean) => (moreOpen = v)">
                   <template #trigger>
                     <button class="btn ghost xs" aria-label="更多动作" aria-haspopup="menu" :aria-expanded="moreOpen"
-                      title="更多动作（压缩 / 骨架 / 自动格式化 / 收藏 / 清空）" @click="moreOpen = !moreOpen">
+                      v-tip="'更多动作（压缩 / 骨架 / 自动格式化 / 收藏 / 清空）'" @click="moreOpen = !moreOpen">
                       <Ellipsis :size="13" />
                     </button>
                   </template>
@@ -196,7 +196,7 @@
                     <button v-if="curEp?.body" class="dt-more-item" role="menuitem" @click="insertBody(); moreOpen = false"><Braces :size="12" /> 插入 body 骨架</button>
                     <div class="dt-more-sep"></div>
                     <button class="dt-more-item" role="menuitemcheckbox" :aria-checked="autoFmt ? 'true' : 'false'"
-                      title="发送时自动格式化请求体（仅发送出参，草稿与历史保持原稿）" @click="autoFmt = !autoFmt">
+                      v-tip="'发送时自动格式化请求体（仅发送出参，草稿与历史保持原稿）'" @click="autoFmt = !autoFmt">
                       <Check :size="12" :style="{ visibility: autoFmt ? 'visible' : 'hidden' }" /> 发送时自动格式化
                     </button>
                     <div class="dt-more-sep"></div>
@@ -254,13 +254,13 @@
  （无数据 disabled 而非消失——空态行结构恒定，与请求头元素密度对称） -->
         <span class="dt-pane-tt">响应</span>
         <span class="dt-tb-sep"></span>
-        <button class="btn ghost xs" aria-label="复制响应" title="复制响应全文（截断展示时仍取完整原文）" :disabled="!cur.result"
+        <button class="btn ghost xs" aria-label="复制响应" v-tip="'复制响应全文（截断展示时仍取完整原文）'" :disabled="!cur.result"
           @click="copyText(cur.resultFull || cur.result || '').then(ok => store.notify(ok ? 'success' : 'error', ok ? '响应已复制（完整原文）' : '复制失败'))">
           <Copy :size="11" />
         </button>
         <!-- 原始 IO 快查——最近一次 /cluster/raw 请求/响应原文（IndexHub 同款钮形，
  本页执行走 api.raw 统一封装，记录环按该特征取最近一条） -->
-        <button class="btn ghost xs" aria-label="查看原始 IO" title="最近一次执行的请求/响应原文（语义分档高亮 + 复制/curl 回放）"
+        <button class="btn ghost xs" aria-label="查看原始 IO" v-tip="'最近一次执行的请求/响应原文（语义分档高亮 + 复制/curl 回放）'"
           @click="openRawIo"><Terminal :size="11" /></button>
         <!-- 状态元信息行改用 MetaStrip 统一件（.dt-status 手写串退役）——
  语义全保留：不伪造未知 HTTP 码（真实码已知才出徽标段）、took 四档色经
@@ -271,8 +271,8 @@
  表格态只替换 dt-out 显示区内容（Monaco v-if 让位），编辑器/输出高度结构零触。
  放头部工具行不放 dt-out 内：dt-out 是 Monaco height:100% 的直系父，加兄弟行即触高度链 -->
         <span v-if="respLang === 'json'" class="seg dt-resp-seg" role="group" aria-label="响应查看档">
-          <button type="button" :class="{ on: !respTbl }" title="JSON 原文（只读编辑器）" @click="respView = 'raw'">JSON</button>
-          <button type="button" :class="{ on: !!respTbl }" title="表格视图：顶层数组→行序表、对象→键值两列表（只读，行点击复制该行 JSON）" @click="respView = 'table'">表格</button>
+          <button type="button" :class="{ on: !respTbl }" v-tip="'JSON 原文（只读编辑器）'" @click="respView = 'raw'">JSON</button>
+          <button type="button" :class="{ on: !!respTbl }" v-tip="'表格视图：顶层数组→行序表、对象→键值两列表（只读，行点击复制该行 JSON）'" @click="respView = 'table'">表格</button>
         </span>
         <span v-if="cur.result" class="dt-resp-search">
           <input v-model="respFind.kw.value" class="inp mono" placeholder="搜响应…" @input="respFind.run()"
@@ -280,8 +280,8 @@
           <!-- 空词不显示 0/0 假计数 -->
           <template v-if="respFind.kw.value.trim()">
             <span class="mono dt-resp-mc">{{ respFind.current.value }}/{{ respFind.count.value }}</span>
-            <button type="button" class="btn ghost xs" :disabled="!respFind.count.value" title="上一个匹配 (Shift+Enter)" @click="respFind.prev()">↑</button>
-            <button type="button" class="btn ghost xs" :disabled="!respFind.count.value" title="下一个匹配 (Enter)" @click="respFind.next()">↓</button>
+            <button type="button" class="btn ghost xs" :disabled="!respFind.count.value" v-tip="'上一个匹配 (Shift+Enter)'" @click="respFind.prev()">↑</button>
+            <button type="button" class="btn ghost xs" :disabled="!respFind.count.value" v-tip="'下一个匹配 (Enter)'" @click="respFind.next()">↓</button>
           </template>
         </span>
         <!-- 过滤响应（Kibana Console「Filter response」对位）——JQ 表达式或正则两档，
@@ -289,20 +289,20 @@
         <span v-if="cur.result" class="dt-resp-filter" :class="{ on: !!respFilter.expr.trim() }">
           <n-select :value="respFilter.mode" :options="FLT_MODE_OPTS" size="small" class="dt-flt-mode"
             :consistent-menu-width="false" aria-label="过滤方式"
-            title="JQ=结构化查询（需 JSON 响应）；正则=逐行匹配（原文非 JSON 也可用）"
+            v-tip="'JQ=结构化查询（需 JSON 响应）；正则=逐行匹配（原文非 JSON 也可用）'"
             @update:value="onFltMode" />
           <input v-model="respFilter.expr" class="inp mono dt-flt-inp"
             :placeholder="respFilter.mode === 'jq' ? '.hits.hits[]._id' : '^ERROR'"
-            :title="respFilter.mode === 'jq'
+            v-tip="respFilter.mode === 'jq'
               ? 'JQ 子集：字段/下标/迭代[]/递归../管道|/逗号/select/比较/逻辑/构造/常用函数'
               : '正则逐行匹配（不含分隔符与 flags）'"
             aria-label="过滤响应表达式" @keydown.esc.prevent="respFilter.expr = ''" />
           <span v-if="respFilter.expr.trim()" class="mono dt-flt-n" :class="{ err: !respFilterOut.ok }"
-            :title="respFilterOut.ok ? '命中 ' + respFilterOut.count + ' 条' : respFilterOut.error">
+            v-tip="respFilterOut.ok ? '命中 ' + respFilterOut.count + ' 条' : respFilterOut.error">
             {{ respFilterOut.ok ? respFilterOut.count + ' 条' : '无效' }}
           </span>
           <button v-if="respFilter.expr.trim()" type="button" class="btn ghost xs" aria-label="清除过滤"
-            title="清除过滤表达式，恢复完整响应" @click="respFilter.expr = ''">×</button>
+            v-tip="'清除过滤表达式，恢复完整响应'" @click="respFilter.expr = ''">×</button>
         </span>
         <!-- 多段执行 per-段锚定徽标（seg i/n + ✓/✗ + took；主响应区现行为零触——
  末段覆写保持，前段响应点徽标载回；chip 形态对齐 dt-hist-chip，横向滚动随 .dt-actions；
@@ -311,7 +311,7 @@
           <template v-for="(run, i) in cur.segRuns" :key="i">
             <button v-if="run" type="button" class="dt-seg-run mono"
               :class="{ on: cur.segView === i, err: !run.ok }"
-              :title="(run.ok ? '成功' : '失败') + ' · 点击把该段响应载入主响应区' + (run.errBrief ? '（' + run.errBrief + '）' : '')"
+              v-tip="(run.ok ? '成功' : '失败') + ' · 点击把该段响应载入主响应区' + (run.errBrief ? '（' + run.errBrief + '）' : '')"
               @click="loadSegRun(run, i)">{{ run.label }} {{ run.ok ? '✓' : '✗' }} {{ fmtTook(run.took) }}</button>
           </template>
         </div>
@@ -342,7 +342,7 @@
           <table v-if="respTbl.isArr" class="dt-resp-tbl-t">
             <thead><tr><th class="dt-resp-tbl-ix">#</th><th v-for="c in respTbl.cols" :key="c">{{ c }}</th></tr></thead>
             <tbody>
-              <tr v-for="(r, ri) in respTbl.rows" :key="ri" tabindex="0" title="点击复制该行 JSON（右键更多操作）"
+              <tr v-for="(r, ri) in respTbl.rows" :key="ri" tabindex="0" v-tip="'点击复制该行 JSON（右键更多操作）'"
                 @click="copyRespRow(r)" @keydown.enter.prevent="copyRespRow(r)"
                 @contextmenu.prevent="openRespRowMenu($event, r, ri)" @keydown="onRespRowMenuKey($event, r, ri)" data-row-nav @keydown.self="rowArrowNav">
                 <td class="dt-resp-tbl-ix">{{ ri + 1 }}</td>
@@ -353,7 +353,7 @@
           <table v-else class="dt-resp-tbl-t">
             <thead><tr><th>键</th><th>值</th></tr></thead>
             <tbody>
-              <tr v-for="([k, val]) in respTbl.kv" :key="k" tabindex="0" title="点击复制该行 JSON（右键更多操作）"
+              <tr v-for="([k, val]) in respTbl.kv" :key="k" tabindex="0" v-tip="'点击复制该行 JSON（右键更多操作）'"
                 @click="copyRespRow({ [k]: val })" @keydown.enter.prevent="copyRespRow({ [k]: val })"
                 @contextmenu.prevent="openRespRowMenu($event, { [k]: val }, -1)" @keydown="onRespRowMenuKey($event, { [k]: val }, -1)" data-row-nav @keydown.self="rowArrowNav">
                 <td>{{ k }}</td>
@@ -391,7 +391,7 @@
         <!-- 历史面板可折叠（辅助信息收起主工作区优先；Chevron 方向随态）；
  折叠容器保留，行列表改用 QueryHistoryPanel 统一件（存储 key 不动） -->
         <div class="dt-hist-tt" role="button" tabindex="0" :aria-expanded="histOpen"
-          :aria-label="histOpen ? '收起本 Tab 历史' : '展开本 Tab 历史'" title="点击折叠/展开历史"
+          :aria-label="histOpen ? '收起本 Tab 历史' : '展开本 Tab 历史'" v-tip="'点击折叠/展开历史'"
           @click="histOpen = !histOpen" @keydown.enter.prevent="histOpen = !histOpen" @keydown.space.prevent="histOpen = !histOpen">
           <ChevronDown :size="12" :style="{ transform: histOpen ? '' : 'rotate(-90deg)' }" />
           <History :size="12" /> 本 Tab 历史（{{ cur.history.length }}）
@@ -405,7 +405,7 @@
           <button type="button" class="dt-hist-chip" :class="{ on: histScope === 'tab' }" @click="histScope = 'tab'">本 Tab</button>
           <button type="button" class="dt-hist-chip" :class="{ on: histScope === 'all' }" @click="histScope = 'all'">全部（{{ histAll.length }}）</button>
           <button type="button" class="dt-hist-chip" style="margin-left:auto"
-            :title="'历史列表限高：' + histH + '（点击循环）'" @click="cycleHistH">高</button>
+            v-tip="'历史列表限高：' + histH + '（点击循环）'" @click="cycleHistH">高</button>
         </div>
         <div v-show="histOpen" class="dt-hist-list">
           <!-- per-tab 历史行改用 QueryHistoryPanel——条目字段映射见 histRows（query=「METHOD path」、
@@ -459,7 +459,7 @@
         <div v-for="(v, k) in varsMap" :key="k" class="dt-vars-row">
           <span class="mono dt-vars-k">{{ '${' + k + '}' }}</span>
           <input class="inp mono" :value="v" @input="varsMap[k] = ($event.target as HTMLInputElement).value" />
-          <button class="btn sm ghost danger" :aria-label="'删除变量 ' + k" title="删除该变量（只影响本地变量表）" @click="delete varsMap[k]"><X :size="11" /></button>
+          <button class="btn sm ghost danger" :aria-label="'删除变量 ' + k" v-tip="'删除该变量（只影响本地变量表）'" @click="delete varsMap[k]"><X :size="11" /></button>
         </div>
         <div class="dt-vars-row">
           <input class="inp mono" v-model="newVarK" placeholder="变量名" style="width:150px" />

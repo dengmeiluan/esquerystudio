@@ -7,6 +7,7 @@ import { createApp, h, nextTick, ref } from 'vue';
 
 import BoolGroupNode from '../builder/BoolGroupNode.vue';
 import FieldSelect from '../builder/FieldSelect.vue';
+import { vTip } from '../../directives/vTip';
 import QueryTreePane from '../builder/QueryTreePane.vue';
 import { emptyTree, parseTree } from '../../utils/queryAst';
 import type { BoolNode, LeafNode } from '../../utils/queryAst';
@@ -23,6 +24,8 @@ function mount(comp: unknown, props: Record<string, unknown>) {
   const host = document.createElement('div');
   document.body.appendChild(host);
   const app = createApp({ render: () => h(comp as never, props as never) });
+  /* 黄点提示已迁 v-tip（1120 批前为原生 title）——注册指令供浮层文本断言 */
+  app.directive('tip', vTip);
   app.mount(host);
   return host;
 }
@@ -59,7 +62,8 @@ describe('987 FieldSelect 未知字段护栏', () => {
     const host = mount(FieldSelect, { modelValue: 'ghost', fields: ['a', 'b'], types: { a: 'keyword' } });
     const unk = host.querySelector('.fs-unk') as HTMLElement;
     expect(unk, '未知字段必须亮护栏黄点').not.toBeNull();
-    expect(unk.title).toContain('字段不在当前索引 mapping');
+    unk.dispatchEvent(new Event('focusin', { bubbles: false }));
+    expect(document.getElementById('vt-tip')?.textContent ?? '', '黄点全语义提示走 v-tip 浮层').toContain('字段不在当前索引 mapping');
     /* 1113：黄点是 8px 圆点，语义只走 title/aria-label——可见文案会逐字竖排溢出压住邻行 */
     expect(unk.textContent?.trim(), '黄点内不得有可见文案').toBe('');
     expect(unk.getAttribute('aria-label')).toContain('字段不在 mapping');

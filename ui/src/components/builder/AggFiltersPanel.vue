@@ -8,8 +8,8 @@
       <div v-for="(b, i) in namedBuckets" :key="i" class="afp-row">
         <span class="afp-idx mono">{{ i + 1 }}</span>
         <input class="inp mono afp-name" :value="b.key" placeholder="桶名"
-               title="桶名（结果按名返回）" @input="setKey(i, ($event.target as HTMLInputElement).value)" />
-        <button aria-label="删除桶" class="btn sm ghost danger" title="删除该桶" @click="delBucket(i)">
+               v-tip="'桶名（结果按名返回）'" @input="setKey(i, ($event.target as HTMLInputElement).value)" />
+        <button aria-label="删除桶" class="btn sm ghost danger" v-tip="'删除该桶'" @click="delBucket(i)">
           <X :size="12" />
         </button>
         <div class="afp-tree">
@@ -21,7 +21,7 @@
     <template v-else-if="mode === 'anon'">
       <div v-for="(n, i) in anonNodes" :key="i" class="afp-row">
         <span class="afp-idx mono">{{ i + 1 }}</span>
-        <button aria-label="删除桶" class="btn sm ghost danger" title="删除该桶" @click="delAnon(i)">
+        <button aria-label="删除桶" class="btn sm ghost danger" v-tip="'删除该桶'" @click="delAnon(i)">
           <X :size="12" />
         </button>
         <div class="afp-tree">

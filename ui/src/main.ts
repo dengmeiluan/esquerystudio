@@ -8,6 +8,7 @@ import { setApiWriteGuard } from './api';
 import { isDemoMode } from './platform/demoApi';
 import { installBrowserMcp } from './platform/browserMcp';
 import { isBrowserMode } from './platform/browserApi';
+import { vTip } from './directives/vTip';
 /* 真字体（本地打包，离线 fat jar 可用）：此前 font stack 里的 Inter/JetBrains Mono 从未真正加载，
  Windows 上实际渲染 Segoe UI/雅黑，是与 Linear/Vercel 第一眼差距的最大来源 */
 import '@fontsource-variable/inter';
@@ -23,6 +24,8 @@ if (isDemoMode) {
 const app = createApp(App);
 app.use(createPinia());
 app.use(router);
+/* v-tip 全局指令：原生 title 的统一替代（主题化浮层/长文本档/键盘通道），全站机械迁移 */
+app.directive('tip', vTip);
 /* 写请求客户端硬门：视图/脚本直调 api 时也先按身份×目标判写权，无权限零发出。 */
 setApiWriteGuard((method, path, targetId) => useAuthStore().canEmitWrite(method, path, targetId));
 

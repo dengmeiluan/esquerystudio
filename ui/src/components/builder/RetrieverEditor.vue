@@ -7,7 +7,7 @@
        tsr/rule 单子检索器。切换变体=换新节点（载荷语义互斥，保留旧载荷只造脏 DSL）。 -->
   <div class="rte" :data-nid="node.id">
     <div class="rte-hd">
-      <n-select class="rte-op" size="tiny" :value="node.op" :options="opOptions" :title="'当前变体：' + label"
+      <n-select class="rte-op" size="tiny" :value="node.op" :options="opOptions" v-tip="'当前变体：' + label"
                 @update:value="onOp" />
       <FieldSelect
         v-if="kind === 'flat' || (kind === 'child' && (node.op === 'text_similarity_reranker' || node.op === 'diversify'))"
@@ -17,16 +17,16 @@
       />
       <span style="flex:1"></span>
       <button v-if="hasParams" aria-label="变体参数（k / rank_constant / text…）" class="btn sm ghost" :class="{ on: showParams }"
-              title="变体参数（k / rank_constant / text…）" @click="showParams = !showParams">
+              v-tip="'变体参数（k / rank_constant / text…）'" @click="showParams = !showParams">
         <Settings2 :size="12" />
       </button>
-      <button aria-label="删除该检索器" class="btn sm ghost danger" title="删除该检索器" @click="emit('remove')"><X :size="12" /></button>
+      <button aria-label="删除该检索器" class="btn sm ghost danger" v-tip="'删除该检索器'" @click="emit('remove')"><X :size="12" /></button>
     </div>
 
     <!-- knn 向量 JSON 框（JsonArea 统一件；非法只标红不写树；清空=移除键） -->
     <JsonArea v-if="kind === 'flat'" class="rte-ta" :class="{ bad: vec.bad.value }" :rows="2"
               :model-value="vec.text.value" placeholder="query_vector，如 [0.1, 0.2, …]"
-              title="查询向量（JSON 数组）" @update:model-value="onVec" />
+              v-tip="'查询向量（JSON 数组）'" @update:model-value="onVec" />
 
     <!-- 1047：结构体键专用 JSON 位——pinned 置顶 docs/ids、diversify 查询向量、
          rescorer rescore 体。清空=移除该键；半截 JSON 只标红不写树。 -->
@@ -65,7 +65,7 @@
     <!-- rrf / linear：子检索器数组 -->
     <div v-if="kind === 'list'" class="rte-body">
       <div v-for="(c, i) in node.children" :key="c.id" class="rte-item">
-        <label v-if="wrapped" class="rte-w mono" title="weight：该路召回的线性权重">
+        <label v-if="wrapped" class="rte-w mono" v-tip="'weight：该路召回的线性权重'">
           w<n-input-number class="rte-w-in" :value="weightNum(c.id)" :show-button="false" size="small"
                            :input-props="{ 'aria-label': 'weight ' + c.id }" @update:value="v => onWeight(c.id, v)" />
         </label>

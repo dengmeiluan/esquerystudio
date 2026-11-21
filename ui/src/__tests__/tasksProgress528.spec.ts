@@ -88,9 +88,10 @@ describe('TasksView reindex 进度渲染（528 批，挂载）', () => {
     expect(prog!.querySelector('.tv-prog-txt')!.textContent).toContain('1,200/5,000 24%');
     expect(prog!.querySelector('.tv-prog-bar'), '有 total 必须出进度条').toBeTruthy();
     expect(prog!.querySelector<HTMLElement>('.tv-prog-fill')!.style.transform).toBe('scaleX(0.24)');
-    const title = prog!.getAttribute('title') || '';
-    expect(title).toContain('1,200');
-    expect(title).toContain('5,000');
+    /* chip 提示已迁 v-tip 指令（DOM 无 title 属性）——「已处理/总数 千分位」统计串
+       的装配（fmtNum(done)/fmtNum(total)）改源码锚 */
+    expect(rd('../views/TasksView.vue')).toContain('title: `已处理 ${fmtNum(done)}');
+    expect(rd('../views/TasksView.vue')).toContain(' / 总数 ${fmtNum(total)}`');
     app.unmount();
   }, 20000);
 

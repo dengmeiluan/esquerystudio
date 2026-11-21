@@ -15,6 +15,7 @@ import { distBinsOf } from '../utils/distBins';
 import { useColStats } from '../composables/useColStats';
 import { useAggRow } from '../composables/useAggRow';
 import TableAggFoot from '../components/TableAggFoot.vue';
+import { vTip } from '../directives/vTip';
 
 const tick = async (n = 6) => { for (let i = 0; i < n; i++) { await nextTick(); await Promise.resolve(); } };
 
@@ -113,15 +114,26 @@ describe('TableAggFoot dist mini-bar（五百六十三批）', () => {
       prefix: 'qrt', cols: ['n'], foot: FOOT, spark: null, emptyPct: { n: 0 },
       frozenOf: () => false, ...props,
     }) });
+    app.directive('tip', vTip); /* 桶条提示已迁 v-tip 指令，注册后经浮层读取 */
     app.mount(host);
     apps.push(app);
     await tick();
   }
 
+  /* 桶条提示已迁 v-tip 指令（DOM 无 title 属性；桶条是 <i> 不可真聚焦）：
+     focusin 通道合成事件不受可聚焦性限制，立即显示单例浮层 #vt-tip */
+  const tipOf = (el: HTMLElement): string => {
+    el.dispatchEvent(new Event('focusin', { bubbles: false }));
+    return document.getElementById('vt-tip')?.textContent ?? '';
+  };
+
   beforeEach(() => {
     apps.forEach(a => { try { a.unmount(); } catch { /* 已卸载 */ } });
     apps.length = 0;
     host.innerHTML = '';
+    /* 上一 describe 的 app.mount(document.body) 清空过 body，把本块收集期挂上的 host
+       剥离出文档树——v-tip 浮层显示要求宿主 isConnected，幂等挂回（已连接时 no-op） */
+    document.body.appendChild(host);
   });
 
   it('缺省不传 dist：零渲染（QRT/RT 既有接线 DOM 零变化；Σ/avg/cnt/spark 段不动）', async () => {
@@ -136,9 +148,9 @@ describe('TableAggFoot dist mini-bar（五百六十三批）', () => {
     await mountFoot({ dist: DIST8 });
     const bars = [...host.querySelectorAll('.qrt-agg-dist i')] as HTMLElement[];
     expect(bars.length, '8 桶').toBe(8);
-    expect(bars[0].title).toBe('0~1: 3');
-    expect(bars[7].title).toBe('7~8: 3');
-    expect(bars[1].title, '零值桶仍标 count').toBe('1~2: 0');
+    expect(tipOf(bars[0])).toBe('0~1: 3');
+    expect(tipOf(bars[7])).toBe('7~8: 3');
+    expect(tipOf(bars[1]), '零值桶仍标 count').toBe('1~2: 0');
   });
 
   it('桶高归一：最高桶 100%、零值桶 0%（与 ColDetailModal.distBarH 同口径）', async () => {

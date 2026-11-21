@@ -3,6 +3,8 @@
  * 覆盖：渲染（值/标签/单位/分隔符）、tone 语义档、tip 兜底、to 点击跳转、默认插槽。
  */
 import { describe, it, expect, beforeEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 async function mountStrip(items: unknown[], withSlot = false) {
   const { createApp, h, nextTick } = await import('vue');
@@ -78,15 +80,16 @@ describe('MetaStrip 统一件', () => {
     cleanup();
   });
 
-  it('tip 走 :title 兜底；有 tip 无 to 的段带 help 光标类', async () => {
+  it('tip 走 v-tip 兜底；有 tip 无 to 的段带 help 光标类', async () => {
     const { host, cleanup } = await mountStrip([
       { label: '待处理任务', value: 7, tip: '待处理任务 7（master 队列，>5 警告 >20 严重）' },
       { label: '无提示', value: 1 },
     ]);
     const segs = host.querySelectorAll('.ms-i');
-    expect((segs[0] as HTMLElement).title).toContain('master 队列');
+    /* 段提示已迁 v-tip 指令（DOM 无 title 属性）——tip 兜底绑定改源码锚 */
+    expect(readFileSync(join(__dirname, '../components/MetaStrip.vue'), 'utf8'))
+      .toContain('v-tip="it.tip || undefined"');
     expect(segs[0].classList.contains('help')).toBe(true);
-    expect((segs[1] as HTMLElement).title).toBe('');
     expect(segs[1].classList.contains('help')).toBe(false);
     cleanup();
   });

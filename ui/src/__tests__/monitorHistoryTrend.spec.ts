@@ -773,10 +773,10 @@ describe('R31 聚合修真与分片卡', () => {
     expect(view).toContain('.ld-charts { grid-template-columns: repeat(3, 1fr); }');
     expect(view).toContain('font-variant-numeric: tabular-nums');
   });
-  it('R51 质感：节点一览表节标题+长节点 ID 截短（title 悬停全量）', () => {
+  it('R51 质感：节点一览表节标题+长节点 ID 截短（v-tip 悬停全量）', () => {
     expect(view).toContain('ld-hist-ntab-t sec-t">节点最新水位<');
     expect(view).toContain('function shortNode(name: string): string {');
-    expect(view).toContain(':title="n.nodeName || n.connId || \'\'"');
+    expect(view).toContain('v-tip="n.nodeName || n.connId || \'\'"');
   });
   it('R47 Top 索引导出通道（802 同步更新：⋯ 菜单 copyDetail 分发；matrixText 单源保持）', () => {
     expect(view).toMatch(/detailTab\.value === 'top'[^}]{0,60}copyTop\(fmt\)/);

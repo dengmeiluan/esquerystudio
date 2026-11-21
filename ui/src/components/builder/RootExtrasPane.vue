@@ -9,7 +9,7 @@
  此前 14 个 chips 平铺两行 96px，默认状态下 13 个都是「未设置」占位，
  把结果表推到 y=812 / 视口 900 —— 每次查完都要滚动才看得到结果。 -->
       <button v-for="c in pinnedChips" :key="c.k" type="button" class="rx-chip"
-        :class="{ on: open.has(c.k) }" :title="CHIP_TIP[c.k] || undefined" @click="toggle(c.k)">
+        :class="{ on: open.has(c.k) }" v-tip="CHIP_TIP[c.k] || undefined" @click="toggle(c.k)">
         <span class="rx-cn">{{ c.cn }}</span><code class="rx-key">{{ c.key }}</code>
         <span class="rx-state" :class="{ on: isSet[c.k] }">{{ chipState(c.k) }}</span>
       </button>
@@ -25,15 +25,15 @@
         <!-- 排序行字段选择器只出可排序类型（ES doc_values 口径，含 boolean）；
  【W3b】候选内 date/数值族置顶（typePriority 只重排分组，候选集不变）
  998：多键排序项（{a:'asc',b:'desc'} 合并写法）不拆行——原样保留整项，用参数表编辑 -->
-        <span v-if="s.form === 'multi'" class="rx-lb" title="该排序项含多个键，DSL 原样保留；可点右侧参数编辑">多键排序项</span>
+        <span v-if="s.form === 'multi'" class="rx-lb" v-tip="'该排序项含多个键，DSL 原样保留；可点右侧参数编辑'">多键排序项</span>
         <FieldSelect v-else :model-value="s.field" :fields="fields" :types="types" :type-filter="SORTABLE_TYPES" :type-priority="SORT_PRIO_TYPES" @update:model-value="v => patchSort(s.id, { field: v })" />
         <n-select v-if="s.form !== 'multi'" class="rx-sort-order" size="tiny" :value="String(s.params.order ?? 'asc')"
-                  :options="ORDER_OPTIONS" :title="'排序方向（当前 ' + String(s.params.order ?? 'asc') + '）'"
+                  :options="ORDER_OPTIONS" v-tip="'排序方向（当前 ' + String(s.params.order ?? 'asc') + '）'"
                   @update:value="v => patchSort(s.id, { params: { ...s.params, order: v } })" />
-        <button aria-label="参数（missing/unmapped_type…）" class="btn sm ghost" title="参数（missing/unmapped_type…）" @click="sortParamsId = sortParamsId === s.id ? null : s.id"><Settings2 :size="12" /></button>
-        <button aria-label="上移" class="btn sm ghost" title="上移" :disabled="i === 0" @click="moveSort(i, -1)"><ChevronUp :size="12" /></button>
-        <button aria-label="下移" class="btn sm ghost" title="下移" :disabled="i === (tree.sort?.length || 1) - 1" @click="moveSort(i, 1)"><ChevronDown :size="12" /></button>
-        <button aria-label="删除" class="btn sm ghost danger" title="删除" @click="delSort(s.id)"><X :size="12" /></button>
+        <button aria-label="参数（missing/unmapped_type…）" class="btn sm ghost" v-tip="'参数（missing/unmapped_type…）'" @click="sortParamsId = sortParamsId === s.id ? null : s.id"><Settings2 :size="12" /></button>
+        <button aria-label="上移" class="btn sm ghost" v-tip="'上移'" :disabled="i === 0" @click="moveSort(i, -1)"><ChevronUp :size="12" /></button>
+        <button aria-label="下移" class="btn sm ghost" v-tip="'下移'" :disabled="i === (tree.sort?.length || 1) - 1" @click="moveSort(i, 1)"><ChevronDown :size="12" /></button>
+        <button aria-label="删除" class="btn sm ghost danger" v-tip="'删除'" @click="delSort(s.id)"><X :size="12" /></button>
         <div v-if="sortParamsId === s.id" class="rx-sub">
           <GenericParams :value="s.params" path-prefix="" @update="v => onSortParams(s.id, v)" />
         </div>
@@ -56,7 +56,7 @@ ES 默认返回全部字段
           <n-select class="rx-src-mode" size="tiny" :value="tree.source.mode" :options="SRC_MODE_OPTIONS"
                     aria-label="_source 裁剪模式"
                     @update:value="v => setSource(v as SourceSpec['mode'])" />
-          <button aria-label="移除 _source 键" class="btn sm ghost danger" title="移除 _source 键" @click="patch({ source: null })"><X :size="12" /></button>
+          <button aria-label="移除 _source 键" class="btn sm ghost danger" v-tip="'移除 _source 键'" @click="patch({ source: null })"><X :size="12" /></button>
         </div>
         <FieldPicker v-if="tree.source.mode === 'one'" class="rx-src-fields" width="100%"
                :model-value="tree.source.fields[0] || ''" :index="index || ''" placeholder="字段名"
@@ -85,8 +85,8 @@ ES 默认返回全部字段
           <!-- 高亮行只出可分词高亮的文本类字段（text/keyword）；
  【W3b】候选内 text 置顶（全文高亮主场景是分词字段） -->
           <FieldSelect :model-value="f.name" :fields="hlFields" :types="types" :type-filter="HL_TYPES" :type-priority="HL_PRIO_TYPES" @update:model-value="v => hlPatchField(i, { name: v })" />
-          <button aria-label="字段参数（fragment_size…）" class="btn sm ghost" title="字段参数（fragment_size…）" @click="hlParamsIdx = hlParamsIdx === i ? null : i"><Settings2 :size="12" /></button>
-          <button aria-label="删除" class="btn sm ghost danger" title="删除" @click="hlDelField(i)"><X :size="12" /></button>
+          <button aria-label="字段参数（fragment_size…）" class="btn sm ghost" v-tip="'字段参数（fragment_size…）'" @click="hlParamsIdx = hlParamsIdx === i ? null : i"><Settings2 :size="12" /></button>
+          <button aria-label="删除" class="btn sm ghost danger" v-tip="'删除'" @click="hlDelField(i)"><X :size="12" /></button>
           <div v-if="hlParamsIdx === i" class="rx-sub">
             <!-- 1021：字段级参数 schema 化——fragment_size/number_of_fragments/fragment_offset/
                  no_match_size 数值档 + type 三档枚举（plain/postings/fvh）；未登记键
@@ -97,9 +97,9 @@ ES 默认返回全部字段
         <div v-if="highlightRuntime" class="rx-rt-warn" role="status">运行时字段不支持高亮（ES 限制，elastic/elasticsearch#65556）；请改用 mapping 字段</div>
         <div class="rx-row">
           <button class="btn sm ghost rx-hl-add" @click="hlAddField"><Plus :size="12" /> 高亮字段</button>
-          <button aria-label="全局参数（pre_tags/post_tags…）" class="btn sm ghost" :class="{ on: hlGlobal }" title="全局参数（pre_tags/post_tags…）" @click="hlGlobal = !hlGlobal"><Settings2 :size="12" /></button>
+          <button aria-label="全局参数（pre_tags/post_tags…）" class="btn sm ghost" :class="{ on: hlGlobal }" v-tip="'全局参数（pre_tags/post_tags…）'" @click="hlGlobal = !hlGlobal"><Settings2 :size="12" /></button>
           <span style="flex:1"></span>
-          <button aria-label="移除 highlight 键" class="btn sm ghost danger" title="移除 highlight 键" @click="patch({ highlight: null })"><X :size="12" /></button>
+          <button aria-label="移除 highlight 键" class="btn sm ghost danger" v-tip="'移除 highlight 键'" @click="patch({ highlight: null })"><X :size="12" /></button>
         </div>
         <div v-if="hlGlobal" class="rx-sub">
           <GenericParams :value="tree.highlight.params" path-prefix="" @update="onHlGlobalParams" />
@@ -121,7 +121,7 @@ ES 默认返回全部字段
         <div class="rx-row">
           <button class="btn sm ghost rx-agg-add" @click="aggAdd"><Plus :size="12" /> 顶层聚合</button>
           <span style="flex:1"></span>
-          <button aria-label="移除聚合键" class="btn sm ghost danger" title="移除聚合键" @click="patch({ aggs: null })"><X :size="12" /></button>
+          <button aria-label="移除聚合键" class="btn sm ghost danger" v-tip="'移除聚合键'" @click="patch({ aggs: null })"><X :size="12" /></button>
         </div>
       </template>
     </div>
@@ -136,7 +136,7 @@ ES 默认返回全部字段
         <MiniTreeEditor :node="tree.postFilter" :fields="fields" :types="types" @update:node="pfUpdate" />
         <div class="rx-row">
           <span style="flex:1"></span>
-          <button aria-label="移除 post_filter 键" class="btn sm ghost danger" title="移除 post_filter 键" @click="patch({ postFilter: null })"><X :size="12" /></button>
+          <button aria-label="移除 post_filter 键" class="btn sm ghost danger" v-tip="'移除 post_filter 键'" @click="patch({ postFilter: null })"><X :size="12" /></button>
         </div>
       </template>
     </div>
@@ -150,9 +150,9 @@ ES 默认返回全部字段
       <template v-else>
         <div class="rx-row">
           <FieldSelect :model-value="tree.collapse.field" :fields="colFields" :types="types" :type-filter="COLLAPSE_TYPES" @update:model-value="v => colPatch({ field: v })" />
-          <button aria-label="折叠参数（inner_hits…）" class="btn sm ghost" :class="{ on: colParams }" title="折叠参数（inner_hits…）" @click="colParams = !colParams"><Settings2 :size="12" /></button>
+          <button aria-label="折叠参数（inner_hits…）" class="btn sm ghost" :class="{ on: colParams }" v-tip="'折叠参数（inner_hits…）'" @click="colParams = !colParams"><Settings2 :size="12" /></button>
           <span style="flex:1"></span>
-          <button aria-label="移除 collapse 键" class="btn sm ghost danger" title="移除 collapse 键" @click="patch({ collapse: null })"><X :size="12" /></button>
+          <button aria-label="移除 collapse 键" class="btn sm ghost danger" v-tip="'移除 collapse 键'" @click="patch({ collapse: null })"><X :size="12" /></button>
           <span v-if="collapseRuntime" class="rx-rt-warn" role="status">运行时字段不能用于 collapse（ES 需要索引字段的 doc_values）；请改用 mapping 字段</span>
         </div>
         <div v-if="colParams" class="rx-sub">
@@ -170,9 +170,9 @@ ES 默认返回全部字段
       <template v-else>
         <div class="rx-row">
           <FieldSelect :model-value="tree.knn.field || ''" :fields="fields" :types="types" :type-filter="KNN_TYPES" @update:model-value="v => knnPatch({ field: v || null })" />
-          <button aria-label="kNN 参数（k/num_candidates/filter…）" class="btn sm ghost" :class="{ on: knnParams }" title="kNN 参数（k/num_candidates/filter…）" @click="knnParams = !knnParams"><Settings2 :size="12" /></button>
+          <button aria-label="kNN 参数（k/num_candidates/filter…）" class="btn sm ghost" :class="{ on: knnParams }" v-tip="'kNN 参数（k/num_candidates/filter…）'" @click="knnParams = !knnParams"><Settings2 :size="12" /></button>
           <span style="flex:1"></span>
-          <button aria-label="移除 knn 键" class="btn sm ghost danger" title="移除 knn 键" @click="knnClear"><X :size="12" /></button>
+          <button aria-label="移除 knn 键" class="btn sm ghost danger" v-tip="'移除 knn 键'" @click="knnClear"><X :size="12" /></button>
         </div>
         <div class="rx-row">
           <span class="rx-lb">query_vector</span>
@@ -192,19 +192,19 @@ ES 默认返回全部字段
             <input class="inp mono rx-knn-vec" :value="JSON.stringify(k.vector ?? null)"
                    placeholder="query_vector JSON" @change="onKnnVecExtra(i, ($event.target as HTMLInputElement).value)" />
             <button aria-label="额外向量参数" class="btn sm ghost" :class="{ on: knnXIdx === i }"
-                    title="k / num_candidates / filter…" @click="knnXIdx = knnXIdx === i ? null : i"><Settings2 :size="12" /></button>
-            <button aria-label="删除该向量" class="btn sm ghost danger" title="删除该向量" @click="knnDelExtra(i)"><X :size="12" /></button>
+                    v-tip="'k / num_candidates / filter…'" @click="knnXIdx = knnXIdx === i ? null : i"><Settings2 :size="12" /></button>
+            <button aria-label="删除该向量" class="btn sm ghost danger" v-tip="'删除该向量'" @click="knnDelExtra(i)"><X :size="12" /></button>
           </div>
           <div v-if="knnXIdx === i" class="rx-sub">
             <GenericParams :value="k.params" path-prefix="" @update="v => { if (!Array.isArray(v)) knnPatchExtra(i, { params: v }); }" />
           </div>
         </div>
         <div class="rx-row">
-          <button class="btn sm ghost rx-knn-add2" title="再加一路向量查询（knn 写成数组，ES 8.7+ 混合检索）"
+          <button class="btn sm ghost rx-knn-add2" v-tip="'再加一路向量查询（knn 写成数组，ES 8.7+ 混合检索）'"
                   @click="knnAddExtra"><Plus :size="12" /> 加一路向量（数组形态）</button>
           <span v-if="tree.knnArray" class="rx-knn-tag mono">knn: [ ]</span>
           <span style="flex:1"></span>
-          <button v-if="tree.knnArray" class="btn sm ghost rx-knn-fold" title="收回对象形态（仅保留第一路向量）"
+          <button v-if="tree.knnArray" class="btn sm ghost rx-knn-fold" v-tip="'收回对象形态（仅保留第一路向量）'"
                   @click="knnFoldToObject">收回单对象</button>
         </div>
       </template>
@@ -218,12 +218,12 @@ ES 默认返回全部字段
       </div>
       <template v-else>
         <div v-for="(s, i) in tree.suggest.items" :key="i" class="rx-sug-row">
-          <input class="inp mono rx-sug-name" :value="s.name" placeholder="建议名" title="建议项名称（DSL 顶层键名）"
+          <input class="inp mono rx-sug-name" :value="s.name" placeholder="建议名" v-tip="'建议项名称（DSL 顶层键名）'"
                  @input="sugPatch(i, { name: ($event.target as HTMLInputElement).value })" />
           <input class="inp rx-sug-text" :value="s.hasText ? String(s.text ?? '') : ''" placeholder="text（待纠错文本）"
                  @input="onSugText(i, ($event.target as HTMLInputElement).value)" />
-          <button aria-label="建议参数（suggester 体）" class="btn sm ghost" :class="{ on: sugIdx === i }" title="建议参数（term/phrase/completion 体）" @click="sugIdx = sugIdx === i ? null : i"><Settings2 :size="12" /></button>
-          <button aria-label="删除建议" class="btn sm ghost danger" title="删除建议" @click="sugDel(i)"><X :size="12" /></button>
+          <button aria-label="建议参数（suggester 体）" class="btn sm ghost" :class="{ on: sugIdx === i }" v-tip="'建议参数（term/phrase/completion 体）'" @click="sugIdx = sugIdx === i ? null : i"><Settings2 :size="12" /></button>
+          <button aria-label="删除建议" class="btn sm ghost danger" v-tip="'删除建议'" @click="sugDel(i)"><X :size="12" /></button>
           <div v-if="sugIdx === i" class="rx-sub">
             <SuggesterEditor :rest="s.rest" :fields="fields" :types="types"
                              @update="v => onSugRest(i, v)" />
@@ -231,9 +231,9 @@ ES 默认返回全部字段
         </div>
         <div class="rx-row">
           <button class="btn sm ghost rx-sug-add2" @click="sugAdd"><Plus :size="12" /> 加建议</button>
-          <button v-if="!tree.suggest.hasGlobalText" class="btn sm ghost rx-sug-gtext" title="全局 text：所有建议项共享的待纠错文本" @click="sugGlobalText">+ 全局 text</button>
+          <button v-if="!tree.suggest.hasGlobalText" class="btn sm ghost rx-sug-gtext" v-tip="'全局 text：所有建议项共享的待纠错文本'" @click="sugGlobalText">+ 全局 text</button>
           <span style="flex:1"></span>
-          <button aria-label="移除 suggest 键" class="btn sm ghost danger" title="移除 suggest 键" @click="patch({ suggest: null })"><X :size="12" /></button>
+          <button aria-label="移除 suggest 键" class="btn sm ghost danger" v-tip="'移除 suggest 键'" @click="patch({ suggest: null })"><X :size="12" /></button>
         </div>
         <div v-if="tree.suggest.hasGlobalText" class="rx-row">
           <span class="rx-lb">全局 text</span>
@@ -263,11 +263,11 @@ ES 默认返回全部字段
         <div class="rx-row">
           <label class="rx-lb" for="rc-ws">window_size</label>
           <input id="rc-ws" class="inp mono rx-num" :value="tree.rescore.hasWindowSize ? String(tree.rescore.windowSize ?? '') : ''"
-                 placeholder="如 10" title="参与重打分的首屏条数（可留空 = ES 默认）"
+                 placeholder="如 10" v-tip="'参与重打分的首屏条数（可留空 = ES 默认）'"
                  @input="onRcWindow(($event.target as HTMLInputElement).value)" />
-          <button aria-label="重打分参数（query_weight/rescore_query_weight…）" class="btn sm ghost" :class="{ on: rcParams }" title="重打分参数（query_weight/rescore_query_weight…）" @click="rcParams = !rcParams"><Settings2 :size="12" /></button>
+          <button aria-label="重打分参数（query_weight/rescore_query_weight…）" class="btn sm ghost" :class="{ on: rcParams }" v-tip="'重打分参数（query_weight/rescore_query_weight…）'" @click="rcParams = !rcParams"><Settings2 :size="12" /></button>
           <span style="flex:1"></span>
-          <button aria-label="移除 rescore 键" class="btn sm ghost danger" title="移除 rescore 键" @click="rcClear"><X :size="12" /></button>
+          <button aria-label="移除 rescore 键" class="btn sm ghost danger" v-tip="'移除 rescore 键'" @click="rcClear"><X :size="12" /></button>
         </div>
         <div class="rx-row">
           <span class="rx-lb">重打分查询</span>
@@ -284,8 +284,8 @@ ES 默认返回全部字段
             <input :id="'rcx-ws' + i" class="inp mono rx-num" :value="rs.hasWindowSize ? String(rs.windowSize ?? '') : ''"
                    placeholder="如 10" @input="onRcWindowExtra(i, ($event.target as HTMLInputElement).value)" />
             <button aria-label="该段权重参数" class="btn sm ghost" :class="{ on: rcXIdx === i }"
-                    title="query_weight / rescore_query_weight…" @click="rcXIdx = rcXIdx === i ? null : i"><Settings2 :size="12" /></button>
-            <button aria-label="删除该段重打分" class="btn sm ghost danger" title="删除该段" @click="rcDelExtra(i)"><X :size="12" /></button>
+                    v-tip="'query_weight / rescore_query_weight…'" @click="rcXIdx = rcXIdx === i ? null : i"><Settings2 :size="12" /></button>
+            <button aria-label="删除该段重打分" class="btn sm ghost danger" v-tip="'删除该段'" @click="rcDelExtra(i)"><X :size="12" /></button>
           </div>
           <MiniTreeEditor v-if="rs.rescoreQuery" :node="rs.rescoreQuery" :fields="fields" :types="types"
                           @update:node="n => rcUpdateExtra(i, n)" />
@@ -294,11 +294,11 @@ ES 默认返回全部字段
           </div>
         </div>
         <div class="rx-row">
-          <button class="btn sm ghost rx-rc-add2" title="再加一段重打分（rescore 写成数组，多阶段重排）"
+          <button class="btn sm ghost rx-rc-add2" v-tip="'再加一段重打分（rescore 写成数组，多阶段重排）'"
                   @click="rcAddExtra"><Plus :size="12" /> 加一段重打分</button>
           <span v-if="tree.rescoreArray" class="rx-knn-tag mono">rescore: [ ]</span>
           <span style="flex:1"></span>
-          <button v-if="tree.rescoreArray" class="btn sm ghost rx-rc-fold" title="收回单对象形态（仅保留第一段）"
+          <button v-if="tree.rescoreArray" class="btn sm ghost rx-rc-fold" v-tip="'收回单对象形态（仅保留第一段）'"
                   @click="rcFoldToObject">收回单段</button>
         </div>
       </template>
@@ -312,10 +312,10 @@ ES 默认返回全部字段
       </div>
       <template v-else>
         <div v-for="(it, i) in tree.scriptFields.items" :key="i" class="rx-named-row">
-          <input class="inp mono rx-sug-name" :value="it.name" placeholder="字段名" title="返回文档里的新字段名"
+          <input class="inp mono rx-sug-name" :value="it.name" placeholder="字段名" v-tip="'返回文档里的新字段名'"
                  @input="sfPatch(i, ($event.target as HTMLInputElement).value)" />
-          <button aria-label="脚本字段参数" class="btn sm ghost" :class="{ on: sfIdx === i }" title="脚本体（source/params…）" @click="sfIdx = sfIdx === i ? null : i"><Settings2 :size="12" /></button>
-          <button aria-label="删除脚本字段" class="btn sm ghost danger" title="删除脚本字段" @click="sfDel(i)"><X :size="12" /></button>
+          <button aria-label="脚本字段参数" class="btn sm ghost" :class="{ on: sfIdx === i }" v-tip="'脚本体（source/params…）'" @click="sfIdx = sfIdx === i ? null : i"><Settings2 :size="12" /></button>
+          <button aria-label="删除脚本字段" class="btn sm ghost danger" v-tip="'删除脚本字段'" @click="sfDel(i)"><X :size="12" /></button>
           <div v-if="sfIdx === i" class="rx-sub">
             <GenericParams :value="it.body" path-prefix="" @update="v => { if (!Array.isArray(v)) sfPatchBody(i, v); }" />
           </div>
@@ -323,7 +323,7 @@ ES 默认返回全部字段
         <div class="rx-row">
           <button class="btn sm ghost rx-sf-add2" @click="sfAdd"><Plus :size="12" /> 加脚本字段</button>
           <span style="flex:1"></span>
-          <button aria-label="移除 script_fields 键" class="btn sm ghost danger" title="移除 script_fields 键" @click="patch({ scriptFields: null })"><X :size="12" /></button>
+          <button aria-label="移除 script_fields 键" class="btn sm ghost danger" v-tip="'移除 script_fields 键'" @click="patch({ scriptFields: null })"><X :size="12" /></button>
         </div>
       </template>
     </div>
@@ -335,10 +335,10 @@ ES 默认返回全部字段
       </div>
       <template v-else>
         <div v-for="(it, i) in tree.runtimeMappings.items" :key="i" class="rx-named-row">
-          <input class="inp mono rx-sug-name" :value="it.name" placeholder="字段名" title="运行时字段名"
+          <input class="inp mono rx-sug-name" :value="it.name" placeholder="字段名" v-tip="'运行时字段名'"
                  @input="rmPatch(i, ($event.target as HTMLInputElement).value)" />
-          <button aria-label="运行时字段参数" class="btn sm ghost" :class="{ on: rmIdx === i }" title="字段体（type/script/format…）" @click="rmIdx = rmIdx === i ? null : i"><Settings2 :size="12" /></button>
-          <button aria-label="删除运行时字段" class="btn sm ghost danger" title="删除运行时字段" @click="rmDel(i)"><X :size="12" /></button>
+          <button aria-label="运行时字段参数" class="btn sm ghost" :class="{ on: rmIdx === i }" v-tip="'字段体（type/script/format…）'" @click="rmIdx = rmIdx === i ? null : i"><Settings2 :size="12" /></button>
+          <button aria-label="删除运行时字段" class="btn sm ghost danger" v-tip="'删除运行时字段'" @click="rmDel(i)"><X :size="12" /></button>
           <div v-if="rmIdx === i" class="rx-sub">
             <GenericParams :value="it.body" path-prefix="" @update="v => { if (!Array.isArray(v)) rmPatchBody(i, v); }" />
           </div>
@@ -346,7 +346,7 @@ ES 默认返回全部字段
         <div class="rx-row">
           <button class="btn sm ghost rx-rm-add2" @click="rmAdd"><Plus :size="12" /> 加运行时字段</button>
           <span style="flex:1"></span>
-          <button aria-label="移除 runtime_mappings 键" class="btn sm ghost danger" title="移除 runtime_mappings 键" @click="patch({ runtimeMappings: null })"><X :size="12" /></button>
+          <button aria-label="移除 runtime_mappings 键" class="btn sm ghost danger" v-tip="'移除 runtime_mappings 键'" @click="patch({ runtimeMappings: null })"><X :size="12" /></button>
         </div>
       </template>
     </div>
@@ -378,14 +378,14 @@ ES 默认返回全部字段
         <!-- json：单行 JSON，非法标红不写树 -->
         <input v-else class="inp mono rx-qp-ctl rx-qp-json" :class="{ bad: qpJsonBad(k) }" :value="qpJsonText(k)"
                :placeholder="SEARCH_PARAM_META[k]?.placeholder || '[…]'"
-               :title="qpJsonBad(k) ? 'JSON 语法错误：修正后自动生效，当前未写入树' : '合法 JSON：数组或对象'"
+               v-tip="qpJsonBad(k) ? 'JSON 语法错误：修正后自动生效，当前未写入树' : '合法 JSON：数组或对象'"
                @input="onQpJson(k, ($event.target as HTMLInputElement).value)"
                @blur="qpDraftClear(k)" />
-        <button aria-label="移除该查询参数" class="btn sm ghost danger" title="移除该参数" @click="qpDel(k)"><X :size="12" /></button>
+        <button aria-label="移除该查询参数" class="btn sm ghost danger" v-tip="'移除该参数'" @click="qpDel(k)"><X :size="12" /></button>
         <div class="rx-qp-hint">{{ SEARCH_PARAM_META[k]?.hint }}</div>
       </div>
       <div class="rx-row">
-        <button class="btn sm ghost rx-qp-add" :aria-expanded="qpMenu" title="添加检索级参数（按族分组）" @click="qpMenu = !qpMenu">
+        <button class="btn sm ghost rx-qp-add" :aria-expanded="qpMenu" v-tip="'添加检索级参数（按族分组）'" @click="qpMenu = !qpMenu">
           <Plus :size="12" /> 添加参数
         </button>
       </div>
@@ -393,7 +393,7 @@ ES 默认返回全部字段
         <div v-for="g in SEARCH_PARAM_GROUPS" :key="g.group" class="rx-qp-grp">
           <div class="rx-qp-g">{{ g.group }}</div>
           <button v-for="it in g.items" :key="it.key" type="button" class="rx-qp-mi"
-                  :disabled="it.key in tree.searchParams" :title="it.hint" @click="qpAdd(it.key)">
+                  :disabled="it.key in tree.searchParams" v-tip="it.hint" @click="qpAdd(it.key)">
             <span>{{ it.label }}</span><code class="mono">{{ it.key }}</code>
           </button>
         </div>

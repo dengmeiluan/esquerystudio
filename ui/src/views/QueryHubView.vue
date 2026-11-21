@@ -7,7 +7,7 @@
         <button
           v-for="m in QUERY_MODES" :key="m.k"
           class="qh-mode" :class="{ on: modeK === m.k }"
-          :title="m.essence" :aria-pressed="modeK === m.k"
+          v-tip="m.essence" :aria-pressed="modeK === m.k"
           @click="switchMode(m.k)"
           @contextmenu.prevent="openModeMenu($event, m)"
           @keydown="onModeKeydown($event, m)"
@@ -29,7 +29,7 @@
       <CurrentIdxChip />
       <n-popover trigger="click" placement="bottom" :show="labOpen" @update:show="(v: boolean) => (labOpen = v)">
         <template #trigger>
-          <button class="btn sm ghost qh-hist" title="相关性调试：评分解释 / 排名侦探 / X 光 / 命中矩阵 / Boost / 火焰图">
+          <button class="btn sm ghost qh-hist" v-tip="'相关性调试：评分解释 / 排名侦探 / X 光 / 命中矩阵 / Boost / 火焰图'">
             <SearchCheck :size="14" /> 相关性调试
           </button>
         </template>
@@ -39,7 +39,7 @@
           </button>
         </div>
       </n-popover>
-      <button class="btn sm ghost qh-hist" @click="histOpen = true" title="跨模式查询历史（六通道共用，可回放）">
+      <button class="btn sm ghost qh-hist" @click="histOpen = true" v-tip="'跨模式查询历史（六通道共用，可回放）'">
         <History :size="14" /> 历史
       </button>
     </div>
@@ -71,7 +71,7 @@
  点「日常场景」弹出任务列表，不再 inline 平铺挤压工具行 -->
             <n-popover trigger="click" placement="bottom-start" :width="560">
               <template #trigger>
-                <button class="qh-task qh-tasks-toggle" title="日常场景（一键生成 DSL）">
+                <button class="qh-task qh-tasks-toggle" v-tip="'日常场景（一键生成 DSL）'">
                   <Sparkles :size="12" /> 日常场景
                   <ChevronDown :size="12" />
                 </button>
@@ -81,13 +81,13 @@
                 <div v-if="store.pickedIdx && recAuto.length" class="qh-task-rec">
                   <span class="qh-task-rec-hd">按当前 mapping 推荐</span>
                   <button v-for="r in recAuto" :key="'rec-' + r.task.k" type="button" class="qh-task qh-task-rec-btn"
-                    :title="recTitle(r)" @click="applyTask(r.task)">{{ r.task.t }}</button>
+                    v-tip="recTitle(r)" @click="applyTask(r.task)">{{ r.task.t }}</button>
                 </div>
                 <template v-for="t in QUICK_TASKS" :key="t.k">
           <div v-if="t.head" class="qh-task-sec">{{ t.head }}</div>
           <n-popover v-if="t.input" trigger="click" placement="bottom" :show="taskOpen === t.k" @update:show="(v: boolean) => (taskOpen = v ? t.k : '')">
             <template #trigger>
-              <button class="qh-task" :class="{ 'qh-task-off': !taskReady(t) }" :title="taskTitle(t)" :disabled="!taskReady(t)">{{ t.t }}</button>
+              <button class="qh-task" :class="{ 'qh-task-off': !taskReady(t) }" v-tip="taskTitle(t)" :disabled="!taskReady(t)">{{ t.t }}</button>
             </template>
             <div class="qh-task-pop">
               <div class="qh-task-scene">{{ t.scene }}</div>
@@ -111,7 +111,7 @@
               </div>
             </div>
           </n-popover>
-          <button v-else class="qh-task" :class="{ 'qh-task-off': !taskReady(t) }" :title="taskTitle(t)" :disabled="!taskReady(t)" @click="applyTask(t)">{{ t.t }}</button>
+          <button v-else class="qh-task" :class="{ 'qh-task-off': !taskReady(t) }" v-tip="taskTitle(t)" :disabled="!taskReady(t)" @click="applyTask(t)">{{ t.t }}</button>
                 </template>
               </div>
             </n-popover>
@@ -127,7 +127,7 @@
         <input ref="importFileEl" type="file" accept=".json,application/json" style="display:none"
           aria-label="导入跨模式查询历史" @change="onImportFile" />
         <button class="btn ghost sm" style="margin-bottom:var(--sp-2)" :disabled="importing"
-          title="从导出的 JSON 合并导入（同 mode+查询+索引去重）" @click="importFileEl?.click()">
+          v-tip="'从导出的 JSON 合并导入（同 mode+查询+索引去重）'" @click="importFileEl?.click()">
           <Copy :size="12" /> 导入历史
         </button>
         <QueryHistoryPanel

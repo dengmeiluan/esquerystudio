@@ -194,7 +194,7 @@ describe('1439 三处宿主接线', () => {
       '                  <!-- 1439：改了 DSL 没重新执行时结果还是上一次的——docs/Lucene/工作台同款芯片 -->\n',
       '',
     ).replace(
-      '                  <span v-if="qryStale" class="pill warn stale-chip" role="status"\n                    title="当前 DSL 已修改但还没执行——下方结果仍来自上一次执行（Ctrl+Enter 或点「执行查询」更新）">结果已过期</span>\n',
+      '                  <span v-if="qryStale" class="pill warn stale-chip" role="status"\n                    v-tip="' + "'" + '当前 DSL 已修改但还没执行——下方结果仍来自上一次执行（Ctrl+Enter 或点「执行查询」更新）' + "'" + '">结果已过期</span>\n',
       '',
     );
     expect(noMark).not.toBe(IH);

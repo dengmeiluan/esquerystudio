@@ -1,7 +1,12 @@
 /* 1067：条件树键盘移动——Alt+↑/↓ 在同 occur / multi 同 key 分区内换位。 */
 import { describe, it, expect, beforeEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { createApp, h, nextTick, shallowRef } from 'vue';
 import QueryTreePane from '../components/builder/QueryTreePane.vue';
+
+/* 拖拽把手提示已迁 v-tip 指令（DOM 无 title 属性），键盘捷径文案改源码锚 */
+const CLAUSE_SRC = readFileSync(join(__dirname, '../components/builder/ClauseNode.vue'), 'utf8');
 import { parseTree, serializeTree, moveSibling, type QueryTree } from '../utils/queryAst';
 
 const tick = () => new Promise(r => setTimeout(r, 0));
@@ -87,7 +92,7 @@ describe('1067 条件树键盘移动交互', () => {
     keyAlt(fields[1], 'ArrowUp');
     await tick();
     expect(mustKeys(cur.value)).toEqual(['b', 'a', 'c']);
-    expect(host.querySelector('.cn-grip')?.getAttribute('title')).toContain('Alt+↑/↓');
+    expect(CLAUSE_SRC, '拖拽把手提示含键盘捷径').toContain('v-tip="\'拖拽排序（按住拖动）；Alt+↑/↓ 上移/下移\'"');
 
     const before = serializeTree(cur.value);
     const first = host.querySelectorAll<HTMLInputElement>('.cn .fs-inp')[0];

@@ -12,7 +12,7 @@ const v = readFileSync(join(__dirname, '../views/IndexHubView.vue'), 'utf-8');
 
 describe('IndexHub → DevTools 直达（474 批）', () => {
   it('按钮接线：qryResp 门控+ExternalLink 图标', () => {
-    expect(v).toMatch(/<button class="btn sm ghost" :disabled="!qryResp" @click="openQryInDevTools" title="把当前索引与 DSL 带到 DevTools 多标签控制台">/);
+    expect(v).toMatch(/<button class="btn sm ghost" :disabled="!qryResp" @click="openQryInDevTools" v-tip="'把当前索引与 DSL 带到 DevTools 多标签控制台'">/);
     expect(v).toContain('<ExternalLink :size="11" /> DevTools');
   });
 

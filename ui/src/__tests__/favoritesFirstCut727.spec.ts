@@ -75,11 +75,12 @@ afterEach(() => {
 });
 
 describe('G87 时间戳段中文 tip（铁律 F）', () => {
-  it('时间戳段 title=收藏时间 + help 档（cursor:help 悬停可达）', async () => {
+  it('时间戳段提示=收藏时间 + help 档（cursor:help 悬停可达）', async () => {
     const host = await mountFav([{ id: 'a', kind: 'dsl', title: 'T1', ts: 1759300000000, payload: { body: '{}' } }]);
     const seg = tsSeg(host);
     expect(seg).toBeTruthy();
-    expect(seg!.getAttribute('title')).toBe('收藏时间');
+    /* 段提示已迁 v-tip 指令（DOM 无 title 属性）——tip 文案改源码锚（items prop 传 tip，MetaStrip 内部 v-tip 承接） */
+    expect(readFileSync(join(__dirname, '../views/FavoritesView.vue'), 'utf8')).toContain("tip: '收藏时间'");
     expect(seg!.className).toContain('help');
   });
 

@@ -5,7 +5,7 @@
  同步更新读本文件）。 -->
 <template>
   <button v-if="on" class="btn sm ghost" :class="btnCls" aria-label="刷新结果"
-    title="刷新结果（重跑当前查询）" @click="$emit('refresh')">
+    v-tip="'刷新结果（重跑当前查询）'" @click="$emit('refresh')">
     <RotateCcw :size="13" /> 刷新
   </button>
 </template>

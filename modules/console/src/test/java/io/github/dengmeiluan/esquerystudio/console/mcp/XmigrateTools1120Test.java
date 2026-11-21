@@ -229,7 +229,8 @@ public class XmigrateTools1120Test {
         List<String> actionKeys = new ArrayList<>(actions.keySet());
         assertEquals(Arrays.asList("preflight", "start", "status", "jobs", "fetch_config", "resume", "abort",
                 "reconcile", "conflicts", "connect_check", "resolve_preview", "dest_indices", "delete_jobs",
-                "sync_structure", "probe_capabilities", "compare_capabilities", "diff_structure", "throttle"),
+                "sync_structure", "probe_capabilities", "compare_capabilities", "diff_structure",
+                "verify_equivalence", "throttle"),
                 actionKeys);
         assertEquals("es_xmigrate_preflight", actions.get("preflight"));
         assertEquals("es_xmigrate_start", actions.get("start"));

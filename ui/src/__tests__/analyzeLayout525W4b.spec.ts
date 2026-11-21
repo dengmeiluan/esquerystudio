@@ -69,14 +69,14 @@ describe('525 AnalyzeView：stacked 坍缩修复 + 结果区纵缝 + assist 接�
     /* 惰性触发挂在 fields()（补全触发才拉，挂载零请求） */
     expect(analyze).toMatch(/void ensureAssistFields\(\); void loadAnalyzerNames\(\);/);
   });
-  it('④ Token 表数值三列右对齐 + title 原值（529 反转同步更新：fieldTypes double → 内核 num-col 右对齐+徽标，title 走 #cell- 槽）', () => {
+  it('④ Token 表数值三列右对齐 + 提示原值（529 反转同步更新：fieldTypes double → 内核 num-col 右对齐+徽标，提示走 #cell- 槽 v-tip）', () => {
     /* 五百二十九批锚同步更新：th class=num 三列 / .av-tk-tbl td.num 右对齐 CSS 退役——
        右对齐与双层列头徽标改由 QRT fieldTypes 显式 double（num-col）承担 */
     expect(analyze).toMatch(/const AV_TOKEN_TYPES: Record<string, string> = \{ 序位: 'double', 字符区间: 'double', 长度: 'double' \}/);
-    /* title 原值锚同步更新：r.t.* → #cell- 槽 value（ES 原始字段名可查证语义不变） */
-    expect(analyze).toMatch(/:title="'position=' \+ value"/);
-    expect(analyze).toMatch(/:title="'start_offset=' \+ String\(value\)\.split\('-'\)\[0\] \+ ' · end_offset=' \+ String\(value\)\.split\('-'\)\[1\]"/);
-    expect(analyze).toMatch(/:title="'length=' \+ value"/);
+    /* 提示原值锚同步更新：r.t.* → #cell- 槽 value（ES 原始字段名可查证语义不变） */
+    expect(analyze).toMatch(/v-tip="'position=' \+ value"/);
+    expect(analyze).toMatch(/v-tip="'start_offset=' \+ String\(value\)\.split\('-'\)\[0\] \+ ' · end_offset=' \+ String\(value\)\.split\('-'\)\[1\]"/);
+    expect(analyze).toMatch(/v-tip="'length=' \+ value"/);
   });
 });
 

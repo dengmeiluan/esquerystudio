@@ -4,8 +4,8 @@ import { createPinia } from 'pinia';
 import { createRouter, createMemoryHistory } from 'vue-router';
 
 /* IndexHubView 元信息串合并 MetaStrip 统一件回归：items 四段（文档/存储+单位/分片副本/创建）
-   渲染、别名段走默认插槽（前 3 截断 + 「管控」跳转交互）、整条 hover title 原文留根（信息保真：
-   title 携带全量别名列表，显示只截前 3）。 */
+   渲染、别名段走默认插槽（前 3 截断 + 「管控」跳转交互）、整条 hover 兜底走 v-tip.long 浮层
+   （信息保真：浮层携带全量别名列表，显示只截前 3；1120 批前为根 title 属性）。 */
 
 const IDX_A = {
   index: 'idx_a', health: 'green', status: 'open', pri: 3, rep: 1,
@@ -38,6 +38,7 @@ vi.mock('../api', async (importOriginal) => {
 let aliasesMock: { alias: string; index: string }[] = FIVE_ALIASES;
 
 import IndexHubView from '../views/IndexHubView.vue';
+import { vTip } from '../directives/vTip';
 
 async function mountHub() {
   /* useUrlState/useIdxState 读的是 hash query（location.hash），深链选中走这里而非 router.push */
@@ -54,6 +55,8 @@ async function mountHub() {
   const host = document.createElement('div');
   document.body.appendChild(host);
   const app = createApp({ render: () => h(IndexHubView as any) });
+  /* 1120 批容器级 :title→v-tip.long：挂具注册指令，整条兜底全文改 focusin 浮层断言 */
+  app.directive('tip', vTip);
   app.use(createPinia());
   app.use(router);
   app.mount(host);
@@ -113,26 +116,29 @@ describe('IndexHubView 元信息串（MetaStrip 统一件）', () => {
     cleanup();
   });
 
-  it('整条 hover title 原文留根：含全量别名列表（信息保真）', async () => {
+  it('整条 hover 兜底全文可达：v-tip.long 浮层含全量别名列表（信息保真）', async () => {
     const { host, cleanup } = await mountHub();
     await waitStrip(host);
     const root = host.querySelector('.ih-meta-pos') as HTMLElement;
-    const tip = root.getAttribute('title') || '';
-    expect(tip).toBe(
+    root.dispatchEvent(new Event('focusin', { bubbles: false }));
+    expect(document.getElementById('vt-tip')?.textContent ?? '').toBe(
       '文档 12,345 · 存储 34.5gb · 3/1 分片/副本 · 创建 2024-01-02 03:04:05'
       + ' · 别名 al_one、al_two、al_three、al_four、al_five',
     );
+    expect(root.hasAttribute('title'), '原生 title 已迁 v-tip').toBe(false);
     cleanup();
   });
 
-  it('无别名分支：插槽弱化「无」，title 兜底「无别名」', async () => {
+  it('无别名分支：插槽弱化「无」，兜底浮层「无别名」', async () => {
     aliasesMock = [];
     const { host, cleanup } = await mountHub();
     await waitStrip(host);
     const aliasSeg = host.querySelector('.ih-meta-alias') as HTMLElement;
     expect(aliasSeg.querySelector('b')).toBeNull();
     expect(aliasSeg.querySelector('.dim')?.textContent).toBe('无');
-    expect((host.querySelector('.ih-meta-pos') as HTMLElement).getAttribute('title')).toContain(' · 无别名');
+    const root = host.querySelector('.ih-meta-pos') as HTMLElement;
+    root.dispatchEvent(new Event('focusin', { bubbles: false }));
+    expect(document.getElementById('vt-tip')?.textContent ?? '').toContain(' · 无别名');
     cleanup();
   });
 });

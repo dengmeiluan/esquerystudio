@@ -409,7 +409,7 @@ describe('562 K6：中文备注扫尾（主显句式/弱化小字/title）', () 
   });
   it('DV 复制为代码 option 中文备注落 select title（devtoolsCodegen314 option 字面锁零触）', () => {
     /* W3b NSelect 升档：title 字面不动，option 字面随迁 CODEGEN_OPTS 常量 */
-    expect(dt).toContain('title="复制为代码（fetch=前端 JavaScript 脚本 · requests=Python 脚本）"');
+    expect(dt).toContain(`v-tip="'复制为代码（fetch=前端 JavaScript 脚本 · requests=Python 脚本）'"`);
     expect(dt).toContain("label: 'JavaScript (fetch)', value: 'js'");
     expect(dt).toContain("label: 'Python (requests)', value: 'python'");
   });

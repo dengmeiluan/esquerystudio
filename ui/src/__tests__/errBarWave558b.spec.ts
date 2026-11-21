@@ -61,8 +61,8 @@ describe('558b ①：QueryXray 结论档补齐（role=alert + friendlyEsError + 
   it('vrErr 失败面板 role=alert 在场（.qx-verdict.bad verdict 族保形，token 与 err-bar 同源）', () => {
     expect(qx).toContain('<div v-if="vrErr" role="alert" class="qx-verdict bad qx-err-panel">');
   });
-  it('vr.error 裸 ES 串换 friendlyEsError 显示 + :title 保原文（vrErr 双轨口径补齐）', () => {
-    expect(qx).toContain('<span v-if="vr.error" class="qx-verr" :title="vr.error">{{ friendlyEsError(vr.error) }}</span>');
+  it('vr.error 裸 ES 串换 friendlyEsError 显示 + v-tip 保原文（vrErr 双轨口径补齐）', () => {
+    expect(qx).toContain('<span v-if="vr.error" class="qx-verr" v-tip="vr.error">{{ friendlyEsError(vr.error) }}</span>');
   });
   it('tvId placeholder 补「数据浏览页复制」引导', () => {
     expect(qx).toMatch(/<input v-model="tvId" class="qx-ii wide" placeholder="[^"]*数据浏览页[^"]*"/);
@@ -130,7 +130,7 @@ describe('558b ④：BoostTuner 滑杆动态权重提示', () => {
     /* 动态倍数走 fmtBoost 归一（草稿恢复值经 JSON.parse 不受类型约束，展示前
      Number 归一防 .toFixed 抛 TypeError；857 随刀锁随迁——锁语义 ×N 动态+multi_match 语义不变）。
      原生 range 升档 NSlider：值经 Number 归一入件（草稿字符串防御前置），title 通道原样保留 */
-    expect(bt).toMatch(/<n-slider :value="Number\(x\.f\.boost\) \|\| 0"[^>]*:title="'权重 ×' \+ fmtBoost\(x\.f\.boost\) \+ '[^']*multi_match[^']*'"/);
+    expect(bt).toMatch(/<n-slider :value="Number\(x\.f\.boost\) \|\| 0"[^>]*v-tip="'权重 ×' \+ fmtBoost\(x\.f\.boost\) \+ '[^']*multi_match[^']*'"/);
     /* 防回潮：原生 range 形态不得回流 */
     expect(bt).not.toMatch(/<input type="range"/);
   });

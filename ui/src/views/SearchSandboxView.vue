@@ -12,9 +12,9 @@
         <CurrentIdxChip />
         <!-- 三开关补中文释义 title（悬停可读，纯属性追加；explain 响应变大、
  profile 调优排障、auto-highlight 高亮语义一句话说清） -->
-        <n-checkbox v-model:checked="opts.explain" size="small" class="ss-chk" title="返回每命中的打分解释（_explanation，响应变大）">explain</n-checkbox>
-        <n-checkbox v-model:checked="opts.profile" size="small" class="ss-chk" title="返回各分片执行明细（Profile，调优排障用，响应变大）">profile</n-checkbox>
-        <n-checkbox v-model:checked="opts.highlight" size="small" class="ss-chk" title="按查询词自动高亮命中片段">auto-highlight</n-checkbox>
+        <n-checkbox v-model:checked="opts.explain" size="small" class="ss-chk" v-tip="'返回每命中的打分解释（_explanation，响应变大）'">explain</n-checkbox>
+        <n-checkbox v-model:checked="opts.profile" size="small" class="ss-chk" v-tip="'返回各分片执行明细（Profile，调优排障用，响应变大）'">profile</n-checkbox>
+        <n-checkbox v-model:checked="opts.highlight" size="small" class="ss-chk" v-tip="'按查询词自动高亮命中片段'">auto-highlight</n-checkbox>
       </div>
       <div class="ss-bar-r lr-bar-r">
         <!-- 裸串「took Xms · hits N」改用 MetaStrip 统一件 + TookBadge 四档语义徽标
@@ -27,8 +27,8 @@
         </MetaStrip>
         <!-- 页内历史入口（四视图统一，DslQueryView 弹窗范式）——run() 一直在
  push mode=sandbox 历史（此前页内零出口，回放只能去查询工作台跨模式抽屉 -->
-        <button class="btn sm ghost" data-test="open-hist" @click="histOpen = true" title="查询历史"><History :size="12" /> 历史</button>
-        <button class="btn sm ghost" @click="copyCurl" :disabled="!dslBody.trim()" title="复制为 curl 命令，贴终端直接执行">
+        <button class="btn sm ghost" data-test="open-hist" @click="histOpen = true" v-tip="'查询历史'"><History :size="12" /> 历史</button>
+        <button class="btn sm ghost" @click="copyCurl" :disabled="!dslBody.trim()" v-tip="'复制为 curl 命令，贴终端直接执行'">
           <FileCode2 :size="12" /> curl
         </button>
 <!-- run 主钮补 Play spinning（文案切换既有——803 池「文案通道 NONE」系
@@ -37,7 +37,7 @@
           <Play :size="12" :class="{ spinning: running }" /> {{ running ? '搜索中（' + (qr.elapsedMs.value / 1000).toFixed(1) + 's）…' : '搜索 (Ctrl+Enter)' }}
         </button>
         <button v-if="running" class="btn sm" @click="qr.cancel()"><XCircle :size="12" /> 取消</button>
-        <button aria-label="重置为示例 DSL" class="btn sm ghost" @click="reset" title="重置为示例 DSL"><RotateCcw :size="12" /></button>
+        <button aria-label="重置为示例 DSL" class="btn sm ghost" @click="reset" v-tip="'重置为示例 DSL'"><RotateCcw :size="12" /></button>
       </div>
     </div>
 
@@ -63,7 +63,7 @@
  （构建器→沙盒有、沙盒→构建器无）。走 ?dsl= 深链通道（DslQueryView onMounted
  消费预填并自动执行，SqlBridge/SqlConsole 同款跳转形态），目标索引随 ?idx= 带去 -->
           <button class="btn ghost xs" :disabled="!dslBody.trim()" @click="openInBuilder"
-            title="当前 DSL 带到查询构建器（条件树可视化改写）">
+            v-tip="'当前 DSL 带到查询构建器（条件树可视化改写）'">
             <ListTree :size="11" /> 在构建器中打开
           </button>
         </div>
@@ -111,16 +111,16 @@
 <!-- 结果视图 seg 升格（容器 role=group+aria-label+钮 aria-pressed，G192 范式随批裁） -->
           <div class="seg" role="group" aria-label="结果视图" style="margin-left:auto">
             <button :class="{ on: view === 'hits' }" :aria-pressed="view === 'hits'" @click="view = 'hits'"><FileText :size="11" /> hits ({{ hits.length }})</button>
-            <button :class="{ on: view === 'agg' }" :aria-pressed="view === 'agg'" @click="view = 'agg'" :disabled="!hasAgg" title="DSL 需包含 aggs 聚合才有数据"><PieChart :size="11" /> aggs</button>
-            <button :class="{ on: view === 'explain' }" :aria-pressed="view === 'explain'" @click="view = 'explain'; opts.explain = true" title="自动勾选 explain 并显示解释树（请求选项可关）"><Sigma :size="11" /> explain</button>
-            <button :class="{ on: view === 'profile' }" :aria-pressed="view === 'profile'" @click="view = 'profile'; opts.profile = true" title="自动勾选 profile 并显示分片耗时（请求选项可关）"><Activity :size="11" /> profile</button>
+            <button :class="{ on: view === 'agg' }" :aria-pressed="view === 'agg'" @click="view = 'agg'" :disabled="!hasAgg" v-tip="'DSL 需包含 aggs 聚合才有数据'"><PieChart :size="11" /> aggs</button>
+            <button :class="{ on: view === 'explain' }" :aria-pressed="view === 'explain'" @click="view = 'explain'; opts.explain = true" v-tip="'自动勾选 explain 并显示解释树（请求选项可关）'"><Sigma :size="11" /> explain</button>
+            <button :class="{ on: view === 'profile' }" :aria-pressed="view === 'profile'" @click="view = 'profile'; opts.profile = true" v-tip="'自动勾选 profile 并显示分片耗时（请求选项可关）'"><Activity :size="11" /> profile</button>
             <button :class="{ on: view === 'raw' }" :aria-pressed="view === 'raw'" @click="view = 'raw'"><Braces :size="11" /> raw</button>
           </div>
           <!-- 原始 IO 快查——最近一次 /cluster/search-dsl 请求/响应原文（ioRecorder 记录环） -->
-          <button class="btn ghost xs" data-test="raw-io" aria-label="查看原始 IO（搜索沙盒）" title="最近一次搜索请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo"><Terminal :size="11" /> 原始 IO</button>
+          <button class="btn ghost xs" data-test="raw-io" aria-label="查看原始 IO（搜索沙盒）" v-tip="'最近一次搜索请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo"><Terminal :size="11" /> 原始 IO</button>
           <!-- 聚焦双态钮（fs-head 行退役后的放大/还原入口，ld.page 先例） -->
           <button class="btn ghost xs" :aria-label="fsResOn ? '还原结果区' : '聚焦结果区'"
-            :title="fsResOn ? '还原结果区（Esc 也可退出）' : '聚焦结果区'" @click="fsResOn = !fsResOn">
+            v-tip="fsResOn ? '还原结果区（Esc 也可退出）' : '聚焦结果区'" @click="fsResOn = !fsResOn">
             <Minimize2 v-if="fsResOn" :size="11" /><Maximize2 v-else :size="11" />
           </button>
         </div>

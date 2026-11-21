@@ -77,7 +77,7 @@ describe('681 A：RawIoModal 字号档源码锚', () => {
     expect(rim).toContain('aria-label="编辑器字号档"');
     expect(rim).toContain('rimFont === f');
     expect(rim).toContain('v-for="f in EDITOR_FONT_TIERS"');
-    expect(rim).toContain(":title=\"'编辑器字号 ' + f + 'px'\"");
+    expect(rim).toContain("v-tip=\"'编辑器字号 ' + f + 'px'\"");
   });
   it('A5 seg 尺寸锚（scoped CSS dt/dq-font-seg 同形）', () => {
     expect(rim).toContain('.rim-font-seg { flex-shrink: 0; }');
@@ -100,7 +100,7 @@ describe('681 B：fontSize 真值到达两处 Monaco + rim.font 落盘还原', (
     expect(btns.length, '三档钮').toBe(3);
     expect(btns.map(b => b.textContent)).toEqual(['12.5', '14', '16']);
     expect(document.body.querySelector('.rim-font-seg')!.getAttribute('aria-label')).toContain('字号');
-    expect(btns[1]!.getAttribute('title')).toBe('编辑器字号 14px');
+    expect(rim, '档位钮提示含具体字号（v-tip 动态绑定 f）').toContain("v-tip=\"'编辑器字号 ' + f + 'px'\"");
     expect(btns[0]!.classList.contains('on'), '缺省激活态在首档').toBe(true);
     const mon = stubs();
     expect(mon.length, '请求+响应两处').toBe(2);

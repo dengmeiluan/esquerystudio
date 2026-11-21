@@ -342,7 +342,7 @@
               </template>
               <div class="mcp-play-actions">
                 <button type="button" class="btn primary sm"
-                  :disabled="!toolCanRun" :title="toolRunBlockedReason" @click="runTool">
+                  :disabled="!toolCanRun" v-tip="toolRunBlockedReason" @click="runTool">
                   {{ running ? '执行中…' : '运行工具' }}
                 </button>
                 <button type="button" class="btn ghost xs" @click="resetToolArgs">清空</button>
@@ -378,7 +378,7 @@
             <div class="mcp-protocol-col">
               <span class="mcp-field-label">只读资源（resources/list）</span>
               <button v-for="r in resourceCatalog" :key="r.uri" type="button" class="mcp-resource"
-                :title="r.app ? '读取 MCP Apps HTML 资源' : (r.template ? '填写模板参数并读取' : '读取资源')" @click="openResource(r)">
+                v-tip="r.app ? '读取 MCP Apps HTML 资源' : (r.template ? '填写模板参数并读取' : '读取资源')" @click="openResource(r)">
                 <code>{{ r.uri }}</code>
                 <span>{{ selectedResource?.uri === r.uri ? '正在读取' : r.title }}</span>
                 <em>{{ r.template ? '模板' : (r.app ? 'App' : '可读') }}</em>
@@ -674,9 +674,9 @@
             </div>
             <div class="mcp-key-actions">
               <button v-if="keys.length" type="button" class="btn ghost sm" @click="exportUsageCsv"
-                title="导出当前筛选结果为 CSV">导出用量</button>
+                v-tip="'导出当前筛选结果为 CSV'">导出用量</button>
               <button v-if="keys.length" type="button" class="btn ghost sm" @click="exportDailyLedgerCsv"
-                title="按日展开当前筛选 key 的每日请求数">导出日账</button>
+                v-tip="'按日展开当前筛选 key 的每日请求数'">导出日账</button>
               <button type="button" class="btn ghost sm" :disabled="keyLoading" @click="loadKeys">
                 {{ keyLoading ? '刷新中…' : '刷新' }}
               </button>
@@ -703,7 +703,7 @@
             </div>
             <div class="mcp-billing-days">
               <div v-for="day in billingDays" :key="day.key" class="mcp-billing-day"
-                :title="day.key + ' · ' + day.total + ' 次 / ' + day.keys + ' 把 key'">
+                v-tip="day.key + ' · ' + day.total + ' 次 / ' + day.keys + ' 把 key'">
                 <b>{{ day.total }}</b>
                 <span class="mcp-billing-bar"><i :class="{ zero: !day.total }" :style="{ height: day.height + '%' }" /></span>
                 <em>{{ day.label }}</em>
@@ -772,7 +772,7 @@
               <p v-if="delegatedOwnerSelected && ownerScopeLoading" class="mcp-hint">正在读取目标用户的实际角色、连接与写工具范围…</p>
               <div v-for="c in availableConnections" :key="c.id" class="mcp-perm-row"
                 :class="{ on: form.connections.includes(c.id), readonly: !c.write, blocked: c.write && !canWriteConnection(c) }"
-                :title="writeBlockReason(c)">
+                v-tip="writeBlockReason(c)">
                 <span class="mcp-perm-conn">
                   <!-- 文字进 checkbox 插槽：n-checkbox 无原生 input，外层 label 的点击转发
                        不生效（点文字不切换）——插槽文字落在组件可点区，同 871 工具行先例 -->
@@ -806,7 +806,7 @@
               <div class="mcp-tool-packs" aria-label="工具包">
                 <button v-for="pack in toolPackOptions" :key="pack.id" type="button" class="mcp-tool-pack"
                   :class="{ active: form.allowedTools.length === pack.tools.length && pack.tools.every(tool => form.allowedTools.includes(tool)) }"
-                  :title="pack.description" @click="applyToolPack(pack.id)">
+                  v-tip="pack.description" @click="applyToolPack(pack.id)">
                   {{ pack.label }} <em>{{ pack.tools.length }}</em>
                 </button>
                 <span class="mcp-muted">工具包只改变本 key 可调用的工具，不改变连接读写权限。</span>
@@ -864,7 +864,7 @@
               <p>key 绑定登录人、角色、连接读写与工具白名单。选一个用途开始；预设只组合已有权限，不会扩大你的实际授权。</p>
               <div class="mcp-zero-presets">
                 <button v-for="preset in keyPresetCards" :key="preset.id" type="button" class="mcp-zero-preset"
-                  :class="{ disabled: preset.disabled }" :disabled="preset.disabled" :title="preset.reason || ''"
+                  :class="{ disabled: preset.disabled }" :disabled="preset.disabled" v-tip="preset.reason || ''"
                   @click="startKeyPreset(preset.id)">
                   <span class="mcp-zero-preset-top"><b>{{ preset.label }}</b><em>{{ preset.disabled ? '无写授权' : '按此签发' }}</em></span>
                   <span class="mcp-zero-preset-scope">{{ preset.scope }}</span>
@@ -914,9 +914,9 @@
                             <span>{{ copiedKeyId === k.id ? '已复制' : '前缀' }}</span>
                           </button>
                         </Tip>
-                        <button type="button" class="btn ghost xs mcp-copy-key-btn" title="复制完整 key（服务端加密保存，可随时复制）" @click="copyKeyFull(k)">复制 key</button>
-                        <button type="button" class="btn ghost xs" title="带入这把 key 并跳到客户端接入配置" @click="openClientConfigForKey(k)">接入配置</button>
-                        <button type="button" class="btn ghost xs" title="跳到调用审计并只看这把 key" @click="openAuditForKey(k)">审计</button>
+                        <button type="button" class="btn ghost xs mcp-copy-key-btn" v-tip="'复制完整 key（服务端加密保存，可随时复制）'" @click="copyKeyFull(k)">复制 key</button>
+                        <button type="button" class="btn ghost xs" v-tip="'带入这把 key 并跳到客户端接入配置'" @click="openClientConfigForKey(k)">接入配置</button>
+                        <button type="button" class="btn ghost xs" v-tip="'跳到调用审计并只看这把 key'" @click="openAuditForKey(k)">审计</button>
                         <n-dropdown v-if="keyMenuOptions(k).length" trigger="click" placement="bottom-end"
                           :options="keyMenuOptions(k)" @select="onKeyMenuAction($event, k)">
                           <button type="button" class="btn ghost xs mcp-key-more" aria-label="更多密钥操作">更多</button>
@@ -924,7 +924,7 @@
                       </div>
                     </header>
 
-                    <div class="mcp-key-scope-row" :title="scopeLabel(k)">
+                    <div class="mcp-key-scope-row" v-tip="scopeLabel(k)">
                       <span v-for="connId in (k.connections || ['host'])" :key="connId" class="mcp-scope-chip"
                         :class="{ write: (k.connectionPermissions?.[connId] || k.permissions || []).includes('write') }">
                         <em>{{ (k.connectionPermissions?.[connId] || k.permissions || []).includes('write') ? 'RW' : 'R' }}</em>{{ connectionLabel(connId) }}
@@ -947,7 +947,7 @@
                       <span><em>频率</em>{{ k.requestsPerMinute }}/min</span>
                       <span><em>最近使用</em>{{ k.lastUsedAt ? fmtTime(k.lastUsedAt) : '未使用' }}</span>
                       <span><em>有效期</em>{{ k.expiresAt ? fmtTime(k.expiresAt) : '长期' }}</span>
-                      <span class="mcp-key-conns" :title="(k.connectionNames || k.connections || ['host']).join(' · ')">
+                      <span class="mcp-key-conns" v-tip="(k.connectionNames || k.connections || ['host']).join(' · ')">
                         <em>连接</em>{{ (k.connectionNames || k.connections || ['host']).join(' · ') }}
                       </span>
                       <span v-if="toolSummary(k)" class="mcp-key-tools"><em>工具</em>{{ toolSummary(k) }}</span>
@@ -992,7 +992,7 @@
                     <div class="mcp-detail-block">
                       <span class="mcp-field-label">近 14 天请求</span>
                       <div class="mcp-spark" role="img" aria-label="近 14 天每日请求数">
-                        <span v-for="day in dailySeries(inspectedKey)" :key="day.key" :title="day.key + ' · ' + day.count + ' 次'">
+                        <span v-for="day in dailySeries(inspectedKey)" :key="day.key" v-tip="day.key + ' · ' + day.count + ' 次'">
                           <i :class="{ zero: !day.count }" :style="{ height: day.height + '%' }" />
                           <em>{{ day.label }}</em>
                         </span>
@@ -1014,7 +1014,7 @@
                       </span>
                       <div class="mcp-chip-list mcp-key-tool-groups">
                         <span v-for="group in keyToolGroups(inspectedKey)" :key="group.name" class="mcp-chip"
-                          :title="group.name + '：' + group.count + ' 个动作' + (group.write ? '，其中写 ' + group.write : '')">
+                          v-tip="group.name + '：' + group.count + ' 个动作' + (group.write ? '，其中写 ' + group.write : '')">
                           {{ group.name }} <b>{{ group.count }}</b><i v-if="group.write">写{{ group.write }}</i>
                         </span>
                       </div>

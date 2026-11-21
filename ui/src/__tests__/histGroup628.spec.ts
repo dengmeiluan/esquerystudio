@@ -106,7 +106,7 @@ describe('六百二十八批②：视图接线（LiveDashboardView 源码契约�
     expect(s, 'seg 容器 role=group + aria-label').toMatch(/role="group" aria-label="指标分组"/);
     expect(s, 'v-for 驱动').toMatch(/v-for="g in HIST_GROUPS"/);
     expect(s, '单选态 aria-pressed').toMatch(/:aria-pressed="histGroup === g\.key"/);
-    expect(s, '全称入 title 兜底（短标签的补偿）').toMatch(/:title="'分组：' \+ g\.label"/);
+    expect(s, '全称入 v-tip 兜底（短标签的补偿）').toMatch(/v-tip="'分组：' \+ g\.label"/);
     expect(s, '短标签渲染').toMatch(/\{\{ g\.short \}\}/);
   });
 

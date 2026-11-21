@@ -75,7 +75,7 @@ describe('1150/1151：列头静息态只显示列名，且任何态都不压住�
     expect(rt).toMatch(/\.rt-th-type \{ display: none; \}/);
     expect(rt).not.toMatch(/\.rt-th-type \{[^}]*position: absolute/);
     expect(rt).toContain("const head = t ? `${t} · ${c}` : c;");
-    expect(rt).toContain(':title="thTitle(c)"');
+    expect(rt).toContain('v-tip="thTitle(c)"');
   });
 
   it('RT 未排序 ⇅ 悬停浮出，并给列名让出沟槽（不压文字）', () => {

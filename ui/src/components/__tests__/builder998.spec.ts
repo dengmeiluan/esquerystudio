@@ -206,7 +206,7 @@ describe('998 多向量 / 多段重打分（数组形态）', () => {
     if (!r.ok) throw new Error(r.reason);
     const { host, cur } = mountPane(r.tree);
     await tick();
-    (host.querySelector('[title="移除 knn 键"]') as HTMLElement).click();
+    (host.querySelector('[aria-label="移除 knn 键"]') as HTMLElement).click();
     await tick();
     expect(cur.value.knn).toBeNull();
     expect(cur.value.knnExtra).toEqual([]);

@@ -182,9 +182,10 @@ describe('Diag 死状态与复制钮形态（刀②③）', () => {
 
   it('空数据时三复制钮在场且禁用，hot 区采样钮位置不被推挤', async () => {
     const host = await mountDiag();
-    const copyPending = findBtn(host, '.dg-sec-t button[title*="pending"]');
-    const copyAlloc = findBtn(host, '.dg-sec-t button[title*="分片诊断"]');
-    const copyHot = findBtn(host, '.dg-hot button[title*="热线程原始文本"]');
+    /* 三复制钮迁 v-tip 后无 title（icon+文本形态），按区内容器+可见文本锚定 */
+    const copyPending = findBtn(host, '.dg-sec-t button', /Markdown/);
+    const copyAlloc = findBtn(host, '.dg-sec-t button', /复制/);
+    const copyHot = findBtn(host, '.dg-hot button', /复制/);
     const sampleHot = findBtn(host, '.dg-hot .cp-row .btn', /采样/) /* 折叠壳升档 CollapsePanel：采样钮迁 #actions 槽（收起态恒在场）*/;
     expect(copyPending.disabled).toBe(true);
     expect(copyAlloc.disabled).toBe(true);

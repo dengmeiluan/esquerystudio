@@ -85,8 +85,8 @@ describe('1036 粘贴动线（挂载）', () => {
     }) });
     app.mount(host);
     await new Promise(r => setTimeout(r, 30));
-    // 分区头粘贴钮在场（stash 非空）
-    const paste = host.querySelector('button[title*="粘贴子树"]') as HTMLButtonElement;
+    // 分区头粘贴钮在场（stash 非空；icon+文本钮迁 v-tip 后无 title，按可见文本锚定）
+    const paste = [...host.querySelectorAll('button')].find(b => b.textContent?.trim() === '粘贴') as HTMLButtonElement;
     expect(paste, '粘贴钮在场（stash 非空）').toBeTruthy();
     paste.click();
     await new Promise(r => setTimeout(r, 30));
@@ -114,7 +114,7 @@ describe('1036 粘贴动线（挂载）', () => {
     }) });
     app.mount(host);
     await new Promise(r => setTimeout(r, 30));
-    expect(host.querySelector('button[title*="粘贴子树"]'), '空暂存无粘贴钮').toBeNull();
+    expect([...host.querySelectorAll('button')].some(b => b.textContent?.trim() === '粘贴'), '空暂存无粘贴钮').toBe(false);
     app.unmount();
     host.remove();
   });

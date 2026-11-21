@@ -25,6 +25,9 @@ interface TrackedJob {
   kindName: string;
   /** 人读标签：索引名优先，退回 jobId */
   label: string;
+  /** 源索引（xmigrate 专属，其余来源无此概念）：进站迁移恢复提示的「源 → 目标」文案用。
+      对同一 jobId 恒定（提交时定死），不进轮询浅比较签名 */
+  source?: string;
   status: string;
   /** 进度百分比；-1 = 无数量进度可展示（类型不提供，或数据缺席/非运行态） */
   pct: number;
@@ -168,6 +171,7 @@ export const useJobTrackerStore = defineStore('jobTracker', () => {
       id: 'xm:' + j.jobId,
       kind: 'xmigrate', kindName: '跨集群迁移',
       label: j.destIndex || j.sourceIndex || j.jobId || '',
+      source: String(j.sourceIndex || ''),
       status: String(j.status || ''),
       pct: total > 0 ? Math.min(100, Math.round((migrated / total) * 100)) : -1,
       stage: '',

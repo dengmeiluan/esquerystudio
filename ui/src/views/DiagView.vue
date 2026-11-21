@@ -23,8 +23,8 @@
  dg-meta-link 的 role/tabindex/Enter+Space 源码契约原样延续，整条 :title 全文兜底不变
  （插槽前分隔由组件自动补 ms-sep，本页手写 dg-slot-sep 退役。：
  .meta-strip 全局类退役，落位/窄屏档同步更新本页 .dg-meta，class 上冗余 .mono 摘除） -->
-        <MetaStrip class="dg-meta" :items="dgMeta" :title="'集群状态 ' + (cluster?.status || '-') + '（' + (cluster?.number_of_nodes ?? '-') + ' 节点 · ' + (cluster?.active_primary_shards ?? '-') + ' 主分片） · 重建锁 ' + lockTotal + '（本持 ' + locks.self + ' · 他持 ' + locks.other + ' · 过期 ' + locks.expired + '）'">
-          <span class="dg-meta-link" role="button" tabindex="0" title="点击查看锁明细（系统索引 · 分布式锁）" @click="router.push('/system')" @keydown.enter.prevent="router.push('/system')" @keydown.space.prevent="router.push('/system')"><b>{{ lockTotal }}</b> <i>重建锁</i>（本持 {{ locks.self }} · 他持 {{ locks.other }} · 过期 {{ locks.expired }}）</span>
+        <MetaStrip class="dg-meta" :items="dgMeta" v-tip.long="'集群状态 ' + (cluster?.status || '-') + '（' + (cluster?.number_of_nodes ?? '-') + ' 节点 · ' + (cluster?.active_primary_shards ?? '-') + ' 主分片） · 重建锁 ' + lockTotal + '（本持 ' + locks.self + ' · 他持 ' + locks.other + ' · 过期 ' + locks.expired + '）'">
+          <span class="dg-meta-link" role="button" tabindex="0" v-tip="'点击查看锁明细（系统索引 · 分布式锁）'" @click="router.push('/system')" @keydown.enter.prevent="router.push('/system')" @keydown.space.prevent="router.push('/system')"><b>{{ lockTotal }}</b> <i>重建锁</i>（本持 {{ locks.self }} · 他持 {{ locks.other }} · 过期 {{ locks.expired }}）</span>
         </MetaStrip>
         <div class="dg-ops-act">
           <!-- 节点资源快照导出（容量汇报双通道：Excel 走 CSV、群聊走 Markdown）
@@ -32,17 +32,17 @@
  「复制整表（当前页）为 TSV」与列头菜单「聚合行」内核接管（storageKey=diag:nodes，
  es_tbl_agg:diag:nodes 既有落盘键无缝兼容）；CSV/Markdown 容量汇报格式档保留卡头：
  QRT 内建导出为 raw 通用档，% 后缀/人性化字节/中文列头 BOM 的汇报格式非同档（待 W1） -->
-          <button class="btn sm ghost" :disabled="!nodes.length" @click="exportNodes('csv')" title="导出节点资源表为 CSV（Excel 直开）"><ClipboardList :size="11" /> CSV</button>
-          <button class="btn sm ghost" :disabled="!nodes.length" @click="exportNodes('md')" title="复制节点资源表为 Markdown（群聊/工单直贴）"><ClipboardCopy :size="11" /> Markdown</button>
+          <button class="btn sm ghost" :disabled="!nodes.length" @click="exportNodes('csv')" v-tip="'导出节点资源表为 CSV（Excel 直开）'"><ClipboardList :size="11" /> CSV</button>
+          <button class="btn sm ghost" :disabled="!nodes.length" @click="exportNodes('md')" v-tip="'复制节点资源表为 Markdown（群聊/工单直贴）'"><ClipboardCopy :size="11" /> Markdown</button>
 <label class="dg-auto-lbl">
           <n-checkbox v-model:checked="diagAutoRefresh" size="small"><span>自动刷新</span></n-checkbox>
         </label>
         <!-- 自动刷新频率下拉改用 AutoRefreshSelect 统一件（原 .dg-int-sel 原生 select 退役；开关 checkbox 与 usePref 逻辑不动） -->
         <AutoRefreshSelect v-if="diagAutoRefresh" v-model:ms="diagIntervalMs" :sizes="[10000, 30000, 60000]" label="自动刷新频率" />
-                  <button class="btn sm ghost" @click="loadOps" :disabled="loadingOps" title="刷新所有观测数据">
+                  <button class="btn sm ghost" @click="loadOps" :disabled="loadingOps" v-tip="'刷新所有观测数据'">
             <RefreshCw :size="11" :class="{ spinning: loadingOps }" /> 刷新
           </button>
-          <router-link to="/tasks" class="btn sm ghost" title="查看运行中任务"><ListTodo :size="11" /> 任务</router-link>
+          <router-link to="/tasks" class="btn sm ghost" v-tip="'查看运行中任务'"><ListTodo :size="11" /> 任务</router-link>
         </div>
       </div>
 
@@ -71,7 +71,7 @@
         :row-class="ndRowClass">
         <template #row-actions="{ row }">
           <button class="btn ghost xs" :aria-label="'按节点 ' + (row[0] || '') + ' 采热线程'"
-            title="按此节点采热线程" @click.stop="loadHot(String(row[0] || ''))"><FlaskConical :size="11" /></button>
+            v-tip="'按此节点采热线程'" @click.stop="loadHot(String(row[0] || ''))"><FlaskConical :size="11" /></button>
         </template>
         <!-- W-A：#cell-<key> 作用域槽消费回收（527 备件；QRT 契约：槽只接管该格
  显示，title/复制/导出/右键矩阵恒 raw）——HEAP%/CPU% 回归水位条（metricColor 单一
@@ -107,7 +107,7 @@
           <div class="dg-sec-t sec-t">
 <Hourglass :size="12" /> Pending Cluster Tasks（{{ pending.length }}）
             <!-- pending tasks Markdown 复制（带出体系——master 队列堆积排障贴群） -->
-            <button class="btn sm ghost" :disabled="!pending.length" style="margin-left:auto" @click.prevent="copyPending" title="复制 pending tasks 为 Markdown（群聊/工单直贴）"><ClipboardCopy :size="11" /> Markdown</button>
+            <button class="btn sm ghost" :disabled="!pending.length" style="margin-left:auto" @click.prevent="copyPending" v-tip="'复制 pending tasks 为 Markdown（群聊/工单直贴）'"><ClipboardCopy :size="11" /> Markdown</button>
           </div>
           <div v-if="pending.length" class="dg-pending">
             <div v-for="(p, i) in pending" :key="i" class="dg-pending-row" tabindex="0"
@@ -127,11 +127,11 @@
         <div>
           <div class="dg-sec-t sec-t">
             <Compass :size="12" /> Shard 分配诊断
-            <button class="btn sm ghost" style="margin-left:auto" @click="loadAllocation" :disabled="loadingAlloc" title="分析未分配分片">
+            <button class="btn sm ghost" style="margin-left:auto" @click="loadAllocation" :disabled="loadingAlloc" v-tip="'分析未分配分片'">
               <RefreshCw :size="10" :class="{ spinning: loadingAlloc }" /> 探测
             </button>
             <!-- allocation explain 复制（工单直达） -->
-            <button class="btn sm ghost" :disabled="!allocation" @click="copyAllocMd" title="复制分片诊断 Markdown">
+            <button class="btn sm ghost" :disabled="!allocation" @click="copyAllocMd" v-tip="'复制分片诊断 Markdown'">
               <FileDown :size="10" /> 复制
             </button>
           </div>
@@ -180,7 +180,7 @@
         </template>
         <template #actions>
           <!-- 热线程原始文本复制（性能排障贴群/工单一手材料） -->
-          <button class="btn sm ghost" :disabled="!hotThreads" @click.prevent="copyHot" title="复制热线程原始文本"><Copy :size="10" /> 复制</button>
+          <button class="btn sm ghost" :disabled="!hotThreads" @click.prevent="copyHot" v-tip="'复制热线程原始文本'"><Copy :size="10" /> 复制</button>
           <button class="btn sm ghost" @click.prevent="loadHot()" :disabled="loadingHot">
             <RefreshCw :size="10" :class="{ spinning: loadingHot }" /> 采样
           </button>

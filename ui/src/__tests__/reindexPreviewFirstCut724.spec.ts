@@ -20,6 +20,7 @@ import { createRouter, createMemoryHistory } from 'vue-router';
 import { createPinia } from 'pinia';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { vTip } from '../directives/vTip';
 
 /* NModal：teleport/定位非测试目标——show=true 直渲染、false 不渲染（538 同款） */
 vi.mock('naive-ui', async (importOriginal) => {
@@ -91,6 +92,8 @@ async function mountRp(): Promise<HTMLElement> {
   const View = (await import('../views/ReindexPreviewView.vue')).default;
   const app = createApp({ render: () => h(View as any) });
   apps.push(app);
+  /* 1120 批容器级 :title→v-tip.long：挂具注册指令，容器兜底全文改 focusin 浮层断言 */
+  app.directive('tip', vTip);
   app.use(createPinia());
   app.use(router);
   const host = document.createElement('div');
@@ -125,27 +128,30 @@ describe('724 G79 MetaStrip 四段中文 tip（铁律 F）', () => {
     const items = Array.from(host.querySelectorAll<HTMLElement>('.rp-meta-pos .ms-i'));
     expect(items.length, '四段统计条渲染').toBe(4);
     const byLabel = (kw: string) => items.find(el => el.textContent?.includes(kw));
+    /* 段提示已迁 v-tip 指令（DOM 无 title 属性）——四段中文备注改源码锚（items prop 传 tip） */
+    const v = readFileSync(join(__dirname, '../views/ReindexPreviewView.vue'), 'utf-8');
     /* 段1：符合过滤 doc（占源 …） */
     const seg1 = byLabel('符合过滤');
     expect(seg1, '段1 在场').toBeTruthy();
-    expect(seg1!.getAttribute('title'), 'G79 病灶：段1 英文裸 doc 无段级备注').toBe('符合过滤条件的文档数（占源索引比例）');
+    expect(v).toContain("tip: '符合过滤条件的文档数（占源索引比例）'");
     /* 段2：源 primary bytes（… docs） */
     const seg2 = byLabel('primary bytes');
     expect(seg2, '段2 在场').toBeTruthy();
-    expect(seg2!.getAttribute('title'), 'G79 病灶：段2 primary bytes 无段级备注').toBe('源索引主分片存储体积（全部源文档）');
+    expect(v).toContain("tip: '源索引主分片存储体积（全部源文档）'");
     /* 段3：avg/doc */
     const seg3 = byLabel('avg/doc');
     expect(seg3, '段3 在场').toBeTruthy();
-    expect(seg3!.getAttribute('title'), 'G79 病灶：avg/doc 纯英文裸词无备注').toBe('平均单文档体积（primary bytes ÷ 源 docs）');
+    expect(v).toContain("tip: '平均单文档体积（primary bytes ÷ 源 docs）'");
     /* 段4：目标预估 bytes（docs × avg） */
     const seg4 = byLabel('目标预估');
     expect(seg4, '段4 在场').toBeTruthy();
-    expect(seg4!.getAttribute('title'), 'G79 病灶：段4 目标预估 bytes 无段级备注').toBe('目标索引预估体积（符合过滤 doc × 平均单文档体积）');
+    expect(v).toContain("tip: '目标索引预估体积（符合过滤 doc × 平均单文档体积）'");
     /* help 档四段全挂（cursor:help 悬停可达） */
     for (const el of items) expect(el.classList.contains('help'), 'tip 段挂 MetaStrip help 档').toBe(true);
-    /* 容器级 :title 兜底全文不破（519 合并既有通道） */
-    const strip = host.querySelector<HTMLElement>('.rp-meta-pos');
-    expect(strip!.getAttribute('title')).toContain('符合过滤的 doc');
+    /* 容器级兜底全文已迁 v-tip.long（519 既有通道保语义）——focusin 立即显示，断浮层文本 */
+    const strip = host.querySelector<HTMLElement>('.rp-meta-pos')!;
+    strip.dispatchEvent(new Event('focusin', { bubbles: false }));
+    expect(document.getElementById('vt-tip')?.textContent ?? '', '容器兜底全文不破').toContain('符合过滤的 doc');
   });
 
   it('备注不进可见文本+执行链零回归：数值在场+api 计数自证（现状即守卫）', async () => {

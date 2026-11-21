@@ -19,6 +19,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { createApp, h, nextTick } from 'vue';
 import { createPinia, setActivePinia } from 'pinia';
+import { vTip } from '../directives/vTip';
 import { createRouter, createMemoryHistory } from 'vue-router';
 import { useLiveMonitorStore } from '../stores/liveMonitor';
 
@@ -55,6 +56,8 @@ async function mountLive() {
   await router.isReady();
   const mod = await import('../views/LiveDashboardView.vue');
   const app = createApp({ render: () => h(mod.default as any) });
+  /* 挂墙提示走 v-tip 浮层（AutoRefreshSelect :title 迁移，1120 批）——注册指令供浮层断言 */
+  app.directive('tip', vTip);
   app.use(pinia);
   app.use(router);
   const host = document.createElement('div');
@@ -109,7 +112,8 @@ describe('六百八十四批：挂墙模式（全屏态五件套）', () => {
       expect(mon.intervalMs, '进墙恒定 5s').toBe(5000);
       expect(arfText(), '进墙档位显示 5s').toContain('5s');
       expect(arfDisabled(), '墙内选择器禁用（位置恒定禁用不禁藏）').toBe(true);
-      expect(sel.title, '禁用态有挂墙语义提示').toContain('挂墙');
+      sel.dispatchEvent(new Event('focusin', { bubbles: false }));
+      expect(document.getElementById('vt-tip')?.textContent ?? '', '禁用态挂墙语义提示走 v-tip 浮层').toContain('挂墙');
       fsBtn(host).click();
       await settle();
       expect(mon.intervalMs, '出墙还原进墙前档位').toBe(2000);

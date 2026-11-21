@@ -62,7 +62,7 @@ code{color:#4cc9f0}@media(max-width:520px){.grid{grid-template-columns:1fr}}
 </style></head><body><main><div class="eyebrow">ESQUERYSTUDIO / MCP APP</div>
 <h1>Elasticsearch control surface</h1><p>This app renders the ESQueryStudio connection, index and diagnostic tools inside an MCP host.
 Tool results remain available as text when the host does not support MCP Apps.</p>
-<div class="grid"><div class="cell"><b>17 groups</b><span>166 actions</span></div>
+<div class="grid"><div class="cell"><b>17 groups</b><span>167 actions</span></div>
 <div class="cell"><b>Read / write</b><span>per connection permission</span></div>
 <div class="cell"><b>Audited</b><span>IP · UA · requestId</span></div></div>
 <p style="margin-top:20px">Use <code>es_connections action=list</code> to discover the scope of your key.</p></main></body></html>`;
@@ -668,6 +668,18 @@ const TOOL_DEFINITIONS = [
       destConnId: val('string', 'Dest connection id from the local config; host or omitted means the default connection.'),
       destIndex: val('string', 'Target index name on the dest connection (default: same as sourceIndex).'),
     }, ['srcConnId', 'sourceIndex'])),
+  tool('es_xmigrate_verify_equivalence', 'Verify data equivalence between a migration source index and its dest index (read-only): both-side _count comparison, sorted-_doc id sample mget with canonical sha256 digest per id, and an optional terms aggregation comparison; returns verdict EQUIVALENT/DIVERGENT/INCONCLUSIVE.',
+    schema({
+      jobId: val('string', 'Cross-cluster migration job id; its registered srcConnId/sourceIndex/destIndex are reused.'),
+      srcConnId: val('string', 'Source connection id from the local config connections list; alternative to jobId (together with sourceIndex).'),
+      sourceIndex: val('string', 'Source index name on the old cluster (required with srcConnId).'),
+      destConnId: val('string', 'Dest connection id from the local config; host or omitted means the default connection.'),
+      destIndex: val('string', 'Target index name on the dest connection (default: same as sourceIndex).'),
+      sampleSize: val('number', 'Sample size of sorted-_doc ids to digest-compare, clamped to 10-500 (default 100).'),
+      sampleFields: val('string', 'Comma-separated fields included in the digest; omit for the whole _source.'),
+      aggField: val('string', 'Optional terms aggregation field compared on both sides.'),
+      aggSize: val('number', 'Aggregation bucket size, clamped to 1-50 (default 10).'),
+    })),
   tool('es_xmigrate_throttle', 'Rethrottle a running cross-cluster migration job (rps docs per second, -1 restores unlimited); takes effect from the next batch; write permission required.',
     schema({
       jobId: val('string', 'Cross-cluster migration job id.'),
@@ -917,6 +929,7 @@ const GROUP_ACTIONS = {
     'probe_capabilities': 'es_xmigrate_probe_capabilities',
     'compare_capabilities': 'es_xmigrate_compare_capabilities',
     'diff_structure': 'es_xmigrate_diff_structure',
+    'verify_equivalence': 'es_xmigrate_verify_equivalence',
     'throttle': 'es_xmigrate_throttle',
   },
 };
@@ -937,7 +950,30 @@ const GROUP_DESCRIPTIONS = {
   'es_automation': 'Watcher, ingest pipelines and stored scripts.',
   'es_rest': 'Raw Elasticsearch REST passthrough; write methods need write permission.',
   'es_adhoc_rebuild': 'Managed adhoc rebuild lifecycle: probe source, start, status, abort, confirm switch, job list, retry, throttle and events.',
-  'es_xmigrate': 'Cross-cluster migration lifecycle: connect check, resolve preview, preflight, start, progress, job list, fetch source config, count reconcile, conflict samples, dest index list, resume, abort, job cleanup, adaptive structure sync (proactive compat matrix plus target-error pruning, dry-run plan with planDigest and alias sync), target capability probe (vendor/version/plugins/nodes), capability comparison risk matrix, structure diff verification and running-job throttle.',
+  'es_xmigrate': 'Cross-cluster migration lifecycle: connect check, resolve preview, preflight, start, progress, job list, fetch source config, count reconcile, conflict samples, dest index list, resume, abort, job cleanup, adaptive structure sync (proactive compat matrix plus target-error pruning, dry-run plan with planDigest and alias sync), target capability probe (vendor/version/plugins/nodes), capability comparison risk matrix, structure diff verification, data equivalence verification (counts, sample hash, optional aggregation) and running-job throttle.',
+};
+
+/** 组级 MCP annotations 静态表（tools/list 逐组输出，三端同表）：readOnlyHint=true 仅限
+    零写 action 的组；destructiveHint=true 仅限含破坏性 action 的组；idempotentHint 同
+    readOnlyHint；openWorldHint=true 全组。按组静态声明，不随 --allow-write 裁剪变化。 */
+const TOOL_ANNOTATIONS = {
+  'es_connections': { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+  'es_search': { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+  'es_sql': { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+  'es_documents': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  'es_indices': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  'es_data_streams': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  'es_templates': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  'es_analysis': { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+  'es_cluster': { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+  'es_batch': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  'es_transforms': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  'es_snapshots': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  'es_lifecycle': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  'es_automation': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  'es_rest': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  'es_adhoc_rebuild': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  'es_xmigrate': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
 };
 
 const RECOMMENDED_TOOL_NAMES = [
@@ -1081,11 +1117,12 @@ const PROMPTS = [
   {
     name: 'cross_cloud_structure_sync',
     title: 'Cross-cloud structure sync',
-    description: 'Cross-cloud index structure sync workflow: probe both clusters, compare capabilities, plan with dry-run, validate, execute, then verify with structure diff.',
+    description: 'Cross-cloud index structure sync workflow: probe both clusters, compare capabilities, plan with dry-run, validate, execute, then verify with structure diff and data equivalence.',
     arguments: [
       promptArg('srcConnId', 'Source connection id from the local config connections list.', true),
       promptArg('destConnId', 'Dest connection id, or host for the default connection.', true),
       promptArg('sourceIndex', 'Source index name to sync.', false),
+      promptArg('destIndex', 'Target index name; defaults to sourceIndex.', false),
     ],
   },
 ];
@@ -1216,9 +1253,9 @@ function getPrompt(name, args = {}) {
     text = 'Plan and verify a migration from `' + source + '` to `' + target + '`.\n\n'
       + '1. Compare mappings with `es_get_mapping` and run `es_reindex_preview` for incompatible fields.\n'
       + '2. Check target settings (`es_get_settings`, `es_index_settings_defaults`) and disk/alias state.\n'
-      + '3. 结构兼容：跨集群（尤其跨厂商，如生产阿里云 ES → UAT 腾讯云 ES）先用 es_xmigrate 的 probe_capabilities 探测源/目标厂商、版本与插件；再用 sync_structure 且 dryRun=true 预览兼容剔除计划——planned 为兼容矩阵预剔除（如阿里云 apack 私有设置、目标缺失插件的分析组件、节点属性路由），reactive 为建索引报错兜底剔除，advice 为分片数/副本/ILM 建议；确认计划后以 dryRun=false 执行（需 MRTR 二次确认），需别名随迁时加 syncAliases=true。\n'
+      + '3. 结构兼容：跨集群（尤其跨厂商，如生产阿里云 ES → UAT 腾讯云 ES）先用 es_xmigrate 的 probe_capabilities 探测源/目标厂商、版本与插件；再用 sync_structure 且 dryRun=true 预览兼容剔除计划——planned 为兼容矩阵预剔除（如阿里云 apack 私有设置、目标缺失插件的分析组件、节点属性路由），reactive 为建索引报错兜底剔除，advice 为分片数/副本/ILM 建议；确认计划后以 dryRun=false 执行（需 MRTR 二次确认），执行时携带 dryRun 预览返回的 planDigest（expectPlanDigest）防源结构漂移，需别名随迁时加 syncAliases=true。\n'
       + '4. Execute with `es_reindex` for same-cluster moves, or cross-cluster via `es_xmigrate` (`action=preflight`, then `start`, then poll `status`); same-cluster reindex progress comes from `es_task_detail`.\n'
-      + '5. Verify document counts with `es_count`, sampled content with `es_search`, and alias cutover with `es_alias`.\n'
+      + '5. Verify equivalence with `es_xmigrate` `action=verify_equivalence` (jobId form after a migration job, or srcConnId+sourceIndex+destConnId+destIndex form): it compares document counts, hashes a sorted-_doc id sample and an optional terms aggregation (aggField), and returns verdict EQUIVALENT/DIVERGENT/INCONCLUSIVE; switch aliases with `es_alias` only after EQUIVALENT.\n'
       + '6. State the cutover order, validation gates and rollback. Do not delete the source until verification passes.\n\n'
       + 'Extra constraints: ' + (notes || '(none provided)');
   } else if (name === 'review_cluster_capacity') {
@@ -1248,16 +1285,18 @@ function getPrompt(name, args = {}) {
     const srcConnId = requiredArg('srcConnId');
     const destConnId = requiredArg('destConnId');
     const sourceIndex = optionalArg('sourceIndex');
-    description = 'Cross-cloud index structure sync workflow: probe, compare, dry-run plan, execute with digest, verify with structure diff.';
+    const destIndex = optionalArg('destIndex');
+    description = 'Cross-cloud index structure sync workflow: probe both clusters, compare capabilities, plan with dry-run, validate, execute, then verify with structure diff and data equivalence.';
     text = 'Cross-cloud index structure sync from `' + srcConnId + '` to `' + destConnId + '`'
-      + (sourceIndex ? ' for index `' + sourceIndex + '`' : '') + '.\n\n'
+      + (sourceIndex ? ' for index `' + sourceIndex + (destIndex ? '` → `' + destIndex : '') + '`' : '') + '.\n\n'
       + '1. probe_capabilities on source (srcConnId) and target (destConnId) to capture version/vendor/plugins.\n'
       + '2. compare_capabilities {srcConnId, destConnId} for the risk matrix (vendor change, missing plugins, version gap).\n'
       + '3. sync_structure {dryRun:true} to preview removals/downgrades and the adapted create body with planDigest.\n'
       + '4. Optionally es_indices:config_validate on the planned body.\n'
       + '5. sync_structure {dryRun:false, expectPlanDigest} to execute (requires write permission and confirmation).\n'
       + '6. migrate_index with destCreateMode NONE when structure is already synced; monitor with jobs/status; reconcile counts.\n'
-      + '7. diff_structure to verify the target matches the plan (expectedRemovals vs unexpected).';
+      + '7. diff_structure to verify the target matches the plan (expectedRemovals vs unexpected).\n'
+      + '8. verify_equivalence {srcConnId, sourceIndex, destConnId, destIndex, sampleSize, aggField?} for the final data check (counts + sample hash + optional aggregation, verdict must be EQUIVALENT).';
   } else {
     throw new Error('Unknown prompt: ' + name);
   }
@@ -2206,6 +2245,8 @@ async function callTool(name, args = {}) {
       return xmigrateCompareCapabilities(args);
     case 'es_xmigrate_diff_structure':
       return xmigrateDiffStructure(args);
+    case 'es_xmigrate_verify_equivalence':
+      return xmigrateVerifyEquivalence(args);
     case 'es_xmigrate_throttle':
       return xmigrateThrottle(args);
     case 'es_xmigrate_reconcile': {
@@ -3897,6 +3938,193 @@ async function xmigrateDiffStructure(args) {
   };
 }
 
+/** verify_equivalence：迁移后数据等价抽样验证（只读，与服务端/浏览器桥同一契约）。
+    双侧 _count(match_all) 对比 → 源 _doc 序抽样 _id（_source:false 只要 id，
+    size 夹取 min(sampleSize,500,count)）→ 双侧 mget 取 _source → canonical JSON
+    SHA-256 前 16 hex 摘要逐 id 对比（sampleFields 给出时先投影，支持点号路径）→
+    aggField 给出时附 terms 聚合对比。任一侧 count 失败如实 null + INCONCLUSIVE；
+    样本或聚合请求失败同样 INCONCLUSIVE（不冒充比对过，与服务端/浏览器同口径）；
+    差异清单回显 ≤20 条（missingTruncated/mismatchTruncated 标记截断）。
+    jobId 形态从本地作业台账补 srcConnId/sourceIndex/destIndex（显式传参优先）。 */
+const VERIFY_LIST_MAX = 20;
+async function xmigrateVerifyEquivalence(args) {
+  const warnings = [];
+  const jobId = String(args?.jobId || '').trim();
+  let srcConnId = String(args?.srcConnId || '').trim();
+  let sourceIndex = String(args?.sourceIndex || '').trim();
+  let destIndex = String(args?.destIndex || '').trim();
+  if (!jobId && !srcConnId) throw new Error('jobId 与 srcConnId 必须二选一');
+  if (jobId) {
+    const job = requireLedgerJob('xmigrate', jobId);
+    srcConnId = srcConnId || String(job.srcConnId || '').trim();
+    sourceIndex = sourceIndex || String(job.sourceIndex || '').trim();
+    destIndex = destIndex || String(job.destIndex || '').trim();
+    if (!srcConnId) throw new Error(`该作业未记录源连接档案，无法验证等价性: ${jobId}`);
+  }
+  if (!sourceIndex) throw new Error('sourceIndex 不能为空');
+  destIndex = destIndex || sourceIndex;
+  const srcConn = sourceConnOf({ srcConnId });
+  const destConn = destConnOf({ destConnId: args?.destConnId });
+  const destConnId = String(args?.destConnId || '').trim() || null;
+  const clampWarn = (v, lo, hi, dft, name) => {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return dft;
+    const c = Math.min(hi, Math.max(lo, Math.floor(n)));
+    if (c !== n) warnings.push(`${name} 已从 ${n} 钳制为 ${c}（有效范围 ${lo}..${hi}）`);
+    return c;
+  };
+  const sampleSize = clampWarn(args?.sampleSize, 10, 500, 100, 'sampleSize');
+  const aggSize = clampWarn(args?.aggSize, 1, 50, 10, 'aggSize');
+  const aggField = String(args?.aggField || '').trim();
+  const sampleFields = String(args?.sampleFields || '').split(',').map((f) => f.trim()).filter(Boolean);
+  const seenFields = new Set();
+  const pickPath = (obj, dotted) => {
+    let cur = obj;
+    for (const seg of dotted.split('.')) {
+      if (cur == null || typeof cur !== 'object') return undefined;
+      cur = cur[seg];
+    }
+    return cur;
+  };
+  const project = (src) => {
+    if (!sampleFields.length || !src || typeof src !== 'object') return src ?? null;
+    const out = {};
+    for (const f of sampleFields) {
+      if (f in src) { out[f] = src[f]; seenFields.add(f); }
+      else {
+        const v = pickPath(src, f);
+        if (v !== undefined) { out[f] = v; seenFields.add(f); }
+      }
+    }
+    return out;
+  };
+  const digestOf = (value) => createHash('sha256')
+    .update(canonicalMrtrArgs(value)).digest('hex').slice(0, 16);
+  /* 双侧 _count：任一侧失败如实 null（count=0 是有效值，不与 null 混同） */
+  const countOf = async (conn, index) => {
+    try {
+      const raw = await es(conn, 'POST', `/${encodeURIComponent(index)}/_count`,
+        '{"query":{"match_all":{}}}');
+      const n = Number(raw?.count);
+      return Number.isFinite(n) ? n : null;
+    } catch { return null; }
+  };
+  const sourceCount = await countOf(srcConn, sourceIndex);
+  const destCount = await countOf(destConn, destIndex);
+  if (sourceCount == null) warnings.push(`源索引文档数读取失败，无法比对总数: ${sourceIndex}`);
+  if (destCount == null) warnings.push(`目标索引不存在或不可读，无法验证等价性: ${destIndex}`);
+  const countsMatch = sourceCount != null && destCount != null ? sourceCount === destCount : null;
+  /* 样本逐 id 内容比对：源 _doc 序抽样（只取 id）→ 双侧 mget(_source) → 投影后摘要对比 */
+  const missingInDest = [];
+  const mismatched = [];
+  let requested = 0;
+  let checked = 0;
+  let matched = 0;
+  let sampleOk = true;
+  if (sourceCount != null && destCount != null) {
+    requested = sampleSize;
+    const size = Math.min(sampleSize, 500, sourceCount);
+    if (size > 0) {
+      try {
+        const page = await es(srcConn, 'POST', `/${encodeURIComponent(sourceIndex)}/_search`,
+          JSON.stringify({ size, sort: ['_doc'], _source: false, query: { match_all: {} } }));
+        const ids = (page?.hits?.hits || []).map((h) => h?._id).filter((id) => id != null).map(String);
+        if (ids.length) {
+          const mgetBody = JSON.stringify({ ids });
+          const [srcDocs, dstDocs] = await Promise.all([
+            es(srcConn, 'POST', `/${encodeURIComponent(sourceIndex)}/_mget`, mgetBody),
+            es(destConn, 'POST', `/${encodeURIComponent(destIndex)}/_mget`, mgetBody),
+          ]);
+          const byId = (resp) => {
+            const m = new Map();
+            for (const d of resp?.docs || []) {
+              if (d?._id != null && d?._source != null) m.set(String(d._id), d._source);
+            }
+            return m;
+          };
+          const srcMap = byId(srcDocs);
+          const dstMap = byId(dstDocs);
+          for (const id of ids) {
+            checked++;
+            /* 目标缺（含双侧皆缺，_source 缺失视同缺）→ missingInDest；源缺目标在 →
+               content_mismatch；双侧都在 → 投影后摘要比对（与服务端/浏览器同口径） */
+            if (!dstMap.has(id)) { missingInDest.push(id); continue; }
+            if (!srcMap.has(id)) { mismatched.push({ id, reason: 'content_mismatch' }); continue; }
+            if (digestOf(project(srcMap.get(id))) === digestOf(project(dstMap.get(id)))) matched++;
+            else mismatched.push({ id, reason: 'content_mismatch' });
+          }
+        }
+      } catch (e) {
+        warnings.push('样本对比请求失败，已跳过：' + String(e?.message || e));
+        sampleOk = false;
+        checked = 0;
+        matched = 0;
+        missingInDest.length = 0;
+        mismatched.length = 0;
+      }
+    }
+    if (sampleOk && sampleFields.length && checked > 0) {
+      for (const f of sampleFields) {
+        if (!seenFields.has(f)) warnings.push(`投影字段 ${f} 在源样本中均未出现（请检查字段名）`);
+      }
+    }
+  }
+  /* 可选 terms 聚合对比：双侧 size:0 + terms(field, aggSize)，按桶 key 集差与计数差判 match；
+     读取失败如实告警并判 INCONCLUSIVE（不冒充比对过，与服务端/浏览器同口径） */
+  let aggregation = null;
+  let aggOk = true;
+  if (aggField && sourceCount != null && destCount != null) {
+    try {
+      const aggBody = JSON.stringify({ size: 0, aggs: { t: { terms: { field: aggField, size: aggSize } } } });
+      const [srcAgg, dstAgg] = await Promise.all([
+        es(srcConn, 'POST', `/${encodeURIComponent(sourceIndex)}/_search`, aggBody),
+        es(destConn, 'POST', `/${encodeURIComponent(destIndex)}/_search`, aggBody),
+      ]);
+      const bucketsOf = (resp) => (resp?.aggregations?.t?.buckets || [])
+        .map((b) => ({ key: String(b.key), count: Number(b.doc_count) || 0 }));
+      const sourceBuckets = bucketsOf(srcAgg);
+      const destBuckets = bucketsOf(dstAgg);
+      const srcCountOf = new Map(sourceBuckets.map((b) => [b.key, b.count]));
+      const dstCountOf = new Map(destBuckets.map((b) => [b.key, b.count]));
+      const onlyInSource = sourceBuckets.filter((b) => !dstCountOf.has(b.key)).map((b) => b.key);
+      const onlyInDest = destBuckets.filter((b) => !srcCountOf.has(b.key)).map((b) => b.key);
+      const countDiffs = sourceBuckets
+        .filter((b) => dstCountOf.has(b.key) && dstCountOf.get(b.key) !== b.count)
+        .map((b) => ({ key: b.key, sourceCount: b.count, destCount: dstCountOf.get(b.key) }));
+      aggregation = {
+        field: aggField, requestedSize: aggSize,
+        match: onlyInSource.length === 0 && onlyInDest.length === 0 && countDiffs.length === 0,
+        sourceBuckets, destBuckets, onlyInSource, onlyInDest, countDiffs,
+      };
+    } catch (e) {
+      warnings.push('聚合对比读取失败，已跳过：' + String(e?.message || e));
+      aggOk = false;
+    }
+  }
+  /* verdict：任一侧 count 未知 / 样本或聚合取数失败 → INCONCLUSIVE；总数一致 + 样本无缺
+     无错配 + 聚合（若请求）match → EQUIVALENT；其余 DIVERGENT（判定的清单用全量，回显才截断） */
+  let verdict;
+  if (sourceCount == null || destCount == null || !sampleOk || (aggField && !aggOk)) verdict = 'INCONCLUSIVE';
+  else if (countsMatch && missingInDest.length === 0 && mismatched.length === 0
+    && (aggregation == null || aggregation.match)) verdict = 'EQUIVALENT';
+  else verdict = 'DIVERGENT';
+  return {
+    source: { index: sourceIndex, count: sourceCount },
+    dest: { index: destIndex, count: destCount, destConnId },
+    countsMatch,
+    sample: {
+      requested, checked, matched,
+      missingInDest: missingInDest.slice(0, VERIFY_LIST_MAX),
+      mismatched: mismatched.slice(0, VERIFY_LIST_MAX),
+      missingTruncated: missingInDest.length > VERIFY_LIST_MAX,
+      mismatchTruncated: mismatched.length > VERIFY_LIST_MAX,
+    },
+    aggregation,
+    verdict,
+    warnings,
+  };
+}
+
 /** throttle：运行中 xmigrate 作业调速（rps docs/s，-1 恢复不限速，0/<-1 非法）；编排内核
     每批重读作业对象当前 throttleRps，运行中调用下一批即生效。 */
 function xmigrateThrottle(args) {
@@ -4047,16 +4275,30 @@ function groupTools() {
       'maxDocs', 'refresh', 'pipeline', 'routing', 'size', 'from', 'scroll', 'waitForCompletion']) {
       properties[field] = { type: 'string', description: field + ' (action-specific)' };
     }
+    /* es_xmigrate 组的专用参数：sync_structure 的 dry-run/别名随迁/分析器回退/计划摘要校验参数，
+       verify_equivalence 的样本与聚合参数，throttle 的速率参数（与服务端/浏览器同表） */
+    if (name === 'es_xmigrate') {
+      properties.dryRun = { type: 'boolean', description: 'sync_structure: true 时只产出兼容剔除计划（planned/advice），不向目标集群发 PUT' };
+      properties.syncAliases = { type: 'boolean', description: 'sync_structure: true 时建索引成功后按源别名逐个随迁（filter/routing 元数据原样）' };
+      properties.downgradedAnalyzerFallback = { type: 'string', description: 'sync_structure: 降级字段的回退分析器；缺省回退 standard 分析器（normalizer 属性总是剔除）' };
+      properties.expectPlanDigest = { type: 'string', description: 'sync_structure: dryRun 预览返回的 planDigest；仅 dryRun=false 执行时合法，防预览后源结构漂移' };
+      properties.srcConnId = { type: 'string', description: '跨集群 action 的源连接档案 id（start/resume/fetch_config/reconcile/verify_equivalence 等）' };
+      properties.destConnId = { type: 'string', description: '目标侧连接 id（host=宿主集群；缺省按 action 各自默认）' };
+      properties.sourceIndex = { type: 'string', description: '源索引名（旧集群侧）' };
+      properties.destIndex = { type: 'string', description: '目标索引名（缺省多与 sourceIndex 同名）' };
+      properties.jobId = { type: 'string', description: '迁移作业 id（status/resume/abort/conflicts/throttle/verify_equivalence）' };
+      properties.sampleSize = { type: 'number', description: 'verify_equivalence: _doc 序取样条数，钳制 10-500（缺省 100）' };
+      properties.sampleFields = { type: 'string', description: 'verify_equivalence: 参与摘要对比的字段，逗号分隔' };
+      properties.aggField = { type: 'string', description: 'verify_equivalence: 可选 terms 聚合对比字段' };
+      properties.aggSize = { type: 'number', description: 'verify_equivalence: 聚合桶数，钳制 1-50（缺省 10）' };
+      properties.rps = { type: 'string', description: 'throttle: 每秒文档数，-1 表示不限速' };
+    }
     out.push({
       name,
       description: GROUP_DESCRIPTIONS[name] + ' Actions: ' + allowed.join(', ')
         + '. Pass action plus the arguments documented for that action.',
       inputSchema: { type: 'object', properties, required: ['action'] },
-      annotations: {
-        readOnlyHint: allowed.every((action) => !WRITE_TOOLS.includes(actions[action]) && actions[action] !== 'es_rest'),
-        destructiveHint: allowed.some((action) => WRITE_TOOLS.includes(actions[action]) || actions[action] === 'es_rest'),
-        openWorldHint: false,
-      },
+      annotations: TOOL_ANNOTATIONS[name],
       _meta: { ui: { resourceUri: MCP_APP_URI } },
     });
   }

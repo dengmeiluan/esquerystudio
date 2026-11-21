@@ -114,6 +114,6 @@ describe('1030 高级菜单长算子名收口', () => {
   it('adv-i code 位省略号收口 + 行 title 全名提示（真机实锚：combined_fields 等 14+ 字符溢出面板裁切）', () => {
     const src = srcOf('components/builder/BoolGroupNode.vue');
     expect(src).toContain('.adv-i code { font-size: var(--fs-2xs); color: var(--tx2); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }');
-    expect(src).toContain(':title="op + \' · \' + labelOfOp(op)"');
+    expect(src).toContain('v-tip="op + \' · \' + labelOfOp(op)"');
   });
 });

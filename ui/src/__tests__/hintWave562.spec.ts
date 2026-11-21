@@ -192,9 +192,9 @@ describe('562 E：LuceneQueryView JSON 视图查找改用 SearchFilterBar', () =
 describe('562 F：SearchSandboxView 三开关中文释义 title', () => {
   it('explain / profile / auto-highlight 三 checkbox 补 title（纯属性追加）', () => {
     /* 控件升级随迁：原生 checkbox → NCheckbox，文字入默认插槽（点文字=点框） */
-    expect(ss).toContain('<n-checkbox v-model:checked="opts.explain" size="small" class="ss-chk" title="返回每命中的打分解释（_explanation，响应变大）">explain</n-checkbox>');
-    expect(ss).toContain('<n-checkbox v-model:checked="opts.profile" size="small" class="ss-chk" title="返回各分片执行明细（Profile，调优排障用，响应变大）">profile</n-checkbox>');
-    expect(ss).toContain('<n-checkbox v-model:checked="opts.highlight" size="small" class="ss-chk" title="按查询词自动高亮命中片段">auto-highlight</n-checkbox>');
+    expect(ss).toContain(`<n-checkbox v-model:checked="opts.explain" size="small" class="ss-chk" v-tip="'返回每命中的打分解释（_explanation，响应变大）'">explain</n-checkbox>`);
+    expect(ss).toContain(`<n-checkbox v-model:checked="opts.profile" size="small" class="ss-chk" v-tip="'返回各分片执行明细（Profile，调优排障用，响应变大）'">profile</n-checkbox>`);
+    expect(ss).toContain(`<n-checkbox v-model:checked="opts.highlight" size="small" class="ss-chk" v-tip="'按查询词自动高亮命中片段'">auto-highlight</n-checkbox>`);
     expect(ss, '防回潮：不得回落原生 checkbox').not.toContain('type="checkbox"');
   });
 });

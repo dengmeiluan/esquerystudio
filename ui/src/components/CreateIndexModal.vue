@@ -30,7 +30,7 @@
         <div class="cim-row" style="flex:1">
           <label class="cim-lb">别名（可选）</label>
           <input v-model="alias" class="inp mono" placeholder="创建后原子挂载" style="flex:1"
-            :disabled="!canAlias" title="别名挂载需别名管理权限" />
+            :disabled="!canAlias" v-tip="'别名挂载需别名管理权限'" />
         </div>
       </div>
       <div class="cim-tip">
@@ -66,8 +66,8 @@
       </div>
       <div v-if="previewOpen" class="cim-preview-bar">
         <span class="cim-adv-sub">高度</span>
-        <n-input-number v-model:value="previewH" size="tiny" :min="120" :step="40" class="cim-prev-h" :input-props="{ 'aria-label': '请求预览高度（像素）' }" title="预览高度（px，跨会话记忆）" />
-        <button class="btn sm ghost" title="复制完整请求预览" @click="copyRequest"><Copy :size="11" /> 复制请求</button>
+        <n-input-number v-model:value="previewH" size="tiny" :min="120" :step="40" class="cim-prev-h" :input-props="{ 'aria-label': '请求预览高度（像素）' }" v-tip="'预览高度（px，跨会话记忆）'" />
+        <button class="btn sm ghost" v-tip="'复制完整请求预览'" @click="copyRequest"><Copy :size="11" /> 复制请求</button>
       </div>
       <div v-if="previewOpen" class="cim-preview-wrap" :style="{ '--cim-prev-h': previewH + 'px' }">
         <pre v-if="previewOpen" class="cim-preview mono scroll-y json-view" v-html="previewHtml"></pre>

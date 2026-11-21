@@ -177,23 +177,25 @@ describe('737 G132 立即执行钮在途窗（铁律 D·execing 半合规补全�
 });
 
 describe('737 G133 indices 段中文 tip（铁律 F·717 G60 双语同款）', () => {
-  it('三卡 indices 段 title=「快照覆盖的索引列表」+help 档；tip 不进可见文本；其余段 title 仍缺省', async () => {
+  it('三卡 indices 段提示=「快照覆盖的索引列表」+help 档；tip 不进可见文本；其余段无 tip', async () => {
     const host = await mountView();
     const cards = host.querySelectorAll('.slm-card');
+    /* 段提示已迁 v-tip 指令（DOM 无 title 属性）——中文备注改源码锚（items prop 传 tip） */
+    const v = readFileSync(join(__dirname, '../views/SlmView.vue'), 'utf-8');
     for (const card of cards) {
       const seg = segOf(card, 'indices');
       expect(seg, 'indices 段在场').toBeTruthy();
-      expect(seg!.getAttribute('title'), 'G133 病灶：indices 段无 tip').toBe('快照覆盖的索引列表');
+      expect(v).toContain("label: 'indices', tip: '快照覆盖的索引列表'");
       expect(seg!.className, 'tip 无 to 走 help 档（cursor:help）').toContain('help');
     }
-    /* tip 走 :title 悬停通道，不进可见文本（可见面零泄漏） */
+    /* tip 走悬停通道，不进可见文本（可见面零泄漏） */
     expect(host.textContent).not.toContain('快照覆盖的索引列表');
-    /* 修法只动 indices 段：同卡其余段（保留/上次/下次）title 仍缺省 */
+    /* 修法只动 indices 段：同卡其余段（保留/上次/下次）无 tip（help 档对照） */
     const segs1 = Array.from(cards[1].querySelectorAll('.slm-card-meta .ms-i'));
-    expect(segs1.filter(el => el.getAttribute('title')).length, 'daily-logs 卡仅 indices 段带 title').toBe(1);
-    expect(segOf(cards[1], '保留')!.getAttribute('title')).toBeNull();
-    expect(segOf(cards[1], '上次')!.getAttribute('title')).toBeNull();
-    expect(segOf(cards[1], '下次')!.getAttribute('title')).toBeNull();
+    expect(segs1.filter(el => el.classList.contains('help')).length, 'daily-logs 卡仅 indices 段带 tip').toBe(1);
+    expect(segOf(cards[1], '保留')!.classList.contains('help')).toBe(false);
+    expect(segOf(cards[1], '上次')!.classList.contains('help')).toBe(false);
+    expect(segOf(cards[1], '下次')!.classList.contains('help')).toBe(false);
   });
 });
 

@@ -228,7 +228,7 @@ describe('W10 视图落点源码锁', () => {
        translate 与执行仍共用同一份 body 快照。 */
     expect(v).toContain('const body = buildBody(execSql);');
     expect(v).toContain('void api.sqlTranslate(withoutColumnar(body)).then(r => {');
-    expect(v).toContain(":title=\"sql.trim() ? (selScope ? '仅执行选中的 ' + selScope.lines + ' 行（' + execHint + '）；清除选区后执行整篇' : (multiStmt ? '仅执行光标所在语句（第 ' + cursorStmtNo + ' 条 / 共 ' + stmtScopes.length + ' 条；' + execHint + '）；选中一段可只跑选段' : '执行（' + execHint + '）')) : '请输入 SQL 语句'\"");
+    expect(v).toContain("v-tip=\"sql.trim() ? (selScope ? '仅执行选中的 ' + selScope.lines + ' 行（' + execHint + '）；清除选区后执行整篇' : (multiStmt ? '仅执行光标所在语句（第 ' + cursorStmtNo + ' 条 / 共 ' + stmtScopes.length + ' 条；' + execHint + '）；选中一段可只跑选段' : '执行（' + execHint + '）')) : '请输入 SQL 语句'\"");
     expect(v).toContain('action-text="插入示例" @action="loadSample"');
   });
 

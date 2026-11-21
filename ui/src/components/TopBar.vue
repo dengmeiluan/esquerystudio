@@ -6,7 +6,7 @@
       <button
         :aria-label="store.navHidden ? '展开侧栏' : store.navIcon ? '折叠侧栏' : '收成图标条'"
         class="btn ghost sm nav-toggle"
-        :title="store.navHidden ? '展开侧栏（Mod+B 隐藏/恢复）' : store.navIcon ? '展开侧栏' : '收成图标条'"
+        v-tip="store.navHidden ? '展开侧栏（Mod+B 隐藏/恢复）' : store.navIcon ? '展开侧栏' : '收成图标条'"
         @click="store.navHidden ? store.setNavHidden(false) : store.toggleNav()"
       >
         <component :is="store.navHidden || store.navIcon ? PanelLeftOpen : PanelLeftClose" :size="14" />
@@ -27,7 +27,7 @@
         @update:value="onPick"
       />
       <span v-if="store.pickedInfo" class="idx-meta mono"
-        :title="fmtNum(store.pickedInfo['docs.count']) + ' docs · ' + store.pickedInfo['store.size']">
+        v-tip="fmtNum(store.pickedInfo['docs.count']) + ' docs · ' + store.pickedInfo['store.size']">
         <!-- store.size 裸字节串 → storeSizeText 单源（utils/format，semFormat bytes 档）；
  title 恒 raw（Overview 同范式：悬浮保留原始值） -->
         {{ fmtNum(store.pickedInfo['docs.count']) }} docs · {{ storeSizeText(store.pickedInfo['store.size']) }}
@@ -39,35 +39,35 @@
     <div class="tbar-right">
       <!-- 全局作业进度——长耗时作业（托管重建/跨集群迁移）跑完不需守页，
  任何页面看得见在跑几个、跑到几成，点击回作业页；无在跑作业时不占位 -->
-      <button v-if="jobCount" class="btn ghost sm tbar-job" :title="jobTitle" @click="gotoJobs">
+      <button v-if="jobCount" class="btn ghost sm tbar-job" v-tip="jobTitle" @click="gotoJobs">
         <Loader2 :size="13" class="tbar-job-spin" />
         <span class="tbar-alert-n">{{ jobCount }}<template v-if="jobPct >= 0"> · {{ jobPct }}%</template></span>
       </button>
       <!-- 全局告警指示——告警不再只活在大屏，任何页面都看得见并一键回大屏处理；无告警时不占位不制噪 -->
-      <button v-if="alertCount" class="btn ghost sm tbar-alert" :class="{ bad: monBad > 0 }" :title="alertTitle" @click="gotoLive">
+      <button v-if="alertCount" class="btn ghost sm tbar-alert" :class="{ bad: monBad > 0 }" v-tip="alertTitle" @click="gotoLive">
         <BellRing :size="13" />
         <span class="tbar-alert-n">{{ alertCount }}</span>
       </button>
       <!-- 通知历史入口——错过的 toast（尤其失败提醒）在这里回看，未读 error/warning 亮红点 -->
       <NotifyCenter />
       <UserMenu />
-      <span v-if="store.clusterSelf" class="idx-meta mono self-chip" :title="'当前实例 ' + store.clusterSelf">{{ store.clusterSelf }}</span>
-      <button ref="palBtnRef" class="btn ghost sm" @click="emit('open-palette')" title="命令面板（⌘K / Ctrl+K）">
+      <span v-if="store.clusterSelf" class="idx-meta mono self-chip" v-tip="'当前实例 ' + store.clusterSelf">{{ store.clusterSelf }}</span>
+      <button ref="palBtnRef" class="btn ghost sm" @click="emit('open-palette')" v-tip="'命令面板（⌘K / Ctrl+K）'">
         <Command :size="13" /> <span class="tbar-kt">⌘K</span>
       </button>
-      <button :aria-label="'密度：' + (store.settings.density === 'compact' ? '紧凑' : '宽松') + '（点击切换）'" class="btn ghost sm" @click="store.toggleDensity()" :title="'密度：' + (store.settings.density === 'compact' ? '紧凑' : '宽松') + '（点击切换）'">
+      <button :aria-label="'密度：' + (store.settings.density === 'compact' ? '紧凑' : '宽松') + '（点击切换）'" class="btn ghost sm" @click="store.toggleDensity()" v-tip="'密度：' + (store.settings.density === 'compact' ? '紧凑' : '宽松') + '（点击切换）'">
         <component :is="store.settings.density === 'compact' ? Rows2 : Rows3" :size="13" />
       </button>
-      <button v-if="auth.canReadPage('devtools', store.target) || auth.canReadPage('mcp', store.target)" aria-label="MCP 接入与密钥管理" class="btn ghost sm tbar-mcp" title="MCP 接入：端点、工具、密钥与用量" @click="openMcp">
+      <button v-if="auth.canReadPage('devtools', store.target) || auth.canReadPage('mcp', store.target)" aria-label="MCP 接入与密钥管理" class="btn ghost sm tbar-mcp" v-tip="'MCP 接入：端点、工具、密钥与用量'" @click="openMcp">
         <Plug :size="13" /><span class="tbar-mcp-label">MCP</span>
       </button>
-      <button aria-label="接入文档（Maven 坐标 / iframe 嵌入 / 菜单 SPI）" class="btn ghost sm" title="接入文档（Maven 坐标 / iframe 嵌入 / 菜单 SPI）" @click="showGuide = true">
+      <button aria-label="接入文档（Maven 坐标 / iframe 嵌入 / 菜单 SPI）" class="btn ghost sm" v-tip="'接入文档（Maven 坐标 / iframe 嵌入 / 菜单 SPI）'" @click="showGuide = true">
         <BookOpen :size="13" />
       </button>
-      <button :aria-label="'主题：' + themeLabel + '（点击循环）'" class="btn ghost sm" @click="store.cycleTheme()" :title="'主题：' + themeLabel + '（点击循环）'">
+      <button :aria-label="'主题：' + themeLabel + '（点击循环）'" class="btn ghost sm" @click="store.cycleTheme()" v-tip="'主题：' + themeLabel + '（点击循环）'">
         <component :is="themeIcon" :size="13" />
       </button>
-      <button aria-label="刷新索引列表" class="btn ghost sm" :class="{ spinning: store.loadingIndices }" @click="store.loadIndices()" title="刷新索引列表">
+      <button aria-label="刷新索引列表" class="btn ghost sm" :class="{ spinning: store.loadingIndices }" @click="store.loadIndices()" v-tip="'刷新索引列表'">
         <RefreshCw :size="13" />
       </button>
     </div>

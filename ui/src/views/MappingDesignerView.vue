@@ -15,7 +15,7 @@
   </button>
   <!-- 原始 IO 快查——本页最近一次 mapping-put 写入请求/响应原文（ioRecorder 记录环；
  GET mapping-detail 被 IndexHub/AnalyzerLab 污染，特征走写通道独占） -->
-  <button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（Mapping 设计器）" title="最近一次 mapping 写入请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo">
+  <button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（Mapping 设计器）" v-tip="'最近一次 mapping 写入请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo">
     <Terminal :size="12" /> 原始 IO
   </button>
         </template>

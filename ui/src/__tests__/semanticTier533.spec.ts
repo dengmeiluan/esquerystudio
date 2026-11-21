@@ -140,7 +140,7 @@ describe('E HealthReportView：双列显示槽 + 视口弹性档', () => {
     expect(s, '色点改用 MetaStrip dot 形态单源（dot+value 段，文案不变）')
       .toMatch(/<MetaStrip :items="\[\{ dot: healthColor\(String\(value \|\| ''\)\), value: healthZh\(value\) \|\| value \}\]" \/>/);
     expect(s, 'hr-hdot 私造圆点退役（hd-g/y/r 三档同步更新）').not.toContain('hr-hdot');
-    expect(s).toMatch(/<span class="hr-cell-health" :title="String\(value \?\? ''\)">/);
+    expect(s).toMatch(/<span class="hr-cell-health" v-tip="String\(value \?\? ''\)">/);
   });
 
   it('#cell-size 显示槽在場：semFormat bytes 单源（parseBytes 先归一，不可解析回落原值）', () => {

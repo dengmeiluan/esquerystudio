@@ -154,13 +154,14 @@ beforeEach(() => {
 afterEach(() => { apps.forEach(a => a.unmount()); apps.length = 0; });
 
 describe('721 G74 max_score 中文备注（铁律 F）', () => {
-  it('执行后 max_score 段悬停可达：title=最高相关度得分 + help 档；命中段对照无 tip', async () => {
+  it('执行后 max_score 段悬停可达：提示=最高相关度得分 + help 档；命中段对照无 tip', async () => {
     const host = await mountSe();
     await runOk(host);
     const items = Array.from(host.querySelectorAll<HTMLElement>('.se-meta .ms-i'));
     const maxItem = items.find(el => el.textContent?.includes('max_score'));
     expect(maxItem, 'max_score 段必须在场（执行成功后统计条渲染）').toBeTruthy();
-    expect(maxItem!.getAttribute('title'), 'G74 病灶：max_score 英文裸 label 无中文备注').toBe('最高相关度得分');
+    /* 段提示已迁 v-tip 指令（DOM 无 title 属性）——中文备注改源码锚（items prop 传 tip） */
+    expect(readFileSync(join(__dirname, '../views/ScoreExplainView.vue'), 'utf-8')).toContain("label: 'max_score', tip: '最高相关度得分'");
     expect(maxItem!.classList.contains('help'), 'tip 段挂 MetaStrip help 档（cursor:help）').toBe(true);
     const hitItem = items.find(el => el.textContent?.includes('命中'));
     expect(hitItem, '命中段在场（对照组）').toBeTruthy();

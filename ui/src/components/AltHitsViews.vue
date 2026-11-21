@@ -13,14 +13,14 @@
      顶部常驻才是可达的遍历/直达入口 -->
     <div v-if="docCount" class="ah-docnav">
       <span class="ah-docnav-lb">文档</span>
-      <button type="button" class="ah-nav-btn" title="上一条文档" :disabled="docCursor <= 0" @click="docCursor = Math.max(0, docCursor - 1)">‹</button>
+      <button type="button" class="ah-nav-btn" v-tip="'上一条文档'" :disabled="docCursor <= 0" @click="docCursor = Math.max(0, docCursor - 1)">‹</button>
       <!-- _id 直达下拉（914 续）：按 id 精确选择（与卡片 kw 快滤同效），选中即当前遍历位；
            W3c 原生 select 升档 NSelect tiny（导航条 fs-2xs 密度档） -->
       <n-select v-model:value="docCursor" class="ah-docnav-sel mono" size="tiny" :options="docCursorOpts"
-        :title="docIdList[docCursor] || ''" aria-label="选择文档（按 _id）" />
-      <button type="button" class="ah-nav-btn" title="下一条文档" :disabled="docCursor >= docCount - 1" @click="docCursor = Math.min(docCount - 1, docCursor + 1)">›</button>
+        v-tip="docIdList[docCursor] || ''" aria-label="选择文档（按 _id）" />
+      <button type="button" class="ah-nav-btn" v-tip="'下一条文档'" :disabled="docCursor >= docCount - 1" @click="docCursor = Math.min(docCount - 1, docCursor + 1)">›</button>
       <button type="button" class="ah-nav-open" @click="emit('open-doc-at', docCursor)">打开文档</button>
-      <button v-if="editable" type="button" class="ah-nav-open ah-nav-edit" title="打开该文档并直接进入编辑（Monaco 编辑 raw JSON 后保存）" @click="emit('edit-doc-at', docCursor)">编辑文档</button>
+      <button v-if="editable" type="button" class="ah-nav-open ah-nav-edit" v-tip="'打开该文档并直接进入编辑（Monaco 编辑 raw JSON 后保存）'" @click="emit('edit-doc-at', docCursor)">编辑文档</button>
     </div>
     <pre v-if="view === 'json'" ref="preEl" class="json-view" v-html="perDoc ? (docHtml || '') : jsonHtml" @mousedown="onPreDown" @click="onPreClick" @dblclick="onPreDblClick"></pre>
   </template>
@@ -30,13 +30,13 @@
   <template v-else-if="view === 'tree'">
     <div v-if="docCount" class="ah-docnav">
       <span class="ah-docnav-lb">文档</span>
-      <button type="button" class="ah-nav-btn" title="上一条文档" :disabled="docCursor <= 0" @click="docCursor = Math.max(0, docCursor - 1)">‹</button>
+      <button type="button" class="ah-nav-btn" v-tip="'上一条文档'" :disabled="docCursor <= 0" @click="docCursor = Math.max(0, docCursor - 1)">‹</button>
       <!-- W3c：同 json 档——原生 select 升档 NSelect tiny -->
       <n-select v-model:value="docCursor" class="ah-docnav-sel mono" size="tiny" :options="docCursorOpts"
-        :title="docIdList[docCursor] || ''" aria-label="选择文档（按 _id）" />
-      <button type="button" class="ah-nav-btn" title="下一条文档" :disabled="docCursor >= docCount - 1" @click="docCursor = Math.min(docCount - 1, docCursor + 1)">›</button>
+        v-tip="docIdList[docCursor] || ''" aria-label="选择文档（按 _id）" />
+      <button type="button" class="ah-nav-btn" v-tip="'下一条文档'" :disabled="docCursor >= docCount - 1" @click="docCursor = Math.min(docCount - 1, docCursor + 1)">›</button>
       <button type="button" class="ah-nav-open" @click="emit('open-doc-at', docCursor)">打开文档</button>
-      <button v-if="editable" type="button" class="ah-nav-open ah-nav-edit" title="打开该文档并直接进入编辑（Monaco 编辑 raw JSON 后保存）" @click="emit('edit-doc-at', docCursor)">编辑文档</button>
+      <button v-if="editable" type="button" class="ah-nav-open ah-nav-edit" v-tip="'打开该文档并直接进入编辑（Monaco 编辑 raw JSON 后保存）'" @click="emit('edit-doc-at', docCursor)">编辑文档</button>
     </div>
     <div class="ah-tree-body" ref="treeEl" @mousedown="onTreeDown" @click="onTreeClick" @dblclick="onTreeDblClick">
       <JsonTree :data="perDoc ? (docData ?? []) : treeData" tools />
@@ -46,10 +46,10 @@
    拖选字段值松手不触发；键盘 Enter/Space 直开） -->
   <template v-else-if="view === 'cards'">
     <div v-for="h in hits" :key="h._id" class="dq-card" @mousedown="onCardDown" @click="onCardClick($event, h)" @dblclick="onCardDblClick" role="button" tabindex="0" @contextmenu.prevent="openCardMenu($event, h)" @keydown="onCardKey($event, h)" data-row-nav @keydown.self="rowArrowNav">
-      <div class="dq-card-id mono" :title="h._id">{{ h._id }}</div>
+      <div class="dq-card-id mono" v-tip="h._id">{{ h._id }}</div>
       <div v-for="f in Object.keys(h._source).slice(0, 5)" :key="f" class="dq-card-row">
-        <span class="dq-card-k mono" :title="f">{{ f }}</span>
-        <span class="dq-card-v mono" :title="String(h._source[f])">{{ trunc(h._source[f], 42) }}</span>
+        <span class="dq-card-k mono" v-tip="f">{{ f }}</span>
+        <span class="dq-card-v mono" v-tip="String(h._source[f])">{{ trunc(h._source[f], 42) }}</span>
       </div>
     </div>
   </template>

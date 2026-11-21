@@ -13,6 +13,11 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createApp, h, nextTick } from 'vue';
 import { createPinia } from 'pinia';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+/* 提示已迁 v-tip 指令（DOM 无 title 属性），文案绑定改源码锚 */
+const CHIP_SRC = readFileSync(join(__dirname, '../components/CurrentIdxChip.vue'), 'utf8');
 
 const mocks = vi.hoisted(() => ({
   push: vi.fn(),
@@ -67,7 +72,8 @@ describe('CurrentIdxChip（五百二十五批）', () => {
     await settle();
     const root = host.querySelector<HTMLElement>('.cic');
     expect(root, '选后渲染').toBeTruthy();
-    expect(root!.title).toBe('orders-2024');
+    /* 根提示已迁 v-tip 指令（DOM 无 title 属性），索引名绑定改源码锚 */
+    expect(CHIP_SRC).toContain('v-tip="store.pickedIdx"');
     expect(root!.querySelector('.cic-nm')!.textContent).toBe('orders-2024');
     expect(root!.querySelector('.cic-dot.h-green'), 'green 走健康色点').toBeTruthy();
     /* docs·size 小字：pickedInfo 可得才显（真实 fmtNum/fmtSize 出口，只认段存在） */
@@ -81,8 +87,9 @@ describe('CurrentIdxChip（五百二十五批）', () => {
     store.pick('orders-2024');
     await settle();
     const clearBtn = [...host.querySelectorAll<HTMLButtonElement>('.cic-btn')]
-      .find(b => (b.title || '').includes('清除后跟随顶栏'));
-    expect(clearBtn, '清除钮必须在场且 title 注明跟随顶栏').toBeTruthy();
+      .find(b => b.getAttribute('aria-label') === '清除当前索引');
+    expect(clearBtn, '清除钮必须在场').toBeTruthy();
+    expect(CHIP_SRC, '提示文案注明「清除后跟随顶栏」（v-tip 绑定）').toContain('v-tip="\'清除当前索引（清除后跟随顶栏）\'"');
     clearBtn!.click();
     await settle();
     expect(store.pickedIdx).toBe('');
@@ -95,7 +102,7 @@ describe('CurrentIdxChip（五百二十五批）', () => {
     store.pick('orders-2024');
     await settle();
     const copyBtn = [...host.querySelectorAll<HTMLButtonElement>('.cic-btn')]
-      .find(b => b.title.includes('复制深链'));
+      .find(b => b.getAttribute('aria-label') === '复制深链');
     copyBtn!.click();
     await settle();
     expect(mocks.copyText).toHaveBeenCalledTimes(1);

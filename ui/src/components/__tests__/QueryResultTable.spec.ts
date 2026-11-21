@@ -4,15 +4,28 @@ import { describe, it, expect } from 'vitest';
 import { createApp, h, nextTick } from 'vue';
 import { createPinia } from 'pinia';
 import QueryResultTable from '../QueryResultTable.vue';
+import { vTip } from '../../directives/vTip';
 
 type QRTProps = InstanceType<typeof QueryResultTable>['$props'];
 
 function render(props: QRTProps): HTMLElement {
   const host = document.createElement('div');
   const app = createApp({ render: () => h(QueryResultTable, props) });
+  /* 截断全文走 v-tip 浮层（模板 v-tip 指令），测试注册同款指令才能触发浮层 */
+  app.directive('tip', vTip);
   app.use(createPinia());
   app.mount(host);
   return host;
+}
+
+/* v-tip 浮层通道要求宿主在文档内（指令对离屏节点按卸载放弃显示）：
+   挂 body → 触发 focusin → 断言浮层文本 → 摘回，离屏用例零感知 */
+function showTipInDoc(root: HTMLElement, cell: HTMLElement): string {
+  document.body.appendChild(root);
+  cell.dispatchEvent(new Event('focusin'));
+  const text = document.getElementById('vt-tip')?.textContent ?? '';
+  root.remove();
+  return text;
 }
 
 /* 抽某列 body 单元格文本（含 title 全文不在此，只看可见文本） */
@@ -50,7 +63,7 @@ describe('QueryResultTable · hit 型', () => {
     expect(colValues(root, 6)[0]).toBe('∅');
   });
 
-  it('对象/数组 JSON.stringify 截断 + title 全文', () => {
+  it('对象/数组 JSON.stringify 截断 + v-tip 浮层全文', () => {
     const big = { long: 'x'.repeat(300) };
     const root = render({ hits: [{ _id: '1', _index: 'i', _score: 1, _source: { obj: big } }] });
     // 列序 #/_id/_index/_score/obj，对象落在第 5 格（index 4）
@@ -58,7 +71,7 @@ describe('QueryResultTable · hit 型', () => {
     const full = JSON.stringify(big);
     expect(cell.textContent).not.toBe(full);
     expect(cell.textContent).toContain('…');
-    expect(cell.getAttribute('title')).toBe(full);
+    expect(showTipInDoc(root, cell)).toBe(full);
   });
 
   it('空 hits 显示 emptyText（默认 无数据，266 批统一）', () => {
@@ -80,12 +93,12 @@ describe('QueryResultTable · rows 型', () => {
     expect(render({ cols: ['a'], rows: [] }).textContent).toContain('无数据');
   });
 
-  it('单元格截断 + title 全文（长字符串）', () => {
+  it('单元格截断 + v-tip 浮层全文（长字符串）', () => {
     const long = 'y'.repeat(300);
     const root = render({ cols: ['v'], rows: [[long]] });
     const cell = root.querySelectorAll('tbody td')[1] as HTMLElement; // [0] 是冻结序号列（167 批）
     expect(cell.textContent).toContain('…');
-    expect(cell.getAttribute('title')).toBe(long);
+    expect(showTipInDoc(root, cell)).toBe(long);
   });
 });
 

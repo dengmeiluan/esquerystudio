@@ -32,12 +32,12 @@ import { ApiError } from '../api';
 const srcOf = (rel: string) => readFileSync(join(__dirname, '..', rel), 'utf-8');
 
 describe('五百五十六批 ①：@media 分类裁决反锁（独占文件，783 批后 8 处恒定）', () => {
-  it('theme.css 恰 3 处：901 补集锁步锚 + 2 处 reduced-motion 豁免（900 全站档 783 随 R66 兜底族退役）', () => {
+  it('theme.css 恰 4 处：901 补集锁步锚 + 3 处 reduced-motion 豁免（900 全站档退役；ind-bar 流动动画豁免在册）', () => {
     const s = srcOf('theme.css');
-    expect([...s.matchAll(/@media/g)].length, '新增/移除 @media 必须先过分类裁决并改本计数（783 批：R66 窄容器表横滚兜底 @media 整块退役——两规则恒空匹配，theme.css 4→3）').toBe(3);
+    expect([...s.matchAll(/@media/g)].length, '新增/移除 @media 必须先过分类裁决并改本计数（783 批：R66 窄容器表横滚兜底 @media 整块退役；其后 ProgressTrack 不确定态流动条 .ind-bar::after 入册，theme.css 3→4）').toBe(4);
     expect(s).toContain('@media (min-width: 901px)'); // responsiveGuard239 锚④ 锁步补集（布局锚；901 补集=IndexSettings hint 桌面档，活）
     expect(s).not.toContain('@media (max-width: 900px)'); // BP_NARROW 全局档 783 批退役（视图级 scoped 900 档不受影响；themeDeadFamilies783 看守）
-    expect(s.match(/@media \(prefers-reduced-motion: reduce\)/g)!.length).toBe(2); // 豁免
+    expect(s.match(/@media \(prefers-reduced-motion: reduce\)/g)!.length).toBe(3); // 豁免（全站档/vt-pop/ind-bar）
   });
 
   it('App.vue 恰 1 处：min-width:1920 超宽居中档（queryWorkbenchW1 逐字锚）', () => {

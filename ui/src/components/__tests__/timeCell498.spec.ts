@@ -1,11 +1,12 @@
 /**
  * 四百七十六批：TimeCell 行为直测——R99 时间单元格统一入口（列内相对时间+
  * 悬浮带时区绝对时间，五处自发形成后固化的组件），此前零直测。
- * 三契约：null → '-'；abs=true 显示绝对时间（fmtTimeTz title 同源）；默认
+ * 三契约：null → '-'；abs=true 显示绝对时间（fmtTimeTz 浮层同源）；默认
  * 相对时间接 useNow 心跳自动刷新。
  */
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { createApp, h, nextTick } from 'vue';
+import { vTip } from '../../directives/vTip';
 
 vi.mock('../../composables/useNow', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../../composables/useNow')>();
@@ -19,6 +20,8 @@ const apps: ReturnType<typeof createApp>[] = [];
 
 async function mountCell(ts: number | string | null | undefined, abs = false) {
   const app = createApp({ render: () => h(TimeCell, { ts, abs }) });
+  /* 组件模板用 v-tip（main.ts 全局注册），自建 app 须注册同款指令浮层才在 */
+  app.directive('tip', vTip);
   apps.push(app);
   const host = document.createElement('div');
   document.body.appendChild(host);
@@ -38,11 +41,13 @@ describe('TimeCell 行为契约（476 批）', () => {
     expect(host.textContent).toBe('-');
   });
 
-  it('默认相对时间；title 带时区绝对时间', async () => {
+  it('默认相对时间；v-tip 浮层带时区绝对时间', async () => {
     const host = await mountCell(Date.now() - 5 * 60_000);
     const el = host.querySelector('.tc')!;
     expect(el.textContent).toContain('m 前');
-    expect(el.getAttribute('title')!.length).toBeGreaterThan(10);
+    /* mountCell 已挂 body（浮层通道要求宿主在文档内）：focusin 键盘通道立即显示 */
+    el.dispatchEvent(new Event('focusin'));
+    expect((document.getElementById('vt-tip')?.textContent ?? '').length).toBeGreaterThan(10);
   });
 
   it('abs=true 切绝对时间', async () => {

@@ -21,7 +21,7 @@
  状态感知）+chevron 旋转保留；计数源 queryCondCount 同源复用；收展行为
  （buildCollapsed 机制与缺省值）零变化 -->
           <button type="button" class="dq-sec-tg dq-build-tg" :class="{ on: !buildCollapsed }"
-            :aria-expanded="!buildCollapsed" title="查询构建器：展开/收起条件树与编辑器（徽标=当前条件数）"
+            :aria-expanded="!buildCollapsed" v-tip="'查询构建器：展开/收起条件树与编辑器（徽标=当前条件数）'"
             @click="buildCollapsed = !buildCollapsed">
             <Workflow :size="13" />
             查询构建器
@@ -29,24 +29,24 @@
             <ChevronDown :size="13" :style="{ transform: buildCollapsed ? 'rotate(-90deg)' : '', transition: 'transform var(--tr)' }" />
           </button>
           <slot name="toolbar-prepend" />
-          <button class="btn sm" @click="tplOpen = true" title="查询模板"><LayoutTemplate :size="13" /> 模板</button>
-          <button class="btn sm" @click="varsOpen = true" title="变量 ${var}"><Variable :size="13" /> 变量</button>
-          <button class="btn sm" @click="histOpen = true" title="查询历史"><History :size="13" /> 历史</button>
+          <button class="btn sm" @click="tplOpen = true" v-tip="'查询模板'"><LayoutTemplate :size="13" /> 模板</button>
+          <button class="btn sm" @click="varsOpen = true" v-tip="'变量 ${var}'"><Variable :size="13" /> 变量</button>
+          <button class="btn sm" @click="histOpen = true" v-tip="'查询历史'"><History :size="13" /> 历史</button>
           <!-- 1057：只校验不执行——_validate/query 按当前索引 mapping 验 query（不返回文档、不算聚合/排序）；
                长释义走 Tip long（disabled 态由 Tip 触发层兜住 hover） -->
           <Tip long text="校验 query：调用 _validate/query（不取文档、不执行检索）；仅校验 query 子句，不校验聚合/排序/高亮">
             <button class="btn sm ghost" :disabled="validating || running" aria-label="校验 query（不执行）"
                     @click="validateDsl"><ShieldCheck :size="13" /> 校验</button>
           </Tip>
-          <button class="btn sm" @click="saveQuery" title="保存当前搜索（DSL+表格布局，Ctrl+S）"><Save :size="13" /> 保存</button>
+          <button class="btn sm" @click="saveQuery" v-tip="'保存当前搜索（DSL+表格布局，Ctrl+S）'"><Save :size="13" /> 保存</button>
           <!-- 在 DevTools 打开（_prefill 会话契约与 Snapshots/Ilm 同通道）——
  当前索引+DSL 组装 POST /{index}/_search 带到多标签控制台微调 -->
-          <button class="btn sm" @click="openInDevTools" :disabled="!resp" title="把当前索引与 DSL 带到 DevTools 多标签控制台（微调 headers/方法后重发）">
+          <button class="btn sm" @click="openInDevTools" :disabled="!resp" v-tip="'把当前索引与 DSL 带到 DevTools 多标签控制台（微调 headers/方法后重发）'">
             <TerminalSquare :size="13" /> DevTools
           </button>
-          <button aria-label="保存的搜索" class="btn sm" @click="savedOpen = true" title="保存的搜索（DSL+布局一体快照）"><Bookmark :size="13" /></button>
+          <button aria-label="保存的搜索" class="btn sm" @click="savedOpen = true" v-tip="'保存的搜索（DSL+布局一体快照）'"><Bookmark :size="13" /></button>
           <!-- 文档新增一等入口（此前全站只能写 NDJSON 或手写 REST 造数据）；：OPERATOR+ 可见（普通写档） -->
-          <button v-if="canWrite" class="btn sm primary" @click="openNewDoc()" title="新建文档（mapping 骨架预填，ID 留空自动生成）"><FilePlus2 :size="13" /> 新文档</button>
+          <button v-if="canWrite" class="btn sm primary" @click="openNewDoc()" v-tip="'新建文档（mapping 骨架预填，ID 留空自动生成）'"><FilePlus2 :size="13" /> 新文档</button>
           <!-- 1369：「跳去别处」的三个入口收进二级（实报「太多功能平铺」）。
  这三个都是**离开本页**的导航动作（去构建器/去 Lucene/去索引工作区），
  与左侧「在本页干什么」（模板/变量/历史/校验/保存/DevTools）心智不同类，
@@ -54,25 +54,25 @@
           <n-popover trigger="click" placement="bottom-start" :show="tbMoreOpen" @update:show="(v: boolean) => (tbMoreOpen = v)">
             <template #trigger>
               <button class="btn sm ghost dq-more" data-test="dq-more" aria-haspopup="menu" :aria-expanded="tbMoreOpen"
-                title="更多：到构建器打开 / 转 Lucene / 到索引工作区">
+                v-tip="'更多：到构建器打开 / 转 Lucene / 到索引工作区'">
                 <MoreHorizontal :size="13" /> 更多
                 <ChevronDown :size="11" :style="{ transform: tbMoreOpen ? 'rotate(180deg)' : '', transition: 'transform var(--tr)' }" />
               </button>
             </template>
             <div class="dq-more-pop" role="menu" aria-label="跳转与其他入口">
               <button class="dq-more-i" data-test="open-in-builder" role="menuitem" @click="openInBuilder(); tbMoreOpen = false"
-                title="在查询工作台构建器中打开当前 DSL（深链可分享）">
+                v-tip="'在查询工作台构建器中打开当前 DSL（深链可分享）'">
                 <ListTree :size="13" /> 在构建器中打开
                 <span class="dq-more-hint">跳去查询工作台</span>
               </button>
               <button class="dq-more-i" role="menuitem" @click="openInLucene(); tbMoreOpen = false"
-                title="把当前 DSL 翻译为 Lucene query_string（跳转 Lucene 通道查看/执行）">
+                v-tip="'把当前 DSL 翻译为 Lucene query_string（跳转 Lucene 通道查看/执行）'">
                 <ArrowLeftRight :size="13" /> DSL → Lucene
                 <span class="dq-more-hint">翻译并跳转</span>
               </button>
               <button class="dq-more-i" role="menuitem" aria-label="在索引工作区打开（docs/settings/mapping/就地查询）"
                 @click="router.push('/indices'); tbMoreOpen = false"
-                title="在索引工作区打开当前索引（docs/settings/mapping/就地查询）">
+                v-tip="'在索引工作区打开当前索引（docs/settings/mapping/就地查询）'">
                 <ExternalLink :size="13" /> 索引工作区
                 <span class="dq-more-hint">docs / settings / mapping</span>
               </button>
@@ -82,13 +82,13 @@
         <div class="dq-tb-r lr-bar-r">
           <!-- 分栏档位 seg 进工具行右段首（独占态还原入口常驻可点）。
  激活档 title 动态明示「再点还原」（toggle 语义自带说明） -->
-          <div class="dq-split-seg" role="group" aria-label="分栏档位（条件树与编辑器互覆盖）" title="分栏档位：激活档再点还原对半；独占态另一侧还有「还原对半」竖轨">
-            <button type="button" :class="{ on: splitTier === 'none' }" :aria-pressed="splitTier === 'none'" title="恢复对半分栏" @click="setSplitTier('none')">对半</button>
-            <button type="button" :class="{ on: splitTier === 'tree' }" :aria-pressed="splitTier === 'tree'" :title="splitTier === 'tree' ? '条件树独占中——再点还原对半分栏' : '条件树独占（编辑器收起）'" @click="setSplitTier('tree')">条件树</button>
-            <button type="button" :class="{ on: splitTier === 'ws' }" :aria-pressed="splitTier === 'ws'" :title="splitTier === 'ws' ? '编辑器独占中——再点还原对半分栏' : '编辑器独占（条件树收起）'" @click="setSplitTier('ws')">编辑器</button>
+          <div class="dq-split-seg" role="group" aria-label="分栏档位（条件树与编辑器互覆盖）" v-tip="'分栏档位：激活档再点还原对半；独占态另一侧还有「还原对半」竖轨'">
+            <button type="button" :class="{ on: splitTier === 'none' }" :aria-pressed="splitTier === 'none'" v-tip="'恢复对半分栏'" @click="setSplitTier('none')">对半</button>
+            <button type="button" :class="{ on: splitTier === 'tree' }" :aria-pressed="splitTier === 'tree'" v-tip="splitTier === 'tree' ? '条件树独占中——再点还原对半分栏' : '条件树独占（编辑器收起）'" @click="setSplitTier('tree')">条件树</button>
+            <button type="button" :class="{ on: splitTier === 'ws' }" :aria-pressed="splitTier === 'ws'" v-tip="splitTier === 'ws' ? '编辑器独占中——再点还原对半分栏' : '编辑器独占（条件树收起）'" @click="setSplitTier('ws')">编辑器</button>
           </div>
           <n-popover trigger="click" placement="bottom-end" :width="340">
-            <template #trigger><button class="btn sm" title="时间戳 ↔ 标准时间互转（多种格式自适应）"><Clock :size="13" /> 时间转换</button></template>
+            <template #trigger><button class="btn sm" v-tip="'时间戳 ↔ 标准时间互转（多种格式自适应）'"><Clock :size="13" /> 时间转换</button></template>
             <div style="display:flex;flex-direction:column;gap:var(--sp-2);padding:var(--sp-1)">
               <input v-model="tcInput" class="inp mono" placeholder="输入标准时间或 epoch 毫秒/秒" style="height:26px;font-size: var(--fs-xs)" @keyup.enter="tcConvert" />
               <button class="btn sm" @click="tcConvert">转换</button>
@@ -102,20 +102,20 @@
             </div>
           </n-popover>
           <n-popover trigger="click" placement="bottom-end">
-            <template #trigger><button class="btn sm" title="复制为代码"><Code2 :size="13" /> 复制为</button></template>
+            <template #trigger><button class="btn sm" v-tip="'复制为代码'"><Code2 :size="13" /> 复制为</button></template>
             <div class="codegen">
               <button v-for="l in langs" :key="l.k" class="btn sm" :class="{ primary: store.settings.defaultLang === l.k }" @click="copyAs(l.k)">{{ l.t }}</button>
             </div>
           </n-popover>
-          <button aria-label="导出 DSL" class="btn sm" @click="exportDsl" title="导出 DSL"><FileDown :size="13" /></button>
-          <button aria-label="导入 DSL" class="btn sm" @click="importDsl" title="导入 DSL"><FileUp :size="13" /></button>
-          <button aria-label="复制分享链接" class="btn sm" @click="shareUrl" title="复制分享链接"><Share2 :size="13" /></button>
-          <button aria-label="格式化" class="btn sm" @click="monacoRef?.format()" title="格式化"><AlignLeft :size="13" /></button>
+          <button aria-label="导出 DSL" class="btn sm" @click="exportDsl" v-tip="'导出 DSL'"><FileDown :size="13" /></button>
+          <button aria-label="导入 DSL" class="btn sm" @click="importDsl" v-tip="'导入 DSL'"><FileUp :size="13" /></button>
+          <button aria-label="复制分享链接" class="btn sm" @click="shareUrl" v-tip="'复制分享链接'"><Share2 :size="13" /></button>
+          <button aria-label="格式化" class="btn sm" @click="monacoRef?.format()" v-tip="'格式化'"><AlignLeft :size="13" /></button>
           <!-- 原始 IO 常驻入口——此前钮只在 RT #bar-extra（resp 在场才渲染），
  查询失败（queryErr、resp=null）全页无取数入口；工具行右段常驻 Terminal 钮
  （打开同一 RawIoModal，openRawIo 取数逻辑零触；RT 结果行钮保留成功态就地快查） -->
           <button class="btn sm" aria-label="查看原始 IO（DSL 查询）"
-            title="最近一次查询的请求/响应原文（语义分档高亮 + 复制/curl 回放）" @click="openRawIo"><Terminal :size="13" /></button>
+            v-tip="'最近一次查询的请求/响应原文（语义分档高亮 + 复制/curl 回放）'" @click="openRawIo"><Terminal :size="13" /></button>
         </div>
       </div>
 
@@ -214,7 +214,7 @@
           <template #trigger>
             <button type="button" class="btn sm ghost dq-req-btn" :class="{ on: reqActiveCount }"
                     :aria-label="'请求选项' + (reqActiveCount ? '（已设 ' + reqActiveCount + ' 项）' : '')"
-                    :title="reqActiveCount ? '请求选项：' + reqSummary : '请求选项（URL 参数，不进 DSL）：routing / preference / search_type 等'">
+                    v-tip="reqActiveCount ? '请求选项：' + reqSummary : '请求选项（URL 参数，不进 DSL）：routing / preference / search_type 等'">
               <SlidersHorizontal :size="13" /> 请求
               <span v-if="reqActiveCount" class="dq-req-n mono">{{ reqActiveCount }}</span>
             </button>
@@ -224,7 +224,7 @@
               <b>请求选项</b><span>URL 参数 · 不进 DSL</span>
               <button type="button" class="btn xs ghost" :disabled="!reqActiveCount" @click="clearReqOpts">清空</button>
             </div>
-            <label v-for="p in REQUEST_PARAMS" :key="p.key" class="dq-req-row" :title="p.hint">
+            <label v-for="p in REQUEST_PARAMS" :key="p.key" class="dq-req-row" v-tip="p.hint">
               <span class="dq-req-lb">{{ p.label }}</span>
               <!-- enum 参数原生 select 换 NSelect（系统蓝下拉与设计语言割裂）；「默认」=空值不附参，语义不变 -->
               <n-select v-if="p.options" v-model:value="reqValues[p.key]" :options="reqOptsOf(p)"
@@ -236,7 +236,7 @@
         </n-popover>
         <!-- Profile 开关：原生 checkbox 升档 NCheckbox（.dq-sw 激活胶囊类挂根，on 态绑定不动） -->
         <n-checkbox class="dq-sw" :class="{ on: profileOn }" v-model:checked="profileOn" size="small"
-          title="Query Profiler：返回 breakdown 耗时树">Profile</n-checkbox>
+          v-tip="'Query Profiler：返回 breakdown 耗时树'">Profile</n-checkbox>
         <!-- 直方图开关四迁执行行右组 Profile 旁（用户终审「直方图按钮应该跟
  Profile 按钮样式一样，位置一块」——同款 .dq-sw 激活胶囊；约定史：542 执行行→
  547 表格工具行→549 节头→553 执行行 Profile 旁终态）。柱状图本体仍在结果区节头下 -->
@@ -266,17 +266,17 @@
         <!-- W-A：编辑器高度四档（S/M/L/满），usePref 记忆；：档位=驱动双栏区高度
  （Monaco flex 填满 pane），拖柄拖动=自定义态（四钮全灭），点档位钮=重置回档位高度
  （实报「回不去了」的显性重置入口） -->
-        <div class="dq-eh" role="group" aria-label="编辑器高度档位" title="编辑器高度档位：S/M/L/满（拖动下方分隔条可自定义高度，点档位钮恢复）">
+        <div class="dq-eh" role="group" aria-label="编辑器高度档位" v-tip="'编辑器高度档位：S/M/L/满（拖动下方分隔条可自定义高度，点档位钮恢复）'">
           <button v-for="eh in EDITOR_H_TIERS" :key="eh.k" type="button" class="dq-eh-btn"
             :class="{ on: editorH === eh.k && dqMainH <= 0 }" :aria-pressed="editorH === eh.k && dqMainH <= 0"
-            :title="'编辑器高度：' + eh.t" @click="onEditorTier(eh.k)">{{ eh.t }}</button>
+            v-tip="'编辑器高度：' + eh.t" @click="onEditorTier(eh.k)">{{ eh.t }}</button>
         </div>
         <!-- 编辑器字号三档 seg（dq.font 落盘；DevTools dt.font 同源
  EDITOR_FONT_TIERS 单源，编辑器设置族与高度档同排同语义；
  响应缺角=MonacoEditor fontSize watch 同步补齐） -->
         <span class="seg dq-font-seg" role="group" aria-label="编辑器字号档">
           <button v-for="f in EDITOR_FONT_TIERS" :key="f" type="button" :class="{ on: dqFont === f }"
-            :title="'编辑器字号 ' + f + 'px'" @click="dqFont = f">{{ f }}</button>
+            v-tip="'编辑器字号 ' + f + 'px'" @click="dqFont = f">{{ f }}</button>
         </span>
         <!-- 长查询可取消——重度用户天天跑大查询，慢查询只能干等是硬伤 -->
         <button v-if="running" class="btn sm" @click="cancelQuery"><X :size="13" /> 取消</button>
@@ -301,18 +301,18 @@
  收起态摘要串（条件数+顶层已设参数速览，展开态不显示——面板本体即摘要） -->
         <!-- 1045：构建区收起时仍可见的未填值提示——执行前先修半成品条件，避免「有值但查空」 -->
         <button v-if="unfilledCondCount" type="button" class="btn sm ghost dq-unfilled"
-          :title="'有 ' + unfilledCondCount + ' 个条件未填值（空值条件会参与查询）；点击展开构建器并定位第一个'"
+          v-tip="'有 ' + unfilledCondCount + ' 个条件未填值（空值条件会参与查询）；点击展开构建器并定位第一个'"
           @click="focusUnfilled">
           <CircleAlert :size="13" /> {{ unfilledCondCount }} 个条件未填值
         </button>
         <!-- 1065：零命中诊断——零结果时出现；显式点击才发探针（只读 size=0 计数） -->
         <button v-if="canAblate" type="button" class="btn sm ghost dq-ablate-tg" :class="{ on: ablationOpen }"
-          title="零命中诊断：逐条停用条件并执行 size=0 计数探针，找出最可能的限制项（会发多次只读查询）"
+          v-tip="'零命中诊断：逐条停用条件并执行 size=0 计数探针，找出最可能的限制项（会发多次只读查询）'"
           @click="ablationOpen ? closeAblation() : openAblation()">
           <SearchX :size="13" /> 零命中诊断
         </button>
         <button type="button" class="dq-params-tg" :class="{ on: paramsOpen }" :aria-expanded="paramsOpen"
-          title="检索条件快速填充：分页 / 排序 / 字段裁剪 / 高亮 / 聚合 / 其他顶层键"
+          v-tip="'检索条件快速填充：分页 / 排序 / 字段裁剪 / 高亮 / 聚合 / 其他顶层键'"
           @click="paramsOpen = !paramsOpen">
           <SlidersHorizontal :size="13" /> 检索参数
           <span v-if="paramsSummary" class="dq-params-sum mono">{{ paramsSummary }}</span>
@@ -342,7 +342,7 @@
  限高升三档（dq.profH 落盘，首档=531 冻结值 max(240px,42vh) 零漂移；
  CSS 规则字面零触仍在册=缺省档同值，运行时档经内联 max-height 覆盖；档钮在树域头） -->
         <div v-if="profileTree" class="dq-profile" :style="profStyle">
-          <div class="sec-t dq-sec-hd"><Flame :size="13" /> Profile 耗时树 <button class="btn sm ghost" :title="'耗时树限高档：' + profH + '（点击循环）'" @click="cycleProfH">高</button><button aria-label="关闭 Profile 耗时树" class="btn sm ghost" style="margin-left:auto" @click="profileTree = null"><X :size="11" /></button></div>
+          <div class="sec-t dq-sec-hd"><Flame :size="13" /> Profile 耗时树 <button class="btn sm ghost" v-tip="'耗时树限高档：' + profH + '（点击循环）'" @click="cycleProfH">高</button><button aria-label="关闭 Profile 耗时树" class="btn sm ghost" style="margin-left:auto" @click="profileTree = null"><X :size="11" /></button></div>
           <ProfileNode :node="profileTree" :total="profileTotal" :depth="0" />
         </div>
       </div>
@@ -385,7 +385,7 @@
         <ShieldCheck :size="12" :class="{ 'dq-vbar-ic-ok': validateState.ok }" />
         <span class="dq-vbar-t">{{ validateState.text }}</span>
         <code class="dq-vbar-i mono">{{ validateState.idx }}</code>
-        <button type="button" class="btn xs ghost" aria-label="关闭校验结果" title="关闭校验结果" @click="validateState = null"><X :size="11" /></button>
+        <button type="button" class="btn xs ghost" aria-label="关闭校验结果" v-tip="'关闭校验结果'" @click="validateState = null"><X :size="11" /></button>
       </div>
 
       <!-- 直方图 / Terms 聚合并入结果卡内分区（独立 .card 卡墙退役） -->
@@ -409,14 +409,14 @@
         <div v-if="fieldFix && fieldFix.suggestions.length && errLeafId && !queryErrStale" class="dq-err-locate" role="group" aria-label="相近字段建议">
           <span>字段 <b class="mono">{{ fieldFix.field }}</b> 不在 mapping——相近字段：</span>
           <button v-for="s in fieldFix.suggestions" :key="s.path" type="button" class="btn xs" data-test="dsl-field-fix"
-                  :title="'把出错条件的字段改为 ' + s.path + ' 并重试'"
+                  v-tip="'把出错条件的字段改为 ' + s.path + ' 并重试'"
                   :disabled="running" @click="applyFieldFixAndRetry(s.path)">改为 {{ s.path }}</button>
         </div>
         <!-- 1097：索引不存在时给相近索引一键切换（与 SQL 错误面板同口径） -->
         <div v-if="idxSuggestion?.suggestions.length" class="dq-err-locate" role="group" aria-label="相近索引建议">
           <span>索引 <b class="mono">{{ idxSuggestion.index }}</b> 不存在——相近索引：</span>
           <button v-for="s in idxSuggestion.suggestions" :key="s.path" type="button" class="btn xs"
-                  :title="'切换到索引 ' + s.path + ' 并重试'" @click="applyIdxSuggestion(s.path)">{{ s.path }}</button>
+                  v-tip="'切换到索引 ' + s.path + ' 并重试'" @click="applyIdxSuggestion(s.path)">{{ s.path }}</button>
         </div>
         <pre class="mono" v-html="errPreHtml(queryErr, errMeta(queryErrRaw))"></pre>
         <button class="btn sm" :disabled="running" @click="runQuery">重试</button>
@@ -427,9 +427,9 @@
       <div v-if="dbqTaskId" class="dq-dbq mono" role="status">
         <span>按查询删除已提交（异步）：taskId <code>{{ dbqTaskId }}</code></span>
         <button class="btn sm ghost" data-test="dq-dbq-progress" :disabled="dbqProgLoading"
-          title="拉取该任务当前进度（一次性查询，不挂轮询）" @click="queryDbqProgress">查进度</button>
+          v-tip="'拉取该任务当前进度（一次性查询，不挂轮询）'" @click="queryDbqProgress">查进度</button>
         <span v-if="dbqProgLoading || dbqProgText" class="dq-dbq-prog">{{ dbqProgLoading ? '进度查询中…' : dbqProgText }}</span>
-        <button class="dq-partial-x" aria-label="关闭删除任务进度条" title="关闭" @click="dbqTaskId = ''"><X :size="11" /></button>
+        <button class="dq-partial-x" aria-label="关闭删除任务进度条" v-tip="'关闭'" @click="dbqTaskId = ''"><X :size="11" /></button>
       </div>
 
       <!-- 结果区高度拖柄（实报「表格无法手动调高」）——双柄分工：
@@ -459,7 +459,7 @@
         <CircleAlert :size="14" />
         <div class="dq-parse-stale-body">
           <span><b>当前 DSL 无法解析</b> · 下方结果来自上一次查询，不是这一版</span>
-          <button v-if="lastGoodDsl" type="button" class="btn xs" @click="restoreLastGood" title="把编辑器内容恢复为上一次能解析的版本">恢复上次可执行版本</button>
+          <button v-if="lastGoodDsl" type="button" class="btn xs" @click="restoreLastGood" v-tip="'把编辑器内容恢复为上一次能解析的版本'">恢复上次可执行版本</button>
         </div>
       </div>
       <div v-if="resp" class="dq-result" :style="resultStyle">
@@ -496,9 +496,9 @@
             <div v-for="a in termsAggsView" :key="a.name" class="dq-agg">
               <div class="dq-agg-t mono">{{ a.name }}</div>
               <div v-for="b in a.buckets" :key="String(b.key)" class="dq-agg-row dq-agg-drill" role="button" tabindex="0"
-                :title="'点击下钻「' + (b.key_as_string || b.key) + '」追加 term 过滤；Alt+点击=排除（must_not）'"
+                v-tip="'点击下钻「' + (b.key_as_string || b.key) + '」追加 term 过滤；Alt+点击=排除（must_not）'"
                 @click="drillAgg(a, b, $event.altKey)" @contextmenu.prevent="openAggMenu($event, a, b)" @keydown="onAggKey($event, a, b)">
-                <span class="mono dq-agg-k" :title="String(b.key)">{{ b.key_as_string || b.key }}</span>
+                <span class="mono dq-agg-k" v-tip="String(b.key)">{{ b.key_as_string || b.key }}</span>
                 <div class="dq-agg-track"><i :style="{ width: (b.doc_count / maxOf(a) * 100) + '%' }"></i></div>
                 <span class="mono dq-agg-n">{{ fmtNum(b.doc_count) }}</span>
                 <span class="mono dq-agg-pct">{{ pctOf(a, b) }}</span>
@@ -513,7 +513,7 @@
             <div v-for="m in metricAggs" :key="m.name" class="dq-agg">
               <div class="dq-agg-t mono">{{ m.name }}<span class="dq-agg-kind">{{ m.kindLabel }}</span></div>
               <div v-for="r in m.rows" :key="r.k" class="dq-agg-row dq-agg-mrow">
-                <span class="mono dq-agg-k" :title="r.k">{{ r.k }}</span>
+                <span class="mono dq-agg-k" v-tip="r.k">{{ r.k }}</span>
                 <span class="mono dq-agg-mv">{{ r.v }}</span>
               </div>
             </div>
@@ -522,7 +522,7 @@
           <div v-if="partialHint && !partialDismissed" class="dq-partial mono">
             <AlertTriangle :size="12" />
             <span>{{ partialHint }}</span>
-            <button class="dq-partial-x" aria-label="关闭提示" title="关闭提示" @click="partialDismissed = true"><X :size="11" /></button>
+            <button class="dq-partial-x" aria-label="关闭提示" v-tip="'关闭提示'" @click="partialDismissed = true"><X :size="11" /></button>
           </div>
           <!-- 实报 semOn 推断误伤下线（sem-on 退役）：id(long 标识符)被判
  duration 显示「1328.4s」、0/1 状态值被判 percent 显示「0%/100%」——查询结果
@@ -569,13 +569,13 @@
               <!-- 1439：改稿未重跑时结果表其实是上一次的——SQL 页有「已过期」芯片，这里对齐。
  不能只靠用户记得「我还没跑」，也不能每次改稿都弹 toast（敲一个字弹一次）。 -->
               <span v-if="resultStale" class="pill warn stale-chip" role="status"
-                title="当前 DSL 已修改但还没执行——下方结果仍来自上一次执行（点「执行」更新）">结果已过期</span>
+                v-tip="'当前 DSL 已修改但还没执行——下方结果仍来自上一次执行（点「执行」更新）'">结果已过期</span>
               <!-- 表格顶满当前页快捷（实报「没看到顶满当前页的快捷键，
  放大按钮是全局，不一样的」——RT 内建 ⤢ 是全局聚焦面覆盖整页，本钮=本页级：
  收起条件树/编辑器构建区，结果区吃满页面 flex；再点还原。动线=构建区整体
  折叠既有机制（buildCollapsed），此处只是把入口放进表格头常驻可达） -->
               <button type="button" class="btn sm ghost dq-fillpage" :class="{ on: buildCollapsed }"
-                :title="buildCollapsed ? '还原条件树与编辑器（退出表格顶满）' : '表格顶满当前页（收起条件树与编辑器）'"
+                v-tip="buildCollapsed ? '还原条件树与编辑器（退出表格顶满）' : '表格顶满当前页（收起条件树与编辑器）'"
                 @click="buildCollapsed = !buildCollapsed">
                 <PanelBottomClose v-if="buildCollapsed" :size="13" /><PanelBottomOpen v-else :size="13" /> {{ buildCollapsed ? '还原' : '顶满' }}
               </button>
@@ -589,8 +589,8 @@
                 <input v-model="jsonKw" class="inp mono" placeholder="搜结果 JSON…" @input="jsonFindRun"
                   @keydown.enter.prevent="jsonKw.trim() && ($event.shiftKey ? jsonFind.prev() : jsonFind.next())" />
                 <span class="mono dq-json-mc">{{ jsonFind.current.value }}/{{ jsonFind.count.value }}</span>
-                <button type="button" class="btn ghost xs" :disabled="!jsonFind.count.value" title="上一个 (Shift+Enter)" @click="jsonFind.prev()">↑</button>
-                <button type="button" class="btn ghost xs" :disabled="!jsonFind.count.value" title="下一个 (Enter)" @click="jsonFind.next()">↓</button>
+                <button type="button" class="btn ghost xs" :disabled="!jsonFind.count.value" v-tip="'上一个 (Shift+Enter)'" @click="jsonFind.prev()">↑</button>
+                <button type="button" class="btn ghost xs" :disabled="!jsonFind.count.value" v-tip="'下一个 (Enter)'" @click="jsonFind.next()">↓</button>
               </div>
               <!-- 卡片视图 kw 快滤（宿主侧过滤卡片集，DSL/查询不动；dq-json-find
  同胞形态仅卡片档在场，Esc 清空；不引统一搜索件——那归其他批次改造） -->
@@ -618,7 +618,7 @@
               <n-popover trigger="click" placement="bottom-end" :show="moreOpen" @update:show="(v: boolean) => (moreOpen = v)">
                 <template #trigger>
                   <button class="btn sm ghost rt-tool-btn" aria-haspopup="menu" :aria-expanded="moreOpen" :class="{ on: moreOpen }"
-                    title="更多：导出本页 JSON / 全量导出（PIT）/ 按查询删除">
+                    v-tip="'更多：导出本页 JSON / 全量导出（PIT）/ 按查询删除'">
                     <Ellipsis :size="13" /> 更多
                   </button>
                 </template>
@@ -693,15 +693,15 @@
       <template #header-extra>
         <div style="display:flex;gap:var(--sp-1h)">
           <!-- 克隆——复制一条改几个字段是高频造数据场景；写权限门与保存链同档（write=OPERATOR+） -->
-          <button v-if="canWrite" class="btn sm" @click="cloneDoc" title="以此文档为模板新建（ID 重新生成）"><CopyPlus :size="13" /> 克隆</button>
+          <button v-if="canWrite" class="btn sm" @click="cloneDoc" v-tip="'以此文档为模板新建（ID 重新生成）'"><CopyPlus :size="13" /> 克隆</button>
           <!-- W2-3：情境入口——正看着这条文档时才会想到要跟另一个索引对比 -->
-          <button class="btn sm" title="与另一个索引的同 ID 文档做字段级对比（只读）" @click="gotoCompare">
+          <button class="btn sm" v-tip="'与另一个索引的同 ID 文档做字段级对比（只读）'" @click="gotoCompare">
             <GitCompareArrows :size="13" /> 跨索引对比
           </button>
           <button v-if="canWrite" class="btn sm" @click="docEditMode = !docEditMode">{{ docEditMode ? '预览' : '编辑' }}</button>
           <!-- 编辑器高度档钮（dq.docH useTierCycle 循环，title 实时回显当前档） -->
-          <button v-if="docEditMode" class="btn sm ghost" :title="'编辑器高度档：' + docH + '（点击循环）'" @click="cycleDocH">高</button>
-          <button v-if="docEditMode && canWrite" class="btn sm primary" :disabled="docSaving" @click="saveDoc" title="全量替换该文档的 _source">保存（全量覆盖 _source）</button>
+          <button v-if="docEditMode" class="btn sm ghost" v-tip="'编辑器高度档：' + docH + '（点击循环）'" @click="cycleDocH">高</button>
+          <button v-if="docEditMode && canWrite" class="btn sm primary" :disabled="docSaving" @click="saveDoc" v-tip="'全量替换该文档的 _source'">保存（全量覆盖 _source）</button>
         </div>
       </template>
       <!-- 弹窗编辑器定高改视口弹性：min(60vh, 原值兜底)——矮屏不再顶出视口要滚两层，
@@ -717,11 +717,11 @@
       <div class="nd-row">
         <label class="nd-lb">_id</label>
         <input v-model="newDocId" class="inp mono" placeholder="留空自动生成 UUID" style="flex:1" />
-        <button class="btn sm ghost" title="用 mapping 字段类型生成 JSON 骨架（覆盖当前内容）" @click="newDocText = skeletonJson()">
+        <button class="btn sm ghost" v-tip="'用 mapping 字段类型生成 JSON 骨架（覆盖当前内容）'" @click="newDocText = skeletonJson()">
           <Wand2 :size="12" /> 骨架预填
         </button>
         <!-- 编辑器高度档钮（dq.docHNew useTierCycle 循环） -->
-        <button class="btn sm ghost" :title="'编辑器高度档：' + docHNew + '（点击循环）'" @click="cycleDocHNew">高</button>
+        <button class="btn sm ghost" v-tip="'编辑器高度档：' + docHNew + '（点击循环）'" @click="cycleDocHNew">高</button>
       </div>
       <MonacoEditor v-model="newDocText" :height="docHNew" :font-size="dqFont" />
       <div class="nd-tip">
@@ -731,7 +731,7 @@
       <template #footer>
         <div style="display:flex;justify-content:flex-end;gap:var(--sp-2)">
           <button class="btn" @click="newDocOpen = false">取消</button>
-          <button v-if="canWrite" class="btn primary" :disabled="newDocSaving || !newDocValid" :title="newDocValid ? '' : 'JSON 不合法，无法写入'" @click="saveNewDoc">{{ newDocSaving ? '写入中…' : '写入文档' }}</button>
+          <button v-if="canWrite" class="btn primary" :disabled="newDocSaving || !newDocValid" v-tip="newDocValid ? '' : 'JSON 不合法，无法写入'" @click="saveNewDoc">{{ newDocSaving ? '写入中…' : '写入文档' }}</button>
         </div>
       </template>
     </n-modal>
@@ -745,7 +745,7 @@
         <div v-for="(v, k) in varsMap" :key="k" class="vars-row">
           <span class="mono vars-k">${{ '{' + k + '}' }}</span>
           <input class="inp mono" :value="v" @input="varsMap[k] = ($event.target as HTMLInputElement).value" />
-          <button aria-label="删除该变量（仅影响本地模板变量，不碰索引）" class="btn sm ghost danger" title="删除该变量（仅影响本地模板变量，不碰索引）" @click="delete varsMap[k]"><X :size="11" /></button>
+          <button aria-label="删除该变量（仅影响本地模板变量，不碰索引）" class="btn sm ghost danger" v-tip="'删除该变量（仅影响本地模板变量，不碰索引）'" @click="delete varsMap[k]"><X :size="11" /></button>
         </div>
         <div class="vars-row">
           <input class="inp mono" v-model="newVarK" placeholder="变量名" style="width:150px" />

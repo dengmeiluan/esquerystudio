@@ -18,7 +18,7 @@
         @focus="openPanel"
         @keydown="onInputKey"
       />
-      <button aria-label="清空" v-if="modelValue" class="fxp-x" title="清空" tabindex="-1" @mousedown.prevent="clear">
+      <button aria-label="清空" v-if="modelValue" class="fxp-x" v-tip="'清空'" tabindex="-1" @mousedown.prevent="clear">
         <X :size="11" />
       </button>
     </div>

@@ -13,9 +13,14 @@
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { createApp, h, ref } from 'vue';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import ClauseNode from '../components/builder/ClauseNode.vue';
 import { lintDsl } from '../utils/dslLint';
 import type { LeafNode } from '../utils/queryAst';
+
+/* 补救按钮提示已迁 v-tip 指令（DOM 无 title 属性），文案与 kwTwin 绑定改源码锚 */
+const CLAUSE_SRC = readFileSync(join(__dirname, '../components/builder/ClauseNode.vue'), 'utf8');
 
 const TYPES: Record<string, string> = { title: 'text', 'title.keyword': 'keyword' };
 const mk = (patch: Partial<LeafNode> = {}): LeafNode => ({
@@ -52,7 +57,7 @@ describe('1193 构建器：词项级算子都该给 .keyword 补救入口', () =
       const { host, cur } = mountLeaf(mk({ op, value, hasMain: true }));
       const btn = host.querySelector<HTMLButtonElement>('.cn-kwfix');
       expect(btn, `${op} 的补救入口必须在场`).toBeTruthy();
-      expect(btn!.title).toContain('title.keyword');
+      expect(CLAUSE_SRC, '提示文案按 kwTwin 具体子域动态绑定').toContain("v-tip=\"'text 字段的 ' + label(node.op) + ' 按分词词项匹配，整串原值通常查不到；改打 ' + kwTwin + ' 按整串匹配（值不变）'\"");
       btn!.click();
       await new Promise(r => setTimeout(r, 0));
       expect(cur.value.field).toBe('title.keyword');

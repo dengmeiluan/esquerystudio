@@ -9,12 +9,12 @@
  aria/title 文案与双内核槽钮同语汇（filterModeToggle561 行为锚同串） -->
           <button v-if="filterMode" class="cfp-fmode mono"
                   :aria-label="'筛选组合档：' + filterMode + '（点击切换）'"
-                  :title="'多列筛选组合：' + filterMode + '（点击切换为 ' + (filterMode === 'AND' ? 'OR 任一列命中' : 'AND 全部命中') + '）'"
+                  v-tip="'多列筛选组合：' + filterMode + '（点击切换为 ' + (filterMode === 'AND' ? 'OR 任一列命中' : 'AND 全部命中') + '）'"
                   @click="emit('toggle-filter-mode')">组合：{{ filterMode }}</button>
           <button class="cfp-clear" @click="emit('clear'); emit('close')">清除</button>
         </div>
         <input v-if="search" class="cfp-kw mono" type="text" :value="kw"
-               :placeholder="`搜索值（共 ${total} 个不同值）…`"
+               :placeholder="`搜索值（共 ${total} 个不同值）…`" :aria-label="col + ' 值内搜索'"
                @input="emit('update:kw', ($event.target as HTMLInputElement).value)" @keydown.stop />
         <!-- 类型感知区间过滤（QRT/RT/Security 通道）——min/max 双输入，与等值勾选并存 AND；
  占位缺省「最小/最大值（含）」，date 列由消费方传带 ISO/epoch 示例的占位 -->
@@ -38,12 +38,12 @@
           <n-checkbox :checked="selected.includes(normOf(e.v))" size="small" @update:checked="() => emit('toggle', e.v)">
             <!-- 传 labelOf（QRT/RT）：MarkText 值内搜索命中段切 mark + title 全文；
 	 不传（Browser/Plugins/Security）：裸 ∅/String 展示，行为与五处原壳逐字一致 -->
-            <span v-if="labelOf" class="mono cfp-val" :title="labelOf(e.v)"><MarkText :text="labelOf(e.v)" :kw="kw" /></span>
+            <span v-if="labelOf" class="mono cfp-val" v-tip="labelOf(e.v)"><MarkText :text="labelOf(e.v)" :kw="kw" /></span>
             <span v-else class="mono cfp-val">{{ fmtVal(e.v) }}</span>
           </n-checkbox>
           <!-- 值分布 mini-bar（bars，QRT/RT 通道）——按所显示值最大计数归一的纯 CSS 百分条 -->
-          <span v-if="bars" class="cfp-barw" :title="barScopeTip" aria-hidden="true"><span class="cfp-bar" :style="{ width: barPct(e.n) }"></span></span>
-          <span class="cfp-n mono" :title="'该值 ' + e.n + ' 行'">{{ e.n }}</span>
+          <span v-if="bars" class="cfp-barw" v-tip="barScopeTip" aria-hidden="true"><span class="cfp-bar" :style="{ width: barPct(e.n) }"></span></span>
+          <span class="cfp-n mono" v-tip="'该值 ' + e.n + ' 行'">{{ e.n }}</span>
         </div>
         <div v-if="!vals.length" class="cfp-empty">无匹配值</div>
         <div v-if="showHasMore && hasMore" class="cfp-empty">仅显示前 {{ vals.length }} 个高频值——用上方搜索缩小范围</div>
@@ -200,10 +200,11 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onDocEsc, true));
 .cfp-fmode { border: 1px solid var(--line); background: transparent; color: var(--info); cursor: pointer; font-size: var(--fs-2xs); border-radius: 3px; padding: 0 var(--sp-1); line-height: 1.4; font-family: inherit; flex-shrink: 0; }
 .cfp-fmode:hover { border-color: var(--info); }
 .cfp-kw { width: 100%; box-sizing: border-box; font-size: var(--fs-xs); padding: 3px var(--sp-2); margin-bottom: var(--sp-1); background: var(--bg1); border: 1px solid var(--line); border-radius: var(--r-xs); color: var(--tx0); outline: none; font-family: inherit; }
-.cfp-kw:focus { border-color: var(--ac); }
+/* 输入 :focus 对齐全站 .inp/.ipt 档（border-color + focus-ring，theme.css）——仅边框变色对比度弱 */
+.cfp-kw:focus { border-color: var(--ac); box-shadow: var(--focus-ring); }
 .cfp-range { display: flex; align-items: center; gap: var(--sp-1); padding: var(--sp-0) var(--sp-2) var(--sp-1h); }
 .cfp-range-in { flex: 1; min-width: 0; box-sizing: border-box; font-size: var(--fs-xs); padding: 3px var(--sp-1h); background: var(--bg1); border: 1px solid var(--line); border-radius: var(--r-xs); color: var(--tx0); outline: none; font-family: inherit; }
-.cfp-range-in:focus { border-color: var(--ac); }
+.cfp-range-in:focus { border-color: var(--ac); box-shadow: var(--focus-ring); }
 .cfp-range-sep { color: var(--tx2); flex-shrink: 0; }
 .cfp-row { display: flex; align-items: center; gap: var(--sp-2); padding: var(--sp-1) var(--sp-2h); border-radius: var(--r-s); font-size: var(--fs-sm); cursor: pointer; }
 .cfp-row:hover { background: var(--ac-soft); }

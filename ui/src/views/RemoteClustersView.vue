@@ -8,7 +8,7 @@
 </button>
 <!-- 原始 IO 快查——本页最近一次 remote-clusters 连通性拉取请求/响应原文
  （ioRecorder 记录环；连接状态列表即该接口响应的快查姊妹入口） -->
-<button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（远程集群）" title="最近一次远程集群状态拉取请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
+<button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（远程集群）" v-tip="'最近一次远程集群状态拉取请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
       </template>
       </PageHeader>
 </div>

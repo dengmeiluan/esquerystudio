@@ -173,8 +173,9 @@ describe('764 G230 过滤词接 useScopedDraft（一致性·次刀·21 面主流
     expect(sessionStorage.getItem(draftKeys[0])).toBe('syn');
     expect(location.hash, 'kw 不进 URL').not.toContain('kw');
     expect(host.querySelectorAll('.as-card:not(.as-card-raw)').length, 'syn 单命中 → 其余空分组整卡隐藏').toBe(1);
-    /* 「命中 N / 共 M」走 .as-count :title（763 probe 同锚），非 textContent */
-    expect(host.querySelector('.as-count')!.getAttribute('title')).toBe('命中 1 / 共 2');
+    /* 「命中 N / 共 M」走 .as-count 提示（763 probe 同锚），非 textContent。
+       提示已迁 v-tip 指令（DOM 无 title 属性），绑定改源码锚 */
+    expect(src).toContain("v-tip=\"filterKw.trim() ? ('命中 ' + g.count + ' / 共 ' + g.total) : undefined\"");
   });
   it('行为守卫：过滤链语义零改（清除恢复五卡）', async () => {
     const host = await mountView();

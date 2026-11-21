@@ -6,7 +6,7 @@
 <!-- 原始 IO 快查——本页最近一次文档读（GET /cluster/doc）与写回（putDoc/
  _update）请求/响应原文（ioRecorder 记录环；RemoteClusters 557 铺装面同款；getDoc/putDoc
  同前缀 /cluster/doc，对比面读写一并覆盖） -->
-<button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（文档读写）" title="最近一次文档读取/写回请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
+<button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（文档读写）" v-tip="'最近一次文档读取/写回请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
 <button v-if="!isCompare" class="btn ghost sm" @click="doFetch" :disabled="!index.trim() || !id.trim() || busy">
   <Download :size="12" :class="{ spinning: busy }" /> {{ busy ? '加载中…' : '加载文档' }}
 </button>
@@ -97,7 +97,7 @@
           <span>原始（只读）</span>
           <div style="display:flex;gap:var(--sp-1);align-items:center">
             <!-- 原始栏复制（报障贴原文） -->
-            <button aria-label="复制原始 JSON" class="btn ghost xs" @click="copyOriginal" title="复制原始 JSON"><Copy :size="11" /></button>
+            <button aria-label="复制原始 JSON" class="btn ghost xs" @click="copyOriginal" v-tip="'复制原始 JSON'"><Copy :size="11" /></button>
             <button class="btn ghost xs" @click="revertEdit"><RotateCcw :size="11" /> 还原</button>
           </div>
         </div>
@@ -115,10 +115,10 @@
           <span>编辑后</span>
           <div class="df-card-hd-r">
             <!-- 编辑稿一键复制（报障/贴工单/带走评审） -->
-            <button aria-label="复制编辑后 JSON" class="btn ghost xs" @click="copyEdited" title="复制编辑后 JSON">
+            <button aria-label="复制编辑后 JSON" class="btn ghost xs" @click="copyEdited" v-tip="'复制编辑后 JSON'">
               <Copy :size="11" />
             </button>
-            <button aria-label="格式化" class="btn ghost xs" @click="prettifyEdit" title="格式化"><AlignLeft :size="11" /></button>
+            <button aria-label="格式化" class="btn ghost xs" @click="prettifyEdit" v-tip="'格式化'"><AlignLeft :size="11" /></button>
             <span class="df-modif" v-if="isModified">已修改</span>
           </div>
         </div>
@@ -163,7 +163,7 @@
           <div class="df-patch-hd">
 将发送的请求
           <!-- patch 请求体复制（工单/复审） -->
-          <button aria-label="复制请求体" class="btn ghost xs" style="margin-left:auto" @click="copyPatch" title="复制请求体"><Copy :size="11" /></button>
+          <button aria-label="复制请求体" class="btn ghost xs" style="margin-left:auto" @click="copyPatch" v-tip="'复制请求体'"><Copy :size="11" /></button>
         </div>
           <!-- 裸 pre → highlightJson 高亮（首行请求行非 JSON 自然不着色，转义安全） -->
           <pre class="df-code json-view" v-html="patchHtml"></pre>

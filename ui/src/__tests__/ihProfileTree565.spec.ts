@@ -32,7 +32,7 @@ describe('565 件②：IndexHub query tab ProfileTree 接线（源码锁）', ()
   it('Profile 开关：ih.qry.profile usePref（默认关）+ 模板开关在 query 执行行（NCheckbox 升档随迁）', () => {
     expect(ih).toContain("const profileOn = usePref('ih.qry.profile', false);");
     /* 升档 NCheckbox 随迁：label+input 形态换组件根挂 .ih-sw 激活胶囊，on 态绑定/title 语义不动 */
-    expect(ih).toMatch(/<n-checkbox class="ih-sw" :class="\{ on: profileOn \}" v-model:checked="profileOn" size="small"\s*title="Query Profiler：返回 breakdown 耗时树（开启后就地执行走 Profile 通道）">Profile<\/n-checkbox>/);
+    expect(ih).toMatch(/<n-checkbox class="ih-sw" :class="\{ on: profileOn \}" v-model:checked="profileOn" size="small"\s*v-tip="'Query Profiler：返回 breakdown 耗时树（开启后就地执行走 Profile 通道）'">Profile<\/n-checkbox>/);
     /* 防回潮：原生 checkbox 形态不得回流 */
     expect(ih).not.toContain('<input type="checkbox" v-model="profileOn"');
   });

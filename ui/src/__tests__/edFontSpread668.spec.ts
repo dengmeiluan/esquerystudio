@@ -60,7 +60,7 @@ describe('668 C：DevTools 既有字号档面同步更新复核（560 约定面�
   });
   it('C2 seg 消费形态保留（on 态+title 文案）', () => {
     expect(dt).toContain('edFont === f');
-    expect(dt).toContain(":title=\"'编辑器字号 ' + f + 'px'\"");
+    expect(dt).toContain("v-tip=\"'编辑器字号 ' + f + 'px'\"");
   });
 });
 

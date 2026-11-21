@@ -59,8 +59,9 @@ async function mountView() {
   await settle();
 }
 
-/* 卡片渲染序（=filtered 序，HitNav/CSV 同源）——sv-tl-head 里唯一 b 挂 :title=快照名 */
-const cardOrder = () => [...host.querySelectorAll('.sv-tl-row b')].map(b => b.getAttribute('title'));
+/* 卡片渲染序（=filtered 序，HitNav/CSV 同源）——sv-tl-head 里唯一 b 即快照名
+（提示已迁 v-tip 指令，取文本即快照名，MarkText 高亮不改 textContent） */
+const cardOrder = () => [...host.querySelectorAll('.sv-tl-row b')].map(b => (b.textContent || '').trim());
 
 /* 排序 select 是页头第 2 个 n-select（第 1 个=repo 选择）；键盘路径选下一项 */
 const sortSelection = () => host.querySelectorAll('.n-base-selection')[1] as HTMLElement;

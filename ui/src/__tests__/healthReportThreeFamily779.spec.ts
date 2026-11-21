@@ -244,7 +244,8 @@ describe('779 G265 aria/中文备注小刀（随批可裁）', () => {
     const span = Array.from(host.querySelectorAll('.hr-hero-row span'))
       .find(s => (s.textContent || '').trim() === 'Pending Tasks');
     expect(span, 'Pending Tasks label 在场').toBeTruthy();
-    expect((span!.getAttribute('title') || ''), 'title 中文释义').toContain('待处理');
+    /* label 提示已迁 v-tip 指令（DOM 无 title 属性）——中文释义改源码锚 */
+    expect(src).toContain('v-tip="\'集群待处理任务数（pending tasks）\'"');
   });
 });
 

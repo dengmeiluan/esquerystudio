@@ -20,7 +20,7 @@
         <!-- 去 .meta-strip 全局类——补 .mono 摘除（组件本体 .ms 已设
  font-family:var(--mono)，全局 .mono 冗余；W8 meta-strip 全局块退役同判据） -->
         <MetaStrip class="ilm-meta" :items="ilmMeta"
-          :title="'策略 ' + policies.length + '（已注册） · 当前视图 ' + filtered.length + '（过滤后） · Explain 状态 ' + explainSummary + '（索引：' + (explainIndex || '未选') + '）'" />
+          v-tip.long="'策略 ' + policies.length + '（已注册） · 当前视图 ' + filtered.length + '（过滤后） · Explain 状态 ' + explainSummary + '（索引：' + (explainIndex || '未选') + '）'" />
       </template>
       <!-- 原独立工具条 ilm-bar 并入页头 actions（横幅层叠 -1） -->
       <template #actions>
@@ -40,13 +40,13 @@
         <n-checkbox v-model:checked="ilmAutoRefresh" size="small" class="ilm-auto-chk">自动刷新</n-checkbox>
         <!-- 自动刷新频率下拉改用 AutoRefreshSelect 统一件（原内联样式原生 select 退役） -->
         <AutoRefreshSelect v-if="ilmAutoRefresh" v-model:ms="ilmIntervalMs" :sizes="[10000, 30000, 60000]" label="自动刷新频率" />
-        <button aria-label="刷新策略列表" class="btn sm ghost" @click="loadPolicies" :disabled="loading" title="刷新策略列表">
+        <button aria-label="刷新策略列表" class="btn sm ghost" @click="loadPolicies" :disabled="loading" v-tip="'刷新策略列表'">
           <RefreshCw :size="12" :class="{ spinning: loading }" />
         </button>
         <!-- 原始请求/响应快查弹窗（RawIo 第六波，558b 先例同形态；
  路径子串 '/cluster/ilm/'=本页 policies/policy/explain/move 全通道（LifecycleView
  已锁子串 '/cluster/ilm/explain'，explain 面跨页互见） -->
-        <button class="btn sm ghost" data-test="raw-io" aria-label="查看原始 IO（ILM）" title="最近一次 ILM 策略/解释/移步请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo">
+        <button class="btn sm ghost" data-test="raw-io" aria-label="查看原始 IO（ILM）" v-tip="'最近一次 ILM 策略/解释/移步请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo">
           <Terminal :size="12" /> 原始 IO
         </button>
       </template>
@@ -65,7 +65,7 @@
         <div class="card-t">
 <List :size="13" /> 策略（{{ filtered.length }}）
           <!-- W4c：左栏宽度循环档（usePref('ilm.listW') 记忆） -->
-          <button class="btn xs ghost" :title="'左栏宽度档：' + ilmListW + 'px（点击切换）'" @click="cycleIlmListW">宽</button>
+          <button class="btn xs ghost" v-tip="'左栏宽度档：' + ilmListW + 'px（点击切换）'" @click="cycleIlmListW">宽</button>
           <button v-if="canOps" class="btn xs" style="margin-left:auto" @click="openNewPolicy"><Plus :size="11" /> 新建</button>
         </div>
         <div v-if="loading && !filtered.length" style="padding:var(--sp-3);display:flex;flex-direction:column;gap:var(--sp-2)">
@@ -83,8 +83,8 @@
               <b class="mono"><MarkText :text="p.name" :kw="filter" /></b>
               <span v-if="p.version != null" class="chip mono">v{{ p.version }}</span>
               <span class="ilm-p-ops" style="margin-left:auto;display:flex;gap:var(--sp-1)" @click.stop>
-                <button v-if="canOps" aria-label="编辑策略" class="btn xs ghost" title="编辑策略" @click="openEditPolicy(p)"><Pencil :size="11" /></button>
-                <button v-if="canOps" aria-label="删除策略" class="btn xs ghost danger" title="删除策略" :disabled="deleting" @click="deletePolicy(p.name)"><Trash2 :size="11" /></button>
+                <button v-if="canOps" aria-label="编辑策略" class="btn xs ghost" v-tip="'编辑策略'" @click="openEditPolicy(p)"><Pencil :size="11" /></button>
+                <button v-if="canOps" aria-label="删除策略" class="btn xs ghost danger" v-tip="'删除策略'" :disabled="deleting" @click="deletePolicy(p.name)"><Trash2 :size="11" /></button>
               </span>
             </div>
             <div class="ilm-p-phases">
@@ -122,7 +122,7 @@
             <FileSearch :size="13" /> Explain: {{ explainIndex }}
             <!-- 在 DevTools 打开（GET /<idx>/_ilm/explain 带参预填，Watcher 范式） -->
             <button class="btn ghost xs" style="margin-left:auto" :disabled="!canDevtools"
-              :title="canDevtools ? '在 Dev Tools 打开 explain API' : 'DevTools 入口需要 DevTools/REST 页写权限或 ADMIN'"
+              v-tip="canDevtools ? '在 Dev Tools 打开 explain API' : 'DevTools 入口需要 DevTools/REST 页写权限或 ADMIN'"
               @click="explainToDevtools">
               <TerminalSquare :size="11" /> Dev Tools
             </button>
@@ -221,7 +221,7 @@
         <button class="btn" @click="policyEditOpen = false">取消</button>
         <!-- 空提交拦截：名空/JSON 非法时按钮禁用并说明原因（Enter 路径仍由 savePolicy 内同口径校验兜底） -->
         <button class="btn primary" :disabled="policyBusy || !policyName.trim() || !!policyJsonErr || !canOps"
-          :title="!canOps ? '当前授权不含 ILM 写权限' : !policyName.trim() ? '先填策略名' : policyJsonErr ? '策略 JSON 不合法，修正后再保存' : ''"
+          v-tip="!canOps ? '当前授权不含 ILM 写权限' : !policyName.trim() ? '先填策略名' : policyJsonErr ? '策略 JSON 不合法，修正后再保存' : ''"
           @click="savePolicy"><Save :size="12" /> 保存</button>
       </div>
     </template>

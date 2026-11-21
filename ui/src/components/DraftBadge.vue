@@ -1,7 +1,7 @@
 <template>
   <span class="draft-badge">
     <span class="draft-badge-tt">已恢复草稿</span>
-    <button type="button" class="draft-badge-x" title="丢弃恢复的草稿，回到默认内容" @click="$emit('clear')">清除</button>
+    <button type="button" class="draft-badge-x" v-tip="'丢弃恢复的草稿，回到默认内容'" @click="$emit('clear')">清除</button>
   </span>
 </template>
 

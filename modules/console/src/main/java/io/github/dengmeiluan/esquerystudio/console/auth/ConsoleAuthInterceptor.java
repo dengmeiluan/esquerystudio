@@ -131,6 +131,8 @@ public class ConsoleAuthInterceptor implements HandlerInterceptor {
             /* 能力对比/结构 diff 与源集群建连读取同族（探测面 rank3）；运行中调速是迁移
                生命周期干预，与 abort 同档 rank3。 */
             "/xmigrate/compare-capabilities", "/xmigrate/diff-structure", "/xmigrate/throttle",
+            /* 迁移后等价性验证：双侧建连读 _count/样本/聚合（只读探测面），与 diff-structure 同族 rank3。 */
+            "/xmigrate/verify-equivalence",
             /* 裸词 "/adhoc-rebuild" 退役（危险级重划）——adhoc 的 GET（任务列表/
                就绪检查）是观测面，裸 contains 把静态模型 VIEWER 也拦在门外（历史 403 噪声源）；
                写动词逐一列出即可覆盖全部写端点（start/confirm-switch/retry）。

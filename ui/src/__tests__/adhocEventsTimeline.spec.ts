@@ -99,7 +99,7 @@ async function openMonitorStep(host: HTMLElement) {
   const row = [...host.querySelectorAll('table.qrt-tbl tbody tr')]
     .find(tr => (tr.textContent || '').includes('ev-1'))!;
   expect(row, '最近作业表必须渲染出该作业行').toBeTruthy();
-  (row.querySelector('button[title="查看任务详情"]') as HTMLButtonElement).click();
+  (row.querySelector('button[aria-label="查看任务详情"]') as HTMLButtonElement).click();
   await settle(10);
 }
 

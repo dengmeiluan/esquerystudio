@@ -183,7 +183,8 @@ public class XmigrateGovernToolsTest {
         Map<String, String> xmigrate = McpController.GROUP_ACTIONS.get("es_xmigrate");
         assertEquals(Arrays.asList("preflight", "start", "status", "jobs", "fetch_config", "resume", "abort",
                 "reconcile", "conflicts", "connect_check", "resolve_preview", "dest_indices", "delete_jobs",
-                "sync_structure", "probe_capabilities", "compare_capabilities", "diff_structure", "throttle"),
+                "sync_structure", "probe_capabilities", "compare_capabilities", "diff_structure",
+                "verify_equivalence", "throttle"),
                 new ArrayList<>(xmigrate.keySet()));
         Map<String, String> adhoc = McpController.GROUP_ACTIONS.get("es_adhoc_rebuild");
         assertEquals(Arrays.asList("prepare", "start", "status", "abort", "confirm_switch", "jobs", "retry",

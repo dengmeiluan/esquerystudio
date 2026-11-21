@@ -3,7 +3,7 @@
  ReindexAdvancedView「took：xx ms」、DevToolsView/QueryHistoryPanel 各持一份
  fmtTook/tookClass 复制品，本件固化后各消费方换挂（阈值单一出处 utils/format.ts）。
  fast 绿 / ok 中性 / slow 橙 / veryslow 红，语义随全局 --ok/--warn/--err 档。 -->
-  <b v-if="ms != null" class="took-badge mono" :class="tookClass(ms)" :title="title || `端到端耗时 ${ms}ms`">{{ fmtTook(ms) }}</b>
+  <b v-if="ms != null" class="took-badge mono" :class="tookClass(ms)" v-tip="title || `端到端耗时 ${ms}ms`">{{ fmtTook(ms) }}</b>
 </template>
 
 <script setup lang="ts">

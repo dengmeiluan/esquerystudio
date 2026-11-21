@@ -12,25 +12,25 @@
     <div class="qtp-sticky">
     <!-- 面板头部：递归叶子条件计数徽标（含嵌套与临时停用） -->
     <div v-if="tree.root" class="qtp-hd"><!-- 993：undo/redo（面板写路径单点汇聚 setRoot，栈深 50；title 避开 541/553 锁词） -->
-      <button class="btn sm ghost" aria-label="撤销上一步树编辑" :disabled="!undoStack.length" :title="'撤销上一步树编辑（Ctrl+Z），可回退 ' + undoStack.length + ' 步'" @click="undo()"><Undo2 :size="11" /></button>
-      <button class="btn sm ghost" aria-label="重做树编辑" :disabled="!redoStack.length" title="重做树编辑（Ctrl+Shift+Z / Ctrl+Y）" @click="redo()"><Redo2 :size="11" /></button>
+      <button class="btn sm ghost" aria-label="撤销上一步树编辑" :disabled="!undoStack.length" v-tip="'撤销上一步树编辑（Ctrl+Z），可回退 ' + undoStack.length + ' 步'" @click="undo()"><Undo2 :size="11" /></button>
+      <button class="btn sm ghost" aria-label="重做树编辑" :disabled="!redoStack.length" v-tip="'重做树编辑（Ctrl+Shift+Z / Ctrl+Y）'" @click="redo()"><Redo2 :size="11" /></button>
       <!-- 徽标升级分档读数「共 N · 停用 M · 嵌套 K」（M/K 为 0 省略段）；
  N>10 转 .hot 警示色，提示条件树偏大。
  裸 pill 升级 .chip.static 质感档（bg2 底+line 边+tabular-nums 全局单源），
  数字 mono 包裹（textContent 不变，fieldSelectPopup 计数断言兼容） -->
-      <span class="qtp-cnt chip static" :class="{ hot: leafStats.total > 10 }" :title="cntTitle">共 <b class="mono">{{ leafStats.total }}</b> 条件<template v-if="leafStats.disabled"> · 停用 <b class="mono">{{ leafStats.disabled }}</b></template><template v-if="leafStats.nested"> · 嵌套 <b class="mono">{{ leafStats.nested }}</b></template></span>
+      <span class="qtp-cnt chip static" :class="{ hot: leafStats.total > 10 }" v-tip="cntTitle">共 <b class="mono">{{ leafStats.total }}</b> 条件<template v-if="leafStats.disabled"> · 停用 <b class="mono">{{ leafStats.disabled }}</b></template><template v-if="leafStats.nested"> · 嵌套 <b class="mono">{{ leafStats.nested }}</b></template></span>
       <!-- 全部停用=空 bool=match_all：这是危险的静默放宽，必须显性提示 -->
       <span v-if="leafStats.total > 0 && leafStats.disabled === leafStats.total" class="chip static qtp-alloff" role="status"
-            title="所有条件都已停用，序列化后是空 bool，ES 会按 match_all 返回全部文档；点「启用全部」恢复">
+            v-tip="'所有条件都已停用，序列化后是空 bool，ES 会按 match_all 返回全部文档；点「启用全部」恢复'">
         全部停用 = 匹配全部文档
       </span>
       <!-- 1045：未填值条件——半成品条件在长树里几乎不可见，给可点击计数直达首个空值行 -->
       <button v-if="unfilledCount" type="button" class="btn sm ghost qtp-unfilled"
-              :title="'有 ' + unfilledCount + ' 个条件还没填值，点击定位到第一个（执行时这些条件不会命中）'"
+              v-tip="'有 ' + unfilledCount + ' 个条件还没填值，点击定位到第一个（执行时这些条件不会命中）'"
               @click="locateFirstUnfilled"><CircleAlert :size="11" /> 未填值 <b class="mono">{{ unfilledCount }}</b></button>
       <!-- 1049：多选批量——选中行/组后统一停用、启用或删除；父组选中即整棵子树生效 -->
       <button v-if="tree.root && !isPlainMatchAll" type="button" class="btn sm ghost qtp-sel-tg" :class="{ on: selectMode }"
-              :aria-pressed="selectMode" :title="selectMode ? '退出多选' : '进入多选：勾选条件后批量停用/启用/复制/删除'"
+              :aria-pressed="selectMode" v-tip="selectMode ? '退出多选' : '进入多选：勾选条件后批量停用/启用/复制/删除'"
               @click="toggleSelectMode"><ListChecks :size="11" /> 多选</button>
       <!-- 撑开剩余宽度（纯占位、不可见）。
            1396 实测修正：这个空 span 在 flex 行里会按基线落到行底（比同行元素低 13px），
@@ -44,13 +44,13 @@
  同构判定：过滤词+Enter 导航+附加件插槽+Esc 清空内建；Shift+Enter 反向轮转经
  组件 @enter 转出的原生 KeyboardEvent.shiftKey 承接），胶囊壳质感归组件单源 -->
       <!-- title 经组件 $attrs 透传落胶囊根（inheritAttrs 关闭显式透传），悬停提示原语义保留 -->
-      <SearchFilterBar v-model="filterQ" class="qtp-find" placeholder="过滤条件…" @enter="onFindKey" title="按字段名/算子/值过滤条件行：命中柔底高亮，Enter/Shift+Enter 在命中间轮转，清空恢复">
+      <SearchFilterBar v-model="filterQ" class="qtp-find" placeholder="过滤条件…" @enter="onFindKey" v-tip="'按字段名/算子/值过滤条件行：命中柔底高亮，Enter/Shift+Enter 在命中间轮转，清空恢复'">
         <span v-if="findHits.length" class="qtp-find-nav chip static mono" aria-live="polite"
-              :title="'命中 ' + findHits.length + ' 条，当前第 ' + findCur + ' 条'">{{ findCur }}/{{ findHits.length }}</span>
+              v-tip="'命中 ' + findHits.length + ' 条，当前第 ' + findCur + ' 条'">{{ findCur }}/{{ findHits.length }}</span>
         <!-- 989：命中在折叠组内不可见——一键展开全部嵌套组并重扫定位。
          title 刻意避开「展开全部」字面（541/553 的 btnLine 行定位器按该子串找工具行钮，
          新钮用词撞车会抢走行定位=锁面误红） -->
-        <button v-if="foldedHits" type="button" class="btn sm ghost qtp-find-fold" :title="'有 ' + foldedHits + ' 条命中在折叠的嵌套组内，点击展开'"
+        <button v-if="foldedHits" type="button" class="btn sm ghost qtp-find-fold" v-tip="'有 ' + foldedHits + ' 条命中在折叠的嵌套组内，点击展开'"
                 @click="expandFoldedHits"><ChevronsUp :size="11" /> 折叠内 {{ foldedHits }}</button>
       </SearchFilterBar>
       <!-- 四枚举钮收敛两枚状态感知循环钮（折叠⇄展开 / 启用⇄停用各一枚，
@@ -60,30 +60,30 @@
  补 lucide icon 与 BoolGroupNode 组头 icon 钮语言对齐
  （双 chevron 表「全部」批量语义，区别于组头单 chevron） -->
       <template v-if="tree.root.type === 'bool'">
-        <button v-if="anyCollapsed" class="btn sm ghost" title="展开全部嵌套组" @click="broadcastCollapse(false)"><ChevronsUp :size="11" /> 展开全部</button>
-        <button v-else class="btn sm ghost" title="折叠全部嵌套组" @click="broadcastCollapse(true)"><ChevronsDown :size="11" /> 折叠全部</button>
+        <button v-if="anyCollapsed" class="btn sm ghost" v-tip="'展开全部嵌套组'" @click="broadcastCollapse(false)"><ChevronsUp :size="11" /> 展开全部</button>
+        <button v-else class="btn sm ghost" v-tip="'折叠全部嵌套组'" @click="broadcastCollapse(true)"><ChevronsDown :size="11" /> 折叠全部</button>
       </template>
       <template v-if="!isPlainMatchAll">
-        <button v-if="hasDisabled" class="btn sm ghost" title="全部条件恢复参与匹配" @click="setAllDisabled(false)"><Play :size="11" /> 启用全部</button>
-        <button v-else class="btn sm ghost" title="全部条件临时停用（不删除，可恢复）" @click="setAllDisabled(true)"><Pause :size="11" /> 停用全部</button>
+        <button v-if="hasDisabled" class="btn sm ghost" v-tip="'全部条件恢复参与匹配'" @click="setAllDisabled(false)"><Play :size="11" /> 启用全部</button>
+        <button v-else class="btn sm ghost" v-tip="'全部条件临时停用（不删除，可恢复）'" @click="setAllDisabled(true)"><Pause :size="11" /> 停用全部</button>
       </template>
     </div>
     <!-- 1002：无根树（排序/参数-only 现场）的撤销窄条——extras 域编辑同样可撤；
          与头行 v-if/v-else-if 互斥（无根时头行整排控件是噪声，只出 undo/redo） -->
     <div v-else-if="undoStack.length || redoStack.length" class="qtp-hd">
-      <button class="btn sm ghost" aria-label="撤销上一步树编辑" :disabled="!undoStack.length" :title="'撤销上一步树编辑（Ctrl+Z），可回退 ' + undoStack.length + ' 步'" @click="undo()"><Undo2 :size="11" /></button>
-      <button class="btn sm ghost" aria-label="重做树编辑" :disabled="!redoStack.length" title="重做树编辑（Ctrl+Shift+Z / Ctrl+Y）" @click="redo()"><Redo2 :size="11" /></button>
+      <button class="btn sm ghost" aria-label="撤销上一步树编辑" :disabled="!undoStack.length" v-tip="'撤销上一步树编辑（Ctrl+Z），可回退 ' + undoStack.length + ' 步'" @click="undo()"><Undo2 :size="11" /></button>
+      <button class="btn sm ghost" aria-label="重做树编辑" :disabled="!redoStack.length" v-tip="'重做树编辑（Ctrl+Shift+Z / Ctrl+Y）'" @click="redo()"><Redo2 :size="11" /></button>
     </div>
 
     <!-- 1049：多选批量工具条——独立一行（窄构建栏内 7 个控件挤在筛选行会换行错位） -->
     <div v-if="selectMode" class="qtp-batch" role="toolbar" aria-label="多选批量操作">
-      <span class="chip static qtp-sel-cnt" title="Shift+点击连续范围选择 · Ctrl+A 全选 · Esc 退出多选">已选 <b class="mono">{{ selectedCount }}</b></span>
+      <span class="chip static qtp-sel-cnt" v-tip="'Shift+点击连续范围选择 · Ctrl+A 全选 · Esc 退出多选'">已选 <b class="mono">{{ selectedCount }}</b></span>
       <button type="button" class="btn sm ghost" @click="selectAll">全选</button>
       <button type="button" class="btn sm ghost" :disabled="!selectedCount" @click="clearSelection">清空</button>
-      <button type="button" class="btn sm ghost" :disabled="!selectedCount" title="停用选中条件（组=整棵子树）" @click="batchDisable(true)">停用</button>
-      <button type="button" class="btn sm ghost" :disabled="!selectedCount" title="恢复选中条件参与匹配" @click="batchDisable(false)">启用</button>
-      <button type="button" class="btn sm ghost" :disabled="!selectedCount" title="复制选中条件（组=整棵子树；副本紧跟在原件后，可直接改字段/值）" @click="batchDuplicate"><Copy :size="11" /> 复制</button>
-      <button type="button" class="btn sm ghost" :disabled="!canGroupSelected" :title="groupTitle" @click="batchGroup">包组</button>
+      <button type="button" class="btn sm ghost" :disabled="!selectedCount" v-tip="'停用选中条件（组=整棵子树）'" @click="batchDisable(true)">停用</button>
+      <button type="button" class="btn sm ghost" :disabled="!selectedCount" v-tip="'恢复选中条件参与匹配'" @click="batchDisable(false)">启用</button>
+      <button type="button" class="btn sm ghost" :disabled="!selectedCount" v-tip="'复制选中条件（组=整棵子树；副本紧跟在原件后，可直接改字段/值）'" @click="batchDuplicate"><Copy :size="11" /> 复制</button>
+      <button type="button" class="btn sm ghost" :disabled="!canGroupSelected" v-tip="groupTitle" @click="batchGroup">包组</button>
       <button type="button" class="btn sm ghost danger" :disabled="!selectedCount" @click="batchDelete"><Trash2 :size="11" /> 删除</button>
     </div>
     </div>

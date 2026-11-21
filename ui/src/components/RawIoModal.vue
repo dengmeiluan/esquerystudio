@@ -12,15 +12,15 @@
     <div v-if="rec" class="rim">
       <div class="rim-hd">
         <span class="rim-method">{{ rec.method }}</span>
-        <span class="rim-url mono" :title="rec.url">{{ rec.url }}</span>
-        <span class="rim-status" :class="statusCls" :title="statusText">{{ statusText }}</span>
+        <span class="rim-url mono" v-tip="rec.url">{{ rec.url }}</span>
+        <span class="rim-status" :class="statusCls" v-tip="statusText">{{ statusText }}</span>
         <!-- 字号三档 seg（rim.font 落盘；跨页独立弹层不挂页面键，
  dq/dt/ih 同源 EDITOR_FONT_TIERS 单源；请求/响应两 Monaco 同键同档） -->
         <span class="seg rim-font-seg" role="group" aria-label="编辑器字号档">
           <button v-for="f in EDITOR_FONT_TIERS" :key="f" type="button" :class="{ on: rimFont === f }"
-            :title="'编辑器字号 ' + f + 'px'" @click="rimFont = f">{{ f }}</button>
+            v-tip="'编辑器字号 ' + f + 'px'" @click="rimFont = f">{{ f }}</button>
         </span>
-        <button class="btn ghost sm rim-close" aria-label="关闭原始 IO" title="关闭" @click="close"><X :size="13" /></button>
+        <button class="btn ghost sm rim-close" aria-label="关闭原始 IO" v-tip="'关闭'" @click="close"><X :size="13" /></button>
       </div>
 
       <section class="rim-sec">
@@ -28,8 +28,8 @@
           <span class="rim-sec-t">原始请求</span>
           <span class="rim-meta">{{ reqMeta }}</span>
           <div class="rim-acts">
-            <button class="btn ghost xs" aria-label="复制请求 JSON" title="复制请求体原文" @click="copyReq"><Copy :size="11" /> 复制 JSON</button>
-            <button class="btn ghost xs" aria-label="复制为 curl" title="复制为可回放的 curl 命令（origin 取当前页面地址，不猜集群真名）" @click="copyCurl"><Terminal :size="11" /> 复制为 curl</button>
+            <button class="btn ghost xs" aria-label="复制请求 JSON" v-tip="'复制请求体原文'" @click="copyReq"><Copy :size="11" /> 复制 JSON</button>
+            <button class="btn ghost xs" aria-label="复制为 curl" v-tip="'复制为可回放的 curl 命令（origin 取当前页面地址，不猜集群真名）'" @click="copyCurl"><Terminal :size="11" /> 复制为 curl</button>
           </div>
         </div>
         <MonacoEditor :model-value="rec.requestBody" :language="reqLang" :readonly="true" height="min(38vh,360px)" :font-size="rimFont" />
@@ -39,9 +39,9 @@
         <div class="rim-sec-hd">
           <span class="rim-sec-t">原始响应</span>
           <span class="rim-meta">{{ respMeta }}</span>
-          <span v-if="rec.truncated" class="rim-trunc" title="原文超 200KB 记录上限，已截断保前段">已截断</span>
+          <span v-if="rec.truncated" class="rim-trunc" v-tip="'原文超 200KB 记录上限，已截断保前段'">已截断</span>
           <div class="rim-acts">
-            <button class="btn ghost xs" aria-label="复制响应 JSON" title="复制响应原文（截断记录复制所得与展示一致）" @click="copyResp"><Copy :size="11" /> 复制 JSON</button>
+            <button class="btn ghost xs" aria-label="复制响应 JSON" v-tip="'复制响应原文（截断记录复制所得与展示一致）'" @click="copyResp"><Copy :size="11" /> 复制 JSON</button>
           </div>
         </div>
         <MonacoEditor :model-value="rec.responseRaw" :language="respLang" :readonly="true" height="min(38vh,360px)" :font-size="rimFont" />

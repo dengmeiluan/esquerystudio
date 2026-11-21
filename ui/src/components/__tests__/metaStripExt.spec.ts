@@ -8,6 +8,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import { createApp, h } from 'vue';
+import { vTip } from '../../directives/vTip';
 import { createRouter, createMemoryHistory } from 'vue-router';
 import MetaStrip, { type MetaStripItem } from '../MetaStrip.vue';
 
@@ -16,6 +17,10 @@ function renderStrip(items: MetaStripItem[], withRouter = false): {
 } {
   const host = document.createElement('div');
   const app = createApp({ render: () => h(MetaStrip, { items }) });
+  /* 段级 tip 走 v-tip 浮层（1120 批前为根 title 属性）——注册指令供浮层文本断言；
+     浮层显示通道要求宿主在文档内（指令对离屏节点按卸载放弃显示），挂 body 后各例照常离屏断言 */
+  document.body.appendChild(host);
+  app.directive('tip', vTip);
   let router: ReturnType<typeof createRouter> | null = null;
   if (withRouter) {
     router = createRouter({
@@ -68,7 +73,8 @@ describe('MetaStrip 扩展段（dot / text）', () => {
     expect(host.querySelector('b.ms-ok')?.textContent).toBe('RUNNING');
     expect(host.querySelector('.ms-unit')?.textContent).toBe('GB');
     const tipSeg = host.querySelectorAll('.ms-i')[1] as HTMLElement;
-    expect(tipSeg.getAttribute('title')).toBe('12 GB');
+    tipSeg.dispatchEvent(new Event('focusin', { bubbles: false }));
+    expect(document.getElementById('vt-tip')?.textContent ?? '', '段 tip 走 v-tip 浮层').toBe('12 GB');
     app.unmount();
   });
 

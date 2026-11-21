@@ -143,6 +143,8 @@ public class ConsolePermissionsController {
                生命周期干预，与 abort 同族。 */
             "/internal/es/xmigrate/compare-capabilities",
             "/internal/es/xmigrate/diff-structure",
+            /* 迁移后等价性验证：双侧建连读 _count/样本/聚合（只读探测面），与 diff-structure 同族。 */
+            "/internal/es/xmigrate/verify-equivalence",
             "/internal/es/xmigrate/throttle");
 
     @GetMapping("permissions")

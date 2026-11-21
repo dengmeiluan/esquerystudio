@@ -49,7 +49,7 @@ const MCP_APP_HTML = '<!doctype html><html lang="zh-CN"><head><meta charset="utf
   + '</style></head><body><main><div class="eyebrow">ESQUERYSTUDIO / MCP APP</div>'
   + '<h1>Elasticsearch control surface</h1><p>This app renders the ESQueryStudio connection, index and diagnostic tools inside an MCP host. '
   + 'Tool results remain available as text when the host does not support MCP Apps.</p>'
-  + '<div class="grid"><div class="cell"><b>17 groups</b><span>166 actions</span></div>'
+  + '<div class="grid"><div class="cell"><b>17 groups</b><span>167 actions</span></div>'
   + '<div class="cell"><b>Read / write</b><span>per connection permission</span></div>'
   + '<div class="cell"><b>Audited</b><span>IP · UA · requestId</span></div></div>'
   + '<p style="margin-top:20px">Use <code>es_connections action=list</code> to discover the scope of your key.</p></main></body></html>';
@@ -1263,6 +1263,21 @@ export const MCP_TOOLS: McpToolDefinition[] = [
     }, ['srcConnId', 'sourceIndex']),
   },
   {
+    name: 'es_xmigrate_verify_equivalence',
+    description: '校验迁移源/目标索引的数据等价（只读）：双侧 _count 对比、_doc 序 id 样本 mget 后按 canonical 摘要逐 id 对比、可选 terms 聚合对比；返回 verdict EQUIVALENT/DIVERGENT/INCONCLUSIVE。',
+    inputSchema: schema({
+      jobId: val('string', 'Cross-cluster migration job id; its registered srcConnId/sourceIndex/destIndex are reused.'),
+      srcConnId: val('string', 'Source connection profile id; alternative to jobId (together with sourceIndex).'),
+      sourceIndex: val('string', 'Source index name on the old cluster (required with srcConnId).'),
+      destConnId: val('string', 'Dest connection id (host, or an id from discovery; defaults to the active connection).'),
+      destIndex: val('string', 'Target index name; defaults to sourceIndex.'),
+      sampleSize: val('number', 'Sample size of sorted-_doc ids to hash-compare, clamped to 10-500 (default 100).'),
+      sampleFields: val('string', 'Comma-separated fields included in the digest; omit for the whole _source.'),
+      aggField: val('string', 'Optional terms aggregation field compared on both sides.'),
+      aggSize: val('number', 'Aggregation bucket size, clamped to 1-50 (default 10).'),
+    }),
+  },
+  {
     name: 'es_xmigrate_throttle',
     description: '调节运行中的跨集群迁移作业速率（docs/s；-1 恢复不限速）；写权限。浏览器桥为批粒度限速（每秒窗口按 rps 截流）。',
     inputSchema: schema({
@@ -1440,7 +1455,7 @@ export const MCP_TOOL_GROUPS: McpToolGroup[] = [
     ],
   },
   { id: 'adhoc', label: '托管重建', tools: ['es_adhoc_prepare', 'es_adhoc_start', 'es_adhoc_status', 'es_adhoc_abort', 'es_adhoc_confirm_switch', 'es_adhoc_jobs', 'es_adhoc_retry', 'es_adhoc_delete_jobs', 'es_adhoc_throttle', 'es_adhoc_events'] },
-  { id: 'xmigrate', label: '跨集群迁移', tools: ['es_xmigrate_preflight', 'es_xmigrate_start', 'es_xmigrate_status', 'es_xmigrate_jobs', 'es_xmigrate_fetch_config', 'es_xmigrate_resume', 'es_xmigrate_abort', 'es_xmigrate_reconcile', 'es_xmigrate_conflicts', 'es_xmigrate_connect_check', 'es_xmigrate_resolve_preview', 'es_xmigrate_dest_indices', 'es_xmigrate_delete_jobs', 'es_xmigrate_sync_structure', 'es_xmigrate_probe_capabilities', 'es_xmigrate_compare_capabilities', 'es_xmigrate_diff_structure', 'es_xmigrate_throttle'] },
+  { id: 'xmigrate', label: '跨集群迁移', tools: ['es_xmigrate_preflight', 'es_xmigrate_start', 'es_xmigrate_status', 'es_xmigrate_jobs', 'es_xmigrate_fetch_config', 'es_xmigrate_resume', 'es_xmigrate_abort', 'es_xmigrate_reconcile', 'es_xmigrate_conflicts', 'es_xmigrate_connect_check', 'es_xmigrate_resolve_preview', 'es_xmigrate_dest_indices', 'es_xmigrate_delete_jobs', 'es_xmigrate_sync_structure', 'es_xmigrate_probe_capabilities', 'es_xmigrate_compare_capabilities', 'es_xmigrate_diff_structure', 'es_xmigrate_verify_equivalence', 'es_xmigrate_throttle'] },
   { id: 'rest', label: '原始 REST', tools: ['es_rest'] },
 ];
 
@@ -1697,6 +1712,7 @@ export const MCP_GROUP_ACTIONS: Record<string, Record<string, string>> = {
     'probe_capabilities': 'es_xmigrate_probe_capabilities',
     'compare_capabilities': 'es_xmigrate_compare_capabilities',
     'diff_structure': 'es_xmigrate_diff_structure',
+    'verify_equivalence': 'es_xmigrate_verify_equivalence',
     'throttle': 'es_xmigrate_throttle',
   },
 };
@@ -1717,7 +1733,30 @@ export const MCP_GROUP_DESCRIPTIONS: Record<string, string> = {
   'es_automation': 'Watcher, ingest pipelines and stored scripts.',
   'es_rest': 'Raw Elasticsearch REST passthrough; write methods need write permission.',
   'es_adhoc_rebuild': 'Managed adhoc rebuild lifecycle: probe source, start, status, abort, confirm switch, job list, retry, throttle and events.',
-  'es_xmigrate': 'Cross-cluster migration lifecycle: connect check, resolve preview, preflight, start, progress, job list, fetch source config, count reconcile, conflict samples, dest index list, resume, abort, job cleanup, adaptive structure sync (proactive compat matrix plus target-error pruning, dry-run plan with planDigest and alias sync), target capability probe (vendor/version/plugins/nodes), capability comparison risk matrix, structure diff verification and running-job throttle.',
+  'es_xmigrate': 'Cross-cluster migration lifecycle: connect check, resolve preview, preflight, start, progress, job list, fetch source config, count reconcile, conflict samples, dest index list, resume, abort, job cleanup, adaptive structure sync (proactive compat matrix plus target-error pruning, dry-run plan with planDigest and alias sync), target capability probe (vendor/version/plugins/nodes), capability comparison risk matrix, structure diff verification, data equivalence verification (counts, sample hash, optional aggregation) and running-job throttle.',
+};
+
+/** 组级 MCP annotations 静态表（tools/list 逐组输出，三端同表）：readOnlyHint=true 仅限
+    零写 action 的组；destructiveHint=true 仅限含破坏性 action 的组；idempotentHint 同
+    readOnlyHint；openWorldHint=true 全组。按组静态声明，不随写开关裁剪变化。 */
+export const MCP_TOOL_ANNOTATIONS: Record<string, Record<string, boolean>> = {
+  'es_connections': { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+  'es_search': { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+  'es_sql': { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true },
+  'es_documents': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  'es_indices': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  'es_data_streams': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  'es_templates': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  'es_analysis': { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+  'es_cluster': { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+  'es_batch': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  'es_transforms': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  'es_snapshots': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  'es_lifecycle': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  'es_automation': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  'es_rest': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  'es_adhoc_rebuild': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  'es_xmigrate': { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
 };
 
 /** 客户端可见的组级工具面：17 个 action 组；写开关关闭时收起写 action。 */
@@ -1739,16 +1778,30 @@ export function browserGroupTools(writeAllowed: boolean = isBrowserMcpWriteAllow
       'maxDocs', 'refresh', 'pipeline', 'routing', 'size', 'from', 'scroll', 'waitForCompletion']) {
       properties[field] = { type: 'string', description: field + ' (action-specific)' };
     }
+    /* es_xmigrate 组的专用参数：sync_structure 的 dry-run/别名随迁/分析器回退/计划摘要校验参数，
+       verify_equivalence 的样本与聚合参数，throttle 的速率参数（与服务端 groupTool 同表） */
+    if (name === 'es_xmigrate') {
+      properties.dryRun = { type: 'boolean', description: 'sync_structure: true 时只产出兼容剔除计划（planned/advice），不向目标集群发 PUT' };
+      properties.syncAliases = { type: 'boolean', description: 'sync_structure: true 时建索引成功后按源别名逐个随迁（filter/routing 元数据原样）' };
+      properties.downgradedAnalyzerFallback = { type: 'string', description: 'sync_structure: 降级字段的回退分析器；缺省回退 standard 分析器（normalizer 属性总是剔除）' };
+      properties.expectPlanDigest = { type: 'string', description: 'sync_structure: dryRun 预览返回的 planDigest；仅 dryRun=false 执行时合法，防预览后源结构漂移' };
+      properties.srcConnId = { type: 'string', description: '跨集群 action 的源连接档案 id（start/resume/fetch_config/reconcile/verify_equivalence 等）' };
+      properties.destConnId = { type: 'string', description: '目标侧连接 id（host=宿主集群；缺省按 action 各自默认）' };
+      properties.sourceIndex = { type: 'string', description: '源索引名（旧集群侧）' };
+      properties.destIndex = { type: 'string', description: '目标索引名（缺省多与 sourceIndex 同名）' };
+      properties.jobId = { type: 'string', description: '迁移作业 id（status/resume/abort/conflicts/throttle/verify_equivalence）' };
+      properties.sampleSize = { type: 'number', description: 'verify_equivalence: _doc 序取样条数，钳制 10-500（缺省 100）' };
+      properties.sampleFields = { type: 'string', description: 'verify_equivalence: 参与摘要对比的字段，逗号分隔' };
+      properties.aggField = { type: 'string', description: 'verify_equivalence: 可选 terms 聚合对比字段' };
+      properties.aggSize = { type: 'number', description: 'verify_equivalence: 聚合桶数，钳制 1-50（缺省 10）' };
+      properties.rps = { type: 'string', description: 'throttle: 每秒文档数，-1 表示不限速' };
+    }
     out.push({
       name,
       description: MCP_GROUP_DESCRIPTIONS[name] + ' Actions: ' + allowed.join(', ')
         + '. Pass action plus the arguments documented for that action.',
       inputSchema: { type: 'object', properties, required: ['action'] },
-      annotations: {
-        readOnlyHint: allowed.every(action => !MCP_WRITE_TOOLS.includes(actions[action]) && actions[action] !== 'es_rest'),
-        destructiveHint: allowed.some(action => MCP_WRITE_TOOLS.includes(actions[action]) || actions[action] === 'es_rest'),
-        openWorldHint: false,
-      },
+      annotations: MCP_TOOL_ANNOTATIONS[name],
       _meta: { ui: { resourceUri: MCP_APP_URI } },
     });
   }
@@ -1936,7 +1989,7 @@ export const MCP_PROMPTS: McpPromptDefinition[] = [
   {
     name: 'cross_cloud_structure_sync',
     title: 'Cross-cloud structure sync',
-    description: 'Cross-cloud index structure sync workflow: probe both clusters, compare capabilities, plan with dry-run, validate, execute, then verify with structure diff.',
+    description: 'Cross-cloud index structure sync workflow: probe both clusters, compare capabilities, plan with dry-run, validate, execute, then verify with structure diff and data equivalence.',
     arguments: [
       promptArg('srcConnId', 'Stored source connection profile id (old cluster).', true),
       promptArg('destConnId', 'Target-side connection id (host, or an id from discovery).', true),
@@ -2082,9 +2135,9 @@ function getMcpPrompt(name: string, args: Record<string, any> = {}): any {
     text = 'Plan and verify a migration from `' + source + '` to `' + target + '`.\n\n'
       + '1. Compare mappings with `es_get_mapping` and run `es_reindex_preview` for incompatible fields.\n'
       + '2. Check target settings (`es_get_settings`, `es_index_settings_defaults`) and disk/alias state.\n'
-      + '3. 结构兼容：跨集群（尤其跨厂商，如生产阿里云 ES → UAT 腾讯云 ES）先用 es_xmigrate 的 probe_capabilities 探测源/目标厂商、版本与插件；再用 sync_structure 且 dryRun=true 预览兼容剔除计划——planned 为兼容矩阵预剔除（如阿里云 apack 私有设置、目标缺失插件的分析组件、节点属性路由），reactive 为建索引报错兜底剔除，advice 为分片数/副本/ILM 建议；确认计划后以 dryRun=false 执行（需 MRTR 二次确认），需别名随迁时加 syncAliases=true。\n'
+      + '3. 结构兼容：跨集群（尤其跨厂商，如生产阿里云 ES → UAT 腾讯云 ES）先用 es_xmigrate 的 probe_capabilities 探测源/目标厂商、版本与插件；再用 sync_structure 且 dryRun=true 预览兼容剔除计划——planned 为兼容矩阵预剔除（如阿里云 apack 私有设置、目标缺失插件的分析组件、节点属性路由），reactive 为建索引报错兜底剔除，advice 为分片数/副本/ILM 建议；确认计划后以 dryRun=false 执行（需 MRTR 二次确认），执行时携带 dryRun 预览返回的 planDigest（expectPlanDigest）防源结构漂移，需别名随迁时加 syncAliases=true。\n'
       + '4. Execute with `es_reindex` for same-cluster moves, or cross-cluster via `es_xmigrate` (`action=preflight`, then `start`, then poll `status`); same-cluster reindex progress comes from `es_task_detail`.\n'
-      + '5. Verify document counts with `es_count`, sampled content with `es_search`, and alias cutover with `es_alias`.\n'
+      + '5. Verify equivalence with `es_xmigrate` `action=verify_equivalence` (jobId form after a migration job, or srcConnId+sourceIndex+destConnId+destIndex form): it compares document counts, hashes a sorted-_doc id sample and an optional terms aggregation (aggField), and returns verdict EQUIVALENT/DIVERGENT/INCONCLUSIVE; switch aliases with `es_alias` only after EQUIVALENT.\n'
       + '6. State the cutover order, validation gates and rollback. Do not delete the source until verification passes.\n\n'
       + 'Extra constraints: ' + (notes || '(none provided)');
   } else if (name === 'review_cluster_capacity') {
@@ -2111,13 +2164,13 @@ function getMcpPrompt(name: string, args: Record<string, any> = {}): any {
       + '3. Check `es_pending_tasks` and `es_hot_threads` before assuming data loss.\n'
       + '4. Return the root cause, the exact recovery action, verification and a prevention check.';
   } else if (name === 'cross_cloud_structure_sync') {
-    /* workflow 七步正文三端逐字一致（服务端 McpController / 本地 Node 桥同文案），
+    /* workflow 八步正文三端逐字一致（服务端 McpController / 本地 Node 桥同文案），
        连接与索引参数只作尾部附加说明，不改正文 */
     const srcConnId = requiredArg('srcConnId');
     const destConnId = requiredArg('destConnId');
     const sourceIndex = optionalArg('sourceIndex');
     const destIndex = optionalArg('destIndex');
-    description = 'Cross-cloud index structure sync workflow: probe both clusters, compare capabilities, plan with dry-run, validate, execute, then verify with structure diff.';
+    description = 'Cross-cloud index structure sync workflow: probe both clusters, compare capabilities, plan with dry-run, validate, execute, then verify with structure diff and data equivalence.';
     text = '1. probe_capabilities on source (srcConnId) and target (destConnId) to capture version/vendor/plugins.\n'
       + '2. compare_capabilities {srcConnId, destConnId} for the risk matrix (vendor change, missing plugins, version gap).\n'
       + '3. sync_structure {dryRun:true} to preview removals/downgrades and the adapted create body with planDigest.\n'
@@ -2125,6 +2178,7 @@ function getMcpPrompt(name: string, args: Record<string, any> = {}): any {
       + '5. sync_structure {dryRun:false, expectPlanDigest} to execute (requires write permission and confirmation).\n'
       + '6. migrate_index with destCreateMode NONE when structure is already synced; monitor with jobs/status; reconcile counts.\n'
       + '7. diff_structure to verify the target matches the plan (expectedRemovals vs unexpected).\n'
+      + '8. verify_equivalence {srcConnId, sourceIndex, destConnId, destIndex, sampleSize, aggField?} for the final data check (counts + sample hash + optional aggregation, verdict must be EQUIVALENT).\n'
       + '\nConnection scope: srcConnId=' + srcConnId + ', destConnId=' + destConnId
       + (sourceIndex ? ', sourceIndex=' + sourceIndex + ', destIndex=' + (destIndex || sourceIndex) : '') + '.';
   } else {
@@ -3185,6 +3239,21 @@ async function dispatchBrowserTool(name: string, args: Record<string, any> = {})
         }),
       });
       break;
+    case 'es_xmigrate_verify_equivalence': {
+      /* 数据等价校验（只读）：REST verify-equivalence（浏览器桥内源直连 + 目标宿主的
+         双侧 count/_doc 序样本摘要/可选聚合对比，verdict 三态）；jobId 形态由桥内从
+         本机作业台账补 srcConnId/sourceIndex/destIndex，srcConnId 形态需显式 sourceIndex */
+      const verifyReq: Record<string, any> = args.jobId != null
+        ? { jobId: String(args.jobId) }
+        : { srcConnId: required(args, 'srcConnId'), sourceIndex: required(args, 'sourceIndex') };
+      for (const key of ['sourceIndex', 'destConnId', 'destIndex', 'sampleSize', 'sampleFields', 'aggField', 'aggSize']) {
+        if (args[key] !== undefined) verifyReq[key] = args[key];
+      }
+      data = await jsonFetch('/internal/es/xmigrate/verify-equivalence', {
+        method: 'POST', body: JSON.stringify(verifyReq),
+      });
+      break;
+    }
     case 'es_xmigrate_throttle':
       /* 运行中作业调速（写）：REST throttle（浏览器桥内为本页 scroll+bulk 循环的批粒度限速） */
       data = await jsonFetch('/internal/es/xmigrate/throttle', {

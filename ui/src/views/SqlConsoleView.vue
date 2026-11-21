@@ -9,28 +9,28 @@
         <button class="btn ghost sm" @click="loadSample">
           <BookOpen :size="12" /> 示例
         </button>
-        <button class="btn ghost sm" @click="doSchema" :disabled="!indexOf() || busy" title="探测当前索引字段，提前提醒哪些会引发 SQL 报错">
+        <button class="btn ghost sm" @click="doSchema" :disabled="!indexOf() || busy" v-tip="'探测当前索引字段，提前提醒哪些会引发 SQL 报错'">
           <ShieldAlert :size="12" /> 字段体检
         </button>
         <!-- 1328：此前这两个钮既无 title 也无 aria-label——页头一排里其余三个都有说明，
              只有它俩要用户猜「转 DSL 是干什么的」「收藏存到哪」。补上，并让禁用原因可读
              （禁用态浏览器不弹 title，所以文案本身要写清前置条件）。 -->
         <button class="btn ghost sm" @click="doTranslate" :disabled="!sql.trim() || busy"
-          :title="busy ? '执行中，完成后再转换' : (!sql.trim() ? '先写一条 SQL，再用它翻译成等价的 DSL 请求体' : '把当前 SQL 翻译成等价的 DSL 请求体（_sql/translate），可带到 DSL 页继续改')">
+          v-tip="busy ? '执行中，完成后再转换' : (!sql.trim() ? '先写一条 SQL，再用它翻译成等价的 DSL 请求体' : '把当前 SQL 翻译成等价的 DSL 请求体（_sql/translate），可带到 DSL 页继续改')">
           <Braces :size="12" /> 转 DSL
         </button>
         <button class="btn ghost sm" @click="doFav" :disabled="!sql.trim()"
-          :title="!sql.trim() ? '先写一条 SQL，再收藏为常用查询' : '收藏当前 SQL（可在「收藏夹」里一键回放）'">
+          v-tip="!sql.trim() ? '先写一条 SQL，再收藏为常用查询' : '收藏当前 SQL（可在「收藏夹」里一键回放）'">
           <Star :size="12" /> 收藏
         </button>
         <!-- 页内历史入口（四视图统一，DslQueryView 弹窗范式）——doRun 一直在
  push mode=sql 历史（此前页内零出口 -->
-        <button class="btn ghost sm" data-test="open-hist" @click="histOpen = true" title="查询历史"><History :size="12" /> 历史</button>
+        <button class="btn ghost sm" data-test="open-hist" @click="histOpen = true" v-tip="'查询历史'"><History :size="12" /> 历史</button>
         <!-- W10：title 随态——空 SQL 保持禁用原因可发现性（契约），
         有 SQL 时提示快捷键（execHint 单一出处，⌘/Ctrl 不再写死）。
         「执行中」读秒标签只随执行链（qr.running）：字段体检/转 DSL/分页等旁路操作
         共享 busy 但不走 useQueryRun，误显读秒会把陈旧耗时挂到无关操作头上 -->
-        <button class="btn primary sm" :title="sql.trim() ? (selScope ? '仅执行选中的 ' + selScope.lines + ' 行（' + execHint + '）；清除选区后执行整篇' : (multiStmt ? '仅执行光标所在语句（第 ' + cursorStmtNo + ' 条 / 共 ' + stmtScopes.length + ' 条；' + execHint + '）；选中一段可只跑选段' : '执行（' + execHint + '）')) : '请输入 SQL 语句'" @click="doRun" :disabled="!sql.trim() || busy">
+        <button class="btn primary sm" v-tip="sql.trim() ? (selScope ? '仅执行选中的 ' + selScope.lines + ' 行（' + execHint + '）；清除选区后执行整篇' : (multiStmt ? '仅执行光标所在语句（第 ' + cursorStmtNo + ' 条 / 共 ' + stmtScopes.length + ' 条；' + execHint + '）；选中一段可只跑选段' : '执行（' + execHint + '）')) : '请输入 SQL 语句'" @click="doRun" :disabled="!sql.trim() || busy">
           <Play :size="12" /> {{ qr.running.value ? '执行中（' + (qr.elapsedMs.value / 1000).toFixed(1) + 's）…' : (selScope ? '执行选段' : (multiStmt ? '执行当前语句' : '执行')) }} <span class="kbd inline">{{ execHint }}</span>
         </button>
         <!-- 取消只对执行链有意义（qr.begin 签发的 signal）；旁路 busy 期间出现死取消钮=示能谎言 -->
@@ -50,12 +50,12 @@
  railOpen usePref 状态机零改动（sqlConsoleAdjustW2 锚同步更新） -->
             <button type="button" class="btn ghost xs" data-sq-editor-toggle :aria-expanded="!editorCollapsed"
               :aria-label="editorCollapsed ? '展开 SQL 编辑器' : '收起 SQL 编辑器'"
-              :title="editorCollapsed ? '展开 SQL 编辑器' : '收起 SQL 编辑器（给结果表让位）'"
+              v-tip="editorCollapsed ? '展开 SQL 编辑器' : '收起 SQL 编辑器（给结果表让位）'"
               @click="editorCollapsed = !editorCollapsed">
               <ChevronUp v-if="editorCollapsed" :size="11" /><ChevronDown v-else :size="11" />
               编辑器
             </button>
-            <button ref="toggleEl" class="btn ghost xs" data-sq-rail-toggle :title="railOpen ? '收起模板侧栏' : '展开模板侧栏'" @click="railOpen = !railOpen">
+            <button ref="toggleEl" class="btn ghost xs" data-sq-rail-toggle v-tip="railOpen ? '收起模板侧栏' : '展开模板侧栏'" @click="railOpen = !railOpen">
               <ChevronRight :size="11" :style="{ transform: railOpen ? '' : 'rotate(180deg)', transition: 'transform var(--tr)' }" />
               {{ railOpen ? '收起' : '模板' }}
             </button>
@@ -63,11 +63,11 @@
                  结果表直接上移（此前折叠态也占 45px，表格头被推到页面中部，用户反馈「表头横在中间」）。 -->
             <button v-if="dslPreview" type="button" class="btn ghost xs" data-test="sql-preview-toggle"
               :aria-expanded="previewOpen" aria-controls="sq-dsl-preview"
-              :title="previewOpen ? '收起 DSL 预览（给结果表让位）' : '展开 DSL 预览（_sql/translate）'"
+              v-tip="previewOpen ? '收起 DSL 预览（给结果表让位）' : '展开 DSL 预览（_sql/translate）'"
               @click="previewOpen = !previewOpen">
               <Braces :size="11" /> {{ previewOpen ? '收起预览' : 'DSL 预览' }}
             </button>
-            <label class="sq-fs" title="每页返回行数 fetch_size（ES 上限 10000；0/清空=不带该键走服务端默认）">
+            <label class="sq-fs" v-tip="'每页返回行数 fetch_size（ES 上限 10000；0/清空=不带该键走服务端默认）'">
               fetch_size
               <!-- 原生 number 升档 NInputNumber：min=0 保留「0=不带键」逃生档（构建体 >0 才入参），
                    超限值失焦钳到 10000（原键入超限靠构建体夹取，现输入侧即钳） -->
@@ -87,7 +87,7 @@
             <!-- 1066：page_timeout——单页计算超时（ES 默认 1m）；保护高开销查询。
                  注意：带 cursor 续页时 ES 只认 columnar/time_zone，此参数会被忽略。
                  W3c：原生 select 升档 NSelect small（档值/文案零变化，aria-label 保留） -->
-            <label class="sq-fs" title="单页查询超时 page_timeout（ES 默认 1m）；仅首查生效，cursor 续页 ES 会忽略">
+            <label class="sq-fs" v-tip="'单页查询超时 page_timeout（ES 默认 1m）；仅首查生效，cursor 续页 ES 会忽略'">
               page_timeout
               <n-select v-model:value="pageTimeout" class="sq-to-i" size="small" :options="TIMEOUT_OPTS" aria-label="SQL 单页超时" />
             </label>
@@ -107,14 +107,14 @@
             </Tip>
             <!-- 1075：columnar 列式返回（ES cursor 续页只认 columnar/time_zone）；表格仍按行展示 -->
             <n-checkbox v-model:checked="columnar" size="small" class="sq-fs sq-tog"
-              title="列式返回（columnar）：大结果/图表/导出更稳；cursor 续页自动沿用同一形态。表格仍按行展示">列式</n-checkbox>
+              v-tip="'列式返回（columnar）：大结果/图表/导出更稳；cursor 续页自动沿用同一形态。表格仍按行展示'">列式</n-checkbox>
           </div>
         </div>
         <!-- 1080：字段源换源提示条——只在 FROM 与顶栏选中不一致时出现一行，
              解释补全/体检/列名纠错为何按另一索引匹配（独立行，不挤占工具行） -->
         <div v-if="fromMismatch" class="sq-from-note" role="note">
           <span class="chip xs static" data-test="sql-from-chip"
-            :title="`字段补全/体检/列名纠错跟随 FROM「${effectiveSqlIndex}」；执行成功后顶栏切到该索引（当前「${store.pickedIdx}」）`">
+            v-tip="`字段补全/体检/列名纠错跟随 FROM「${effectiveSqlIndex}」；执行成功后顶栏切到该索引（当前「${store.pickedIdx}」）`">
             FROM {{ effectiveSqlIndex }}
           </span>
           <span>字段补全 / 字段体检 / 列名纠错按此索引匹配；执行成功后顶栏索引跟随 FROM（别名/未知索引除外，当前停在 <b>{{ store.pickedIdx }}</b>）</span>
@@ -129,14 +129,14 @@
             aria-label="SQL 参数（JSON 数组，按 ? 出现顺序）"
             @keydown.esc.prevent="paramsText = ''" />
           <span class="sq-param-stat" :class="paramStat.tone">{{ paramStat.text }}</span>
-          <button type="button" class="btn ghost xs" title="清空参数" @click="paramsText = ''">清空</button>
+          <button type="button" class="btn ghost xs" v-tip="'清空参数'" @click="paramsText = ''">清空</button>
         </div>
         <!-- P0-3：SQL 静态体检提示条（utils/sqlLint 纯函数，随输入防抖重估；
  零阻塞不拦执行——lint 只提示，执行门仍是既有 doRun；自动高度不进编辑器高度链）。
  .sq-sql-lint 私造形态改用 theme.css .lint-bar 单源（sq-sql-lint 锚并存，role 与文案逐字不动） -->
         <div v-if="sqlLintFindings.length" class="lint-bar sq-sql-lint lint-bar-warn" role="status">
           <span v-for="(f, i) in shownLintFindings" :key="i">· <button type="button" class="sq-lint-ln"
-            :title="'定位到第 ' + f.line + ' 行'" @click="locateLine(f.line)">第 {{ f.line }} 行</button>：{{ f.message }} — {{ f.suggestion }}</span>
+            v-tip="'定位到第 ' + f.line + ' 行'" @click="locateLine(f.line)">第 {{ f.line }} 行</button>：{{ f.message }} — {{ f.suggestion }}</span>
           <!-- 1391：默认只列前 2 条，其余折起。3 条以上会把编辑区挤到没法改稿（1280×720 实测），
                但「看不见的问题」同样是坑——所以给一个明确的展开入口，条数一直写在按钮上。 -->
           <button v-if="sqlLintFindings.length > LINT_VISIBLE" type="button" class="btn xs sq-lint-more"
@@ -170,16 +170,16 @@
         <div class="sq-card-hd">
           <span>常用模板</span>
           <div class="sq-card-hd-r">
-            <button class="btn ghost xs" data-sq-rail-w :title="'模板栏宽度档：' + railW + 'px'" @click="cycleRailW">宽</button>
+            <button class="btn ghost xs" data-sq-rail-w v-tip="'模板栏宽度档：' + railW + 'px'" @click="cycleRailW">宽</button>
           </div>
         </div>
         <ul class="sq-tpl">
           <li v-for="t in TEMPLATES_VIEW" :key="t.k" :class="{ off: !t.ready }"
-              :title="t.ready ? '插入模板并按当前 mapping 绑定字段' : '缺少 ' + t.missing.join('、') + '：先在顶栏选择有该字段的索引'"
+              v-tip="t.ready ? '插入模板并按当前 mapping 绑定字段' : '缺少 ' + t.missing.join('、') + '：先在顶栏选择有该字段的索引'"
               @click="applyTemplate(t)" role="button" tabindex="0" :aria-disabled="!t.ready"
               @keydown.enter.prevent="applyTemplate(t)" @keydown.space.prevent="applyTemplate(t)">
             <span class="sq-tpl-k">{{ t.k }}</span>
-            <span class="sq-tpl-d">{{ t.desc }}<em v-if="!t.ready" class="sq-tpl-miss"> · 缺 {{ t.missing.join('、') }}</em><em v-else-if="t.binds.length" class="sq-tpl-bind" :title="'按当前 mapping 自动绑定：' + t.binds.join('、')"> · {{ t.binds.join(' · ') }}</em></span>
+            <span class="sq-tpl-d">{{ t.desc }}<em v-if="!t.ready" class="sq-tpl-miss"> · 缺 {{ t.missing.join('、') }}</em><em v-else-if="t.binds.length" class="sq-tpl-bind" v-tip="'按当前 mapping 自动绑定：' + t.binds.join('、')"> · {{ t.binds.join(' · ') }}</em></span>
           </li>
         </ul>
       </div>
@@ -189,13 +189,13 @@
       <div v-if="dslPreview && previewOpen" class="sq-sec wide">
         <div class="sq-card-hd">
           <span>DSL 预览（_sql/translate）<em v-if="dslPreviewStale" class="sq-prev-stale" data-test="sql-preview-stale"
-            title="SQL 已修改，预览仍是上一版——点顶部「到 DSL」重新生成">预览来自上一版 SQL</em></span>
+            v-tip="'SQL 已修改，预览仍是上一版——点顶部「到 DSL」重新生成'">预览来自上一版 SQL</em></span>
           <div class="sq-card-hd-r">
-            <button class="btn ghost xs" data-sq-code-h :title="'DSL 预览高度档：' + codeH + 'px'" @click="cycleCodeH">高</button>
+            <button class="btn ghost xs" data-sq-code-h v-tip="'DSL 预览高度档：' + codeH + 'px'" @click="cycleCodeH">高</button>
             <button class="btn ghost xs" @click="gotoDsl" :disabled="!dslPreview || dslPreviewStale"
-                    :title="dslPreviewStale ? '预览来自上一版 SQL——请先点顶部「到 DSL」重新生成' : '先执行 SQL 转换生成 DSL'"><ChevronRight :size="11" /> 到 DSL 页</button>
+                    v-tip="dslPreviewStale ? '预览来自上一版 SQL——请先点顶部「到 DSL」重新生成' : '先执行 SQL 转换生成 DSL'"><ChevronRight :size="11" /> 到 DSL 页</button>
             <button class="btn ghost xs" @click="copyDsl" :disabled="dslPreviewStale"
-                    :title="dslPreviewStale ? '预览来自上一版 SQL——请先重新生成' : '复制 DSL'"><Copy :size="11" /> 复制</button>
+                    v-tip="dslPreviewStale ? '预览来自上一版 SQL——请先重新生成' : '复制 DSL'"><Copy :size="11" /> 复制</button>
             <button class="btn ghost xs" @click="dslPreview = null; previewOpen = false">关闭</button>
           </div>
         </div>
@@ -249,7 +249,7 @@
             <b>SQL 执行失败</b>
             <!-- 1109：报错锚点一键定位（ES `line X:Y` 前缀）——长 SQL 不必自己数行 -->
             <button v-if="runErrPos && !runErrStale" type="button" class="sq-err-loc mono" data-test="sql-err-locate"
-                    :title="'ES 报错位置' + (runErrScope ? (runErrScope.kind === 'statement' ? '（语句内，已换算到全文）' : '（选段内，已换算到全文）') : '') + '：第 ' + runErrPos.line + ' 行第 ' + runErrPos.column + ' 列——点击定位到该处'"
+                    v-tip="'ES 报错位置' + (runErrScope ? (runErrScope.kind === 'statement' ? '（语句内，已换算到全文）' : '（选段内，已换算到全文）') : '') + '：第 ' + runErrPos.line + ' 行第 ' + runErrPos.column + ' 列——点击定位到该处'"
                     @click="locateRunErr">定位 {{ runErrPos.line }}:{{ runErrPos.column }}</button>
             <span v-if="runErrScope && runErrPos && !runErrStale" class="sq-err-stale" data-test="sql-err-scope">{{ runErrScope.kind === 'statement' ? '语句内报错，行号已换算到全文' : '选段内报错，行号已换算到全文' }}</span>
             <span v-if="runErrStale" class="sq-err-stale" data-test="sql-err-stale">错误来自上一版 SQL</span>
@@ -260,35 +260,35 @@
           <div v-if="colFix" class="sq-colfix" role="group" aria-label="相近字段建议">
             <span class="sq-colfix-t">列 [{{ colFix.col }}] 不存在——相近字段：</span>
             <button v-for="s in colFix.suggestions" :key="s.path" type="button" class="btn sm"
-                    :title="'替换 SQL 中的 ' + colFix.col + ' 为 ' + s.path"
+                    v-tip="'替换 SQL 中的 ' + colFix.col + ' 为 ' + s.path"
                     @click="applyColFix(s.path)">{{ s.path }}</button>
           </div>
           <!-- 1045：索引名拼错同款纠错（Unknown index / no such index） -->
           <div v-if="idxFix" class="sq-colfix" role="group" aria-label="相近索引建议">
             <span class="sq-colfix-t">索引 [{{ idxFix.index }}] 不存在——相近索引：</span>
             <button v-for="s in idxFix.suggestions" :key="s.path" type="button" class="btn sm"
-                    :title="'替换 SQL 中的 ' + idxFix.index + ' 为 ' + s.path"
+                    v-tip="'替换 SQL 中的 ' + idxFix.index + ' 为 ' + s.path"
                     @click="applyIdxFix(s.path)">{{ s.path }}</button>
           </div>
           <!-- 1110：未知函数同款纠错（Unknown function / Scalar function）——只给有相近候选的 -->
           <div v-if="fnFix && fnFix.suggestions.length" class="sq-colfix" role="group" aria-label="相近函数建议">
             <span class="sq-colfix-t">函数 [{{ fnFix.fn }}] 不存在——相近函数：</span>
             <button v-for="s in fnFix.suggestions" :key="s.name" type="button" class="btn sm" data-test="sql-fn-fix"
-                    :title="'替换 SQL 中的 ' + fnFix.fn + ' 为 ' + s.name"
+                    v-tip="'替换 SQL 中的 ' + fnFix.fn + ' 为 ' + s.name"
                     @click="applyFnFix(s.name)">{{ s.name }}</button>
           </div>
           <!-- 1121：结果窗口超限（LIMIT/OFFSET → from+size > 10000）——改写后走 cursor -->
           <div v-if="windowFix" class="sq-colfix" role="group" aria-label="结果窗口自救">
             <span class="sq-colfix-t">SQL 结果窗口上限 10000（LIMIT/OFFSET → from+size）：</span>
             <button type="button" class="btn sm" data-test="sql-window-fix"
-                    :title="windowFix.note" @click="applyWindowFix">
+                    v-tip="windowFix.note" @click="applyWindowFix">
               {{ windowFix.reason === 'offset' ? '去掉 OFFSET 用 cursor' : '把 LIMIT 降到 10000' }}
             </button>
           </div>
           <div class="sq-alert-acts">
             <!-- 1095：数组字段失配时给一键自救——不必理解 field_multi_value_leniency，开关+重试一步到位 -->
             <button v-if="arrayLenientFix" class="btn sm" data-test="sql-array-lenient"
-                    title="开启宽容模式：数组字段取首值（自动注入 field_multi_value_leniency），然后重新执行"
+                    v-tip="'开启宽容模式：数组字段取首值（自动注入 field_multi_value_leniency），然后重新执行'"
                     @click="enableLenientRetry">开启宽容模式并重试</button>
             <!-- 1102：SQL 通道不支持 nested 字段——给两条真正能完成查询的通道，不留死胡同 -->
             <template v-if="nestedLimitFix">
@@ -364,7 +364,7 @@
                  （复制 TSV / JSON / 清除），与本视图工具行不重复占位。 -->
             <span class="menu-wrap sq-bar-more-wrap">
               <button class="btn ghost xs sq-icon-btn" data-test="sq-bar-more" aria-label="结果表更多（原始 IO / 高度档）"
-                aria-haspopup="menu" :aria-expanded="barMoreOpen" title="结果表更多：原始 IO、结果表高度档"
+                aria-haspopup="menu" :aria-expanded="barMoreOpen" v-tip="'结果表更多：原始 IO、结果表高度档'"
                 @click.stop="barMoreOpen = !barMoreOpen" @keydown.esc="barMoreOpen = false">
                 <MoreHorizontal :size="12" />
               </button>
@@ -375,7 +375,7 @@
                   @click="setResultH(h)">{{ h === 'fill' ? '填满剩余空间' : h + 'px' }}</button>
                 <div class="qrt-m-sep" role="separator"></div>
                 <button class="qrt-mi" role="menuitem" data-test="raw-io" aria-label="查看原始 IO（SQL 执行）"
-                  title="最近一次 SQL 请求/响应原文（复制/回放/语义分档高亮）"
+                  v-tip="'最近一次 SQL 请求/响应原文（复制/回放/语义分档高亮）'"
                   @click="barMoreOpen = false; openRawIo()">
                   <Terminal :size="12" /> 查看原始 IO
                 </button>

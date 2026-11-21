@@ -15,7 +15,7 @@
           <RefreshCw :size="12" :class="{ spinning: loading }" /> 加载
         </button>
         <!-- 节点清单 Markdown 复制（带出体系——分片分布盘点贴群） -->
-        <button class="btn sm" :disabled="loading || !layout.length" @click="copyNodeList" title="复制节点分片分布为 Markdown（群聊/工单直贴）">
+        <button class="btn sm" :disabled="loading || !layout.length" @click="copyNodeList" v-tip="'复制节点分片分布为 Markdown（群聊/工单直贴）'">
           <ClipboardCopy :size="12" /> 节点清单
         </button>
         <!-- 自动刷新开关：原生 checkbox 升档 NCheckbox（.tp-chk 落位类挂根，usePref/useAutoRefresh 逻辑不动） -->
@@ -41,7 +41,7 @@
       <!-- KPI 大卡墙退役后 inline 串改用 MetaStrip 统一件：未分配异常→err、relocating>0→warn
  走组件 tone 档；括号副文案（主/副拆分、常态、当前视图）并入 label 暗色，
  全量语义（承载者说明/异常判别/迁移中）走 :title 兜底不变 -->
-      <MetaStrip class="top-meta" :items="tpMeta" :title="'节点 ' + nodeStats.length + '（已分配分片承载者） · 分片总数 ' + filtered.length + '（主 ' + primaryCount + ' · 副 ' + replicaCount + '） · 未分配 ' + unassignedCount + '（' + (unassignedCount && !uaAbnormal ? '单节点副本，常态' : 'state=UNASSIGNED') + (uaAbnormal ? ' · 异常' : '') + '） · relocating ' + relocatingCount + '（正在迁移） · 索引 ' + viewIndexCount + '（当前视图）'" />
+      <MetaStrip class="top-meta" :items="tpMeta" v-tip.long="'节点 ' + nodeStats.length + '（已分配分片承载者） · 分片总数 ' + filtered.length + '（主 ' + primaryCount + ' · 副 ' + replicaCount + '） · 未分配 ' + unassignedCount + '（' + (unassignedCount && !uaAbnormal ? '单节点副本，常态' : 'state=UNASSIGNED') + (uaAbnormal ? ' · 异常' : '') + '） · relocating ' + relocatingCount + '（正在迁移） · 索引 ' + viewIndexCount + '（当前视图）'" />
 
       <!-- G2-B4：失败不再仅 toast 后清空回落「暂无分片数据」伪装空态（ 同源）——
  err-bar 全文+重试常驻，与 EmptyState 互斥；刷新失败保留旧图不清空 -->

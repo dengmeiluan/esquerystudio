@@ -6,17 +6,17 @@
          min/max 留空删键；双空删整个 extended_bounds 键回默认（emit 空数组哨兵，
          外层 onBodyPatch 落删除）。date-math 串原样、数值字面量转数值。 -->
     <div class="abp-row">
-      <span class="abp-tip" title="空桶边界：ES 默认只对有文档的区间出桶；设 min/max 后空区间也补空桶（趋势图连续）">
+      <span class="abp-tip" v-tip="'空桶边界：ES 默认只对有文档的区间出桶；设 min/max 后空区间也补空桶（趋势图连续）'">
         空桶边界 extended_bounds
       </span>
       <span class="abp-lb">min</span>
       <input class="inp mono abp-in" :value="cellText('min')" data-k="min" placeholder="now-30d/d 或 0"
-             title="边界下界：date-math（now-30d/d）或数值；留空 = 不设下界"
+             v-tip="'边界下界：date-math（now-30d/d）或数值；留空 = 不设下界'"
              @input="onInput('min', ($event.target as HTMLInputElement).value)" />
       <span class="abp-sep">→</span>
       <span class="abp-lb">max</span>
       <input class="inp mono abp-in" :value="cellText('max')" data-k="max" placeholder="now 或 100"
-             title="边界上界：date-math（now）或数值；留空 = 不设上界"
+             v-tip="'边界上界：date-math（now）或数值；留空 = 不设上界'"
              @input="onInput('max', ($event.target as HTMLInputElement).value)" />
     </div>
   </div>

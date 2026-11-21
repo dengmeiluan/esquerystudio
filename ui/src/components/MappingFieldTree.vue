@@ -53,7 +53,7 @@
                 <component :is="collapsed.has(f.path) ? ChevronRight : ChevronDown" :size="12" />
               </button>
               <span v-else-if="f.depth" class="mft-tree">└</span>
-              <span class="mft-name" :title="f.path + '（点击复制路径 · 右键更多操作）'" tabindex="0" role="button" @keydown.enter.prevent="copyPath(f.path)" @keydown.space.prevent="copyPath(f.path)" @click="copyPath(f.path)" @keydown="onRowMenuKey($event, f)"
+              <span class="mft-name" v-tip="f.path + '（点击复制路径 · 右键更多操作）'" tabindex="0" role="button" @keydown.enter.prevent="copyPath(f.path)" @keydown.space.prevent="copyPath(f.path)" @click="copyPath(f.path)" @keydown="onRowMenuKey($event, f)"
                 @contextmenu.prevent="openRowMenu($event, f)"><!--
                 --><template v-for="(seg, si) in hlSegs(f.name)" :key="si"><!--
                   --><mark v-if="seg.hit" class="mft-mark">{{ seg.t }}</mark><!--
@@ -61,25 +61,25 @@
                 --></template><!--
               --></span>
               <!-- multi-field 不再压在 attrs 文本里被截断，层级化子行 + 显式徽标 -->
-              <span v-if="f.multi" class="mft-mf" title="multi-field（fields.*）：同一段数据的另一种索引方式，查询时用完整路径引用">多字段</span>
+              <span v-if="f.multi" class="mft-mf" v-tip="'multi-field（fields.*）：同一段数据的另一种索引方式，查询时用完整路径引用'">多字段</span>
               <span v-if="f.hasChildren && collapsed.has(f.path) && !searching" class="mft-count" tabindex="0" role="button" :aria-label="'展开 ' + f.path + ' 的 ' + childCount(f.path) + ' 个子字段'" @keydown.enter.prevent="toggle(f.path)" @keydown.space.prevent="toggle(f.path)" @click="toggle(f.path)">
                 +{{ childCount(f.path) }} 字段
               </span>
               <span v-if="pollutedSet.has(rootOf(f)) && !f.depth" class="mft-badge">疑似 DSL 污染</span>
             </td>
             <td><span class="chip mono mft-type" :data-t="f.type">{{ f.type }}</span></td>
-            <td class="mono mft-attrs" :title="f.attrs">
+            <td class="mono mft-attrs" v-tip="f.attrs">
 <!--
  分析器组件名一键验证——名字点击=组件本体快验（/analyze）；
  text 字段行另给「字段验证」= 真实写入链路（/analyzer-lab field 通道，真实样本+三链路并排）
             --><template v-for="(seg, si) in attrTokens(f.attrs)" :key="si">
 <!--
               --><span v-if="si > 0" class="mft-attr-sep">, </span><!--
-              --><template v-if="seg.kind"><span class="mft-attr-k">{{ seg.k }}: </span><a class="mft-attr-link" role="link" tabindex="0" :title="'验证「' + seg.v + '」的分词效果'" @click="goAnalyze(seg.kind!, seg.v!)" @keydown.enter.prevent="goAnalyze(seg.kind!, seg.v!)">{{ seg.v }}</a></template><!--
+              --><template v-if="seg.kind"><span class="mft-attr-k">{{ seg.k }}: </span><a class="mft-attr-link" role="link" tabindex="0" v-tip="'验证「' + seg.v + '」的分词效果'" @click="goAnalyze(seg.kind!, seg.v!)" @keydown.enter.prevent="goAnalyze(seg.kind!, seg.v!)">{{ seg.v }}</a></template><!--
               --><template v-else>{{ seg.raw }}</template><!--
             -->
 </template><!--
-              --><button v-if="f.type === 'text' && f.path" class="btn sm ghost mft-try" title="按字段验证：真实样本 + field/analyzer/search_analyzer 三链路并排"
+              --><button v-if="f.type === 'text' && f.path" class="btn sm ghost mft-try" v-tip="'按字段验证：真实样本 + field/analyzer/search_analyzer 三链路并排'"
                     @click="goFieldLab(f.path)">
 字段验证
 </button>

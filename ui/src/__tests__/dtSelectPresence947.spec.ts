@@ -95,7 +95,7 @@ describe('九百四十七批 A 源码锁：恒在场 disabled', () => {
     expect(dt).toContain('placeholder="代码"');
     expect(dt).toContain("label: 'JavaScript (fetch)', value: 'js'");
     expect(dt).toContain("label: 'Python (requests)', value: 'python'");
-    expect(dt).toContain('title="复制为代码（fetch=前端 JavaScript 脚本 · requests=Python 脚本）"');
+    expect(dt).toContain(`v-tip="'复制为代码（fetch=前端 JavaScript 脚本 · requests=Python 脚本）'"`);
   });
 });
 
@@ -108,8 +108,8 @@ describe('九百四十七批 B 行为锁（九百四十二挂载范式）', () =
     const sel = codeSel(host)!;
     expect(sel, '清空路径后下拉恒在场（不撤位）').toBeTruthy();
     expect(codeSelDisabled(host), '无路径=disabled').toBe(true);
-    expect([...host.querySelectorAll('button')].find(b => (b.getAttribute('title') || '') === '复制 curl'), '同排 curl 钮在场').toBeTruthy();
-    expect([...host.querySelectorAll('button')].find(b => (b.getAttribute('title') || '') === '粘贴 curl 命令回填请求'), '同排导入钮在场').toBeTruthy();
+    expect([...host.querySelectorAll('button')].find(b => (b.textContent || '').trim() === 'curl'), '同排 curl 钮在场（title 已迁 v-tip，按钮面文本定位）').toBeTruthy();
+    expect([...host.querySelectorAll('button')].find(b => (b.textContent || '').includes('从 curl 导入')), '同排导入钮在场（title 已迁 v-tip，按钮面文本定位）').toBeTruthy();
   });
 
   it('有路径：下拉可用（往返转移后状态跟随）', async () => {

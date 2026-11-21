@@ -10,7 +10,7 @@
       <button ref="btnEl" type="button" class="btn sm ghost" :class="btnCls"
         :aria-expanded="open" aria-haspopup="true"
         :aria-label="`列布局方案（当前 ${presets.length} 个）`"
-        title="列布局方案：保存/应用当前 列选·列宽·行高·转置·冻结 组合（按索引记忆）">
+        v-tip="'列布局方案：保存/应用当前 列选·列宽·行高·转置·冻结 组合（按索引记忆）'">
         <LayoutTemplate :size="13" />
         <span v-if="label" class="tpm-label">{{ label }}</span>
       </button>
@@ -25,8 +25,8 @@
       </div>
       <div v-if="presets.length" class="tpm-list">
         <div v-for="p in presets" :key="p" class="tpm-item">
-          <button type="button" class="tpm-name mono" :title="`应用方案「${p}」`" @click="doApply(p)">{{ p }}</button>
-          <button type="button" class="btn xxs ghost tpm-del" :aria-label="`删除方案 ${p}`" title="删除方案（可重新保存恢复）" @click="doDel(p)">
+          <button type="button" class="tpm-name mono" v-tip="`应用方案「${p}」`" @click="doApply(p)">{{ p }}</button>
+          <button type="button" class="btn xxs ghost tpm-del" :aria-label="`删除方案 ${p}`" v-tip="'删除方案（可重新保存恢复）'" @click="doDel(p)">
             <X :size="11" />
           </button>
         </div>

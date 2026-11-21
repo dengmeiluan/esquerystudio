@@ -1,15 +1,15 @@
 <template>
   <div class="agn">
     <div class="agn-hd" tabindex="0" @contextmenu.prevent="openRowMenu" @keydown.self="onRowMenuKey">
-      <input class="inp agn-name mono" :value="node.name" title="聚合名"
+      <input class="inp agn-name mono" :value="node.name" v-tip="'聚合名'"
              @input="emit('update:node', { ...node, name: ($event.target as HTMLInputElement).value })" />
       <!-- 聚合类型：族→算子二段式选择器（此前是 68 项平铺的原生 datalist，
  长列表里逐项认名字）；仍保留手输任意 ES 聚合名的既有契约 -->
       <AggOpPicker class="agn-op-pick" :model-value="node.op" placeholder="聚合类型"
         @update:model-value="v => emit('update:node', { ...node, op: v })" />
       <span style="flex:1"></span>
-      <button aria-label="meta" class="btn sm ghost" :class="{ on: metaOpen }" title="meta" @click="metaOpen = !metaOpen"><Tag :size="12" /></button>
-      <button aria-label="删除聚合" class="btn sm ghost danger" title="删除聚合" @click="emit('remove')"><X :size="12" /></button>
+      <button aria-label="meta" class="btn sm ghost" :class="{ on: metaOpen }" v-tip="'meta'" @click="metaOpen = !metaOpen"><Tag :size="12" /></button>
+      <button aria-label="删除聚合" class="btn sm ghost danger" v-tip="'删除聚合'" @click="emit('remove')"><X :size="12" /></button>
     </div>
     <div v-if="metaOpen" class="agn-sub">
       <!-- 【预授权偏差A】@update="onMeta"（收窄守卫，数组形态忽略） -->
@@ -42,7 +42,7 @@
                      :schema="AGG_BODY_PARAMS[node.op] || []"
                      :field-keys="aggFieldKeys" :fields="fields" :types="types" :type-priority="aggTypePriority"
                      @update="onBodyParams" />
-      <input v-else class="inp mono agn-scalar" :value="String(node.body ?? '')" title="非标量聚合体（原样保留，按字符串编辑）"
+      <input v-else class="inp mono agn-scalar" :value="String(node.body ?? '')" v-tip="'非标量聚合体（原样保留，按字符串编辑）'"
              @input="emit('update:node', { ...node, body: ($event.target as HTMLInputElement).value })" />
     </div>
     <div class="agn-children">

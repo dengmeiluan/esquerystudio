@@ -5,6 +5,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createApp, h, ref, type App } from 'vue';
 import ClauseNode from '../builder/ClauseNode.vue';
+import { vTip } from '../../directives/vTip';
 import { parseTree, serializeTree, type LeafNode, type QueryTree } from '../../utils/queryAst';
 
 const mk = (value: unknown): LeafNode => ({
@@ -23,10 +24,17 @@ function mount(node: LeafNode, types: Record<string, string> = { title: 'text' }
     }),
   });
   apps.push(app);
+  app.directive('tip', vTip); /* 位置过滤钮提示已迁 v-tip 指令，注册后经浮层读取 */
   app.mount(host);
   return { host, cur };
 }
 const tick = () => new Promise(r => setTimeout(r));
+
+/* v-tip 浮层文本读取：focusin 通道立即显示（无 300ms 悬停延迟），#vt-tip 即全 document 单例浮层 */
+const tipOf = (el: HTMLElement): string => {
+  el.dispatchEvent(new Event('focusin', { bubbles: false }));
+  return document.getElementById('vt-tip')?.textContent ?? '';
+};
 
 beforeEach(() => { document.body.innerHTML = ''; });
 
@@ -122,6 +130,6 @@ describe('1011 intervals 专用编辑位', () => {
     /* 递归全量渲染：根 all_of + match + any_of + prefix + wildcard（filter 槽未展开不渲染子行） */
     expect(host.querySelectorAll('.ivr-kind').length).toBe(5);
     const fltBtn = host.querySelector<HTMLButtonElement>('button[aria-label="位置过滤 filter"]')!;
-    expect(fltBtn.title).toContain('1');
+    expect(tipOf(fltBtn), '提示必须点名关系槽数量 1').toContain('1');
   });
 });

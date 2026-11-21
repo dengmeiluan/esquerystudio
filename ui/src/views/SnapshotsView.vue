@@ -11,7 +11,7 @@
         <!-- KPI 大卡墙退役后 inline 串改用 MetaStrip 统一件：部分完成>0→warn、失败>0→err
  走组件 tone 档（原 meta-warn/meta-err 挂段容器连 i 一起染，合并后与全站同语言只染值）；
  「部分完成」的（部分成功）语义进段 tip，整条 :title 全文兜底不变 -->
-        <MetaStrip v-if="currentRepo" class="sv-meta" :items="svMeta" :title="'快照 ' + fmtNum(snapshots.length) + '（repo=' + currentRepo + '） · 部分完成 ' + fmtNum(partialCount) + '（部分成功） · 失败 ' + fmtNum(failedCount) + ' · 进行中 ' + fmtNum(inProgressCount)" />
+        <MetaStrip v-if="currentRepo" class="sv-meta" :items="svMeta" v-tip.long="'快照 ' + fmtNum(snapshots.length) + '（repo=' + currentRepo + '） · 部分完成 ' + fmtNum(partialCount) + '（部分成功） · 失败 ' + fmtNum(failedCount) + ' · 进行中 ' + fmtNum(inProgressCount)" />
       </template>
       <!-- 原独立工具条 sv-bar 整体并入页头 actions（横幅层叠 -1） -->
       <template #actions>
@@ -30,12 +30,12 @@
 <n-checkbox v-model:checked="snapAutoRefresh" size="small" class="sv-auto-lbl">自动刷新</n-checkbox>
         <!-- 自动刷新频率下拉改用 AutoRefreshSelect 统一件（原内联样式原生 select 退役；开关 checkbox 与 usePref 逻辑不动） -->
         <AutoRefreshSelect v-if="snapAutoRefresh" v-model:ms="snapIntervalMs" :sizes="[10000, 30000, 60000]" label="自动刷新频率" />
-        <button aria-label="刷新快照列表" class="btn sm ghost" @click="loadSnapshots" :disabled="loading || !currentRepo" title="刷新快照列表">
+        <button aria-label="刷新快照列表" class="btn sm ghost" @click="loadSnapshots" :disabled="loading || !currentRepo" v-tip="'刷新快照列表'">
           <RefreshCw :size="12" :class="{ spinning: loading }" />
         </button>
         <!-- 原始请求/响应快查弹窗（RawIo 第六波，558b 先例同形态；
  路径子串 '/cluster/snapshot/'=本页 repos/list/create/restore/delete/status 全通道） -->
-        <button class="btn sm ghost" data-test="raw-io" aria-label="查看原始 IO（快照读写）" title="最近一次快照仓库/列表/创建/恢复/删除/进度请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo">
+        <button class="btn sm ghost" data-test="raw-io" aria-label="查看原始 IO（快照读写）" v-tip="'最近一次快照仓库/列表/创建/恢复/删除/进度请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo">
           <Terminal :size="12" /> 原始 IO
         </button>
       </template>
@@ -80,13 +80,13 @@
  默认 start_time 自然方向=新→旧降序，即迁移前列表固定序语义，不静默改序；偏好 usePref 跨会话记忆） -->
         <n-select v-model:value="sortBy" :options="sortOpts" size="small" style="width:104px" aria-label="排序字段" />
         <button class="btn sm ghost" aria-label="排序方向" :aria-pressed="sortRev"
-          :title="sortRev ? '当前反序，点击恢复自然排序（开始时间 新→旧 / 名称 A→Z / 索引数 多→少 / 耗时 长→短）' : '当前自然排序（开始时间 新→旧 / 名称 A→Z / 索引数 多→少 / 耗时 长→短），点击翻转'"
+          v-tip="sortRev ? '当前反序，点击恢复自然排序（开始时间 新→旧 / 名称 A→Z / 索引数 多→少 / 耗时 长→短）' : '当前自然排序（开始时间 新→旧 / 名称 A→Z / 索引数 多→少 / 耗时 长→短），点击翻转'"
           @click="sortRev = !sortRev">
           <ArrowDownNarrowWide v-if="!sortRev" :size="12" />
           <ArrowUpNarrowWide v-else :size="12" />
         </button>
         <!-- 快照列表 CSV 导出（跟随过滤，运维对账） -->
-        <button class="btn sm ghost" :disabled="!filtered.length" title="导出当前快照列表为 CSV（跟随过滤）" @click="exportCsv">
+        <button class="btn sm ghost" :disabled="!filtered.length" v-tip="'导出当前快照列表为 CSV（跟随过滤）'" @click="exportCsv">
           <FileDown :size="12" /> CSV
         </button>
         <!-- 搜索定位：命中计数 + 上/下一个（Enter/Shift+Enter 在过滤框接线） -->
@@ -102,7 +102,7 @@
           <div class="sv-tl-dot"><component :is="stateIcon(s.state)" :size="14" /></div>
           <div class="sv-tl-body">
             <div class="sv-tl-head">
-              <b class="mono mono-trunc" :title="s.snapshot"><MarkText :text="s.snapshot" :kw="filter" /></b>
+              <b class="mono mono-trunc" v-tip="s.snapshot"><MarkText :text="s.snapshot" :kw="filter" /></b>
               <!-- W-D：state 徽标改用 StatusPill（中文主体+英文小字 en 档组件化，原本地小字形态逐字同步更新；
  本地四色映射退役，tone g/b/r/y 走 .pill 单源、未知态 n 中性；chip 档判定文案不动） -->
               <StatusPill class="mono" :tone="stateTone(s.state)"
@@ -125,7 +125,7 @@
                     @update:show="(v: boolean) => (rowJsonPop = v ? String(s.snapshot) : '')">
                     <template #trigger>
                       <button class="btn sm ghost" :aria-label="'查看快照原文：' + s.snapshot"
-                        title="快照原文（JSON）" @click="rowJsonPop = rowJsonPop === s.snapshot ? '' : String(s.snapshot)"><Info :size="11" /></button>
+                        v-tip="'快照原文（JSON）'" @click="rowJsonPop = rowJsonPop === s.snapshot ? '' : String(s.snapshot)"><Info :size="11" /></button>
                     </template>
                     <!-- W-C 批：快照原文 popover 走 highlightJson 范式（转义安全 v-html）；
                      控件升档 NPopover（定位/开合/阴影归 popover，BrowserView 行 ⋯ 同语汇） -->
@@ -142,7 +142,7 @@
             </div>
             <div v-if="s.indices?.length" class="sv-tl-chips">
               <span v-for="(idx, i) in s.indices.slice(0, 12)" :key="i" class="chip xs mono clickable" role="button" tabindex="0"
-                :aria-label="'跳转数据浏览器：' + idx" title="选中该索引并跳转数据浏览器" @click="gotoIndex(idx)" @keydown.enter.prevent="gotoIndex(idx)" @keydown.space.prevent="gotoIndex(idx)">{{ idx }}</span>
+                :aria-label="'跳转数据浏览器：' + idx" v-tip="'选中该索引并跳转数据浏览器'" @click="gotoIndex(idx)" @keydown.enter.prevent="gotoIndex(idx)" @keydown.space.prevent="gotoIndex(idx)">{{ idx }}</span>
               <span v-if="s.indices.length > 12" class="chip xs mono" style="color:var(--tx2)">+{{ s.indices.length - 12 }}</span>
             </div>
             <!-- 进行中快照行内进度——总 pct 进度条 + 每索引 stage 计数直方图
@@ -154,7 +154,7 @@
                 <span class="sv-prog-shards mono">{{ snapSummaries[s.snapshot].shardsStats.done }}/{{ snapSummaries[s.snapshot].shardsStats.total }} shards<template v-if="snapSummaries[s.snapshot].shardsStats.failed"> · <span style="color:var(--err)">failed {{ snapSummaries[s.snapshot].shardsStats.failed }}</span></template></span>
               </div>
               <div v-for="pi in snapSummaries[s.snapshot].indices" :key="pi.index" class="sv-prog-idx"
-                :title="pi.index + '：' + pi.shardsDone + '/' + pi.shardsTotal + ' shards'">
+                v-tip="pi.index + '：' + pi.shardsDone + '/' + pi.shardsTotal + ' shards'">
                 <span class="sv-prog-idx-name mono">{{ pi.index }}</span>
                 <span class="sv-prog-stages mono">
                   <span v-for="st in STAGE_KEYS" :key="st" class="sv-stage"
@@ -202,7 +202,7 @@
         <div style="display:flex; justify-content:flex-end; gap:var(--sp-2)">
           <button class="btn ghost sm" @click="createOpen = false">取消</button>
           <button class="btn primary sm" @click="doCreate" :disabled="creating || !createName || !canOps"
-            :title="canOps ? '' : '当前授权不含快照写权限'">
+            v-tip="canOps ? '' : '当前授权不含快照写权限'">
             <Save :size="11" /> {{ creating ? '提交中…' : '开始快照（异步）' }}
           </button>
         </div>
@@ -252,7 +252,7 @@
           <button class="btn ghost sm" @click="restoreOpen = false">取消</button>
           <button class="btn primary sm" @click="doRestore"
             :disabled="restoring || (mustSpecifyRestoreIndices && !restoreIndices.trim()) || !canOps"
-            :title="canOps ? '' : '当前授权不含快照写权限'">
+            v-tip="canOps ? '' : '当前授权不含快照写权限'">
             <Undo2 :size="11" /> {{ restoring ? '提交中…' : '开始恢复（异步）' }}
           </button>
         </div>

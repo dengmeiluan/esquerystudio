@@ -12,7 +12,7 @@
 <button class="btn ghost sm" @click="showBody = !showBody">
   <Code2 :size="12" /> {{ showBody ? '收起 body' : '展开原始 body' }}
 </button>
-<button class="btn ghost sm" @click="favorite" title="收藏当前配置">
+<button class="btn ghost sm" @click="favorite" v-tip="'收藏当前配置'">
   <Star :size="12" /> 收藏
 </button>
       </template>
@@ -59,7 +59,7 @@
           <label class="ra-qh">query（可选 JSON，留空即全量）
  <!-- query 编辑框高度三档循环钮（本页 ra-script-h 同款形态；script 面既有档零改动） -->
             <button class="btn ghost xs" style="margin-left:auto" data-test="ra-query-h"
-              :title="'query 编辑框高度档：' + queryH + ' 行'" @click="cycleQueryH">高</button>
+              v-tip="'query 编辑框高度档：' + queryH + ' 行'" @click="cycleQueryH">高</button>
           </label>
  <!-- dsl-assist 字段智能补全（useIndexFields 全站字段源标准）。
  @submit（Ctrl+Enter）接既有 submit（确认门在 submit 内不绕过）。
@@ -95,7 +95,7 @@
         </div>
  <!-- 五 select label 补 :title 中文释义——对齐同页 slices 等 口径，一页两标准归一 -->
         <div class="ra-f">
-          <label title="op_type：写入方式——create 仅新增（同 ID 已存在即冲突报错），index 存在则覆盖（默认）">op_type</label>
+          <label v-tip="'op_type：写入方式——create 仅新增（同 ID 已存在即冲突报错），index 存在则覆盖（默认）'">op_type</label>
           <n-select v-model:value="destOpType" :options="DEST_OP_TYPE_OPTS" size="small" class="ra-sel" />
         </div>
         <div class="ra-f">
@@ -116,7 +116,7 @@
  <!-- 脚本面高度档循环钮（SqlConsoleView codeH「高」钮同款形态，
  editorTiers 族口径：st.editorH/qx.taH 先例） -->
           <button class="btn ghost xs" style="margin-left:auto" data-test="ra-script-h"
-            :title="'脚本编辑器高度档：' + scriptH" @click="cycleScriptH">高</button>
+            v-tip="'脚本编辑器高度档：' + scriptH" @click="cycleScriptH">高</button>
         </div>
       <div class="ra-grid">
         <div class="ra-f">
@@ -139,21 +139,21 @@
         <div class="card-t"><SlidersHorizontal :size="14" /> 全局参数</div>
       <div class="ra-grid">
         <div class="ra-f">
-          <label title="conflicts：版本冲突策略——abort 遇冲突中止（默认），proceed 跳过冲突文档继续">conflicts</label>
+          <label v-tip="'conflicts：版本冲突策略——abort 遇冲突中止（默认），proceed 跳过冲突文档继续'">conflicts</label>
           <n-select v-model:value="conflicts" :options="CONFLICTS_OPTS" size="small" class="ra-sel" />
         </div>
         <div class="ra-f">
-          <label title="slices：并行切片数——auto 交 ES 自定，或正整数">slices</label>
+          <label v-tip="'slices：并行切片数——auto 交 ES 自定，或正整数'">slices</label>
  <!-- 五参数裸 input+useInputLint 失焦校验退役换 naive 组件（AdhocRebuild tuning 面同范式）：
  档位（auto/自定义、all/自定义、时间单位）走 NSelect，数值走 NInputNumber
  （min/precision/validator 内建整数与值域约束，替代原先的 @blur 正则档）；
  真相仍是原字符串域（''|'auto'|'N'），finalQs/submit/表单草稿链零变化；
  label/控件 :title 中文释义双挂口径保持 -->
-          <n-select v-model:value="slicesMode" :options="SLICES_MODE_OPTS" size="small" class="ra-sel" title="slices：并行切片数——auto 交 ES 自定，或正整数" />
-          <n-input-number v-if="slicesMode === 'custom'" v-model:value="slicesNum" :min="1" :precision="0" size="small" class="ra-num" placeholder=">=1 整数" title="slices：自定义并行切片数（>=1 整数）" />
+          <n-select v-model:value="slicesMode" :options="SLICES_MODE_OPTS" size="small" class="ra-sel" v-tip="'slices：并行切片数——auto 交 ES 自定，或正整数'" />
+          <n-input-number v-if="slicesMode === 'custom'" v-model:value="slicesNum" :min="1" :precision="0" size="small" class="ra-num" placeholder=">=1 整数" v-tip="'slices：自定义并行切片数（>=1 整数）'" />
         </div>
         <div class="ra-f">
-          <label title="refresh：完成后刷新——不刷新（默认）/ true 立即可搜 / wait_for 等待下次自动刷新">refresh</label>
+          <label v-tip="'refresh：完成后刷新——不刷新（默认）/ true 立即可搜 / wait_for 等待下次自动刷新'">refresh</label>
           <n-select v-model:value="refresh" :options="REFRESH_OPTS" size="small" class="ra-sel" />
         </div>
         <div class="ra-f">
@@ -164,28 +164,28 @@
           <n-select v-model:value="waitForCompletion" :options="WAIT_FOR_COMPLETION_OPTS" size="small" class="ra-sel" />
         </div>
         <div class="ra-f">
-          <label title="requests_per_second：每秒限流——-1 不限，或数字（可小数）">requests_per_second</label>
-          <n-input-number v-model:value="requestsPerSecondNum" :min="-1" :validator="numOrMinusOne" size="small" class="ra-num" placeholder="-1（不限） / 1000" title="requests_per_second：每秒限流——-1 不限，或数字（可小数）" />
+          <label v-tip="'requests_per_second：每秒限流——-1 不限，或数字（可小数）'">requests_per_second</label>
+          <n-input-number v-model:value="requestsPerSecondNum" :min="-1" :validator="numOrMinusOne" size="small" class="ra-num" placeholder="-1（不限） / 1000" v-tip="'requests_per_second：每秒限流——-1 不限，或数字（可小数）'" />
         </div>
         <div class="ra-f">
-          <label title="scroll：滚动快照保活时长——数字+单位（ms/s/m/h/d），如 5m">scroll</label>
+          <label v-tip="'scroll：滚动快照保活时长——数字+单位（ms/s/m/h/d），如 5m'">scroll</label>
  <!-- 时间参数值+单位拆分（NInputNumber 数值 + NSelect 单位枚举；'-1 不带单位'分支保留） -->
           <div class="ra-duo">
-            <n-input-number v-model:value="scrollNum" :min="-1" :precision="0" :validator="numOrMinusOne" size="small" class="ra-num" placeholder="5" title="scroll：滚动快照保活时长——数字+单位（ms/s/m/h/d），如 5m" />
-            <n-select v-model:value="scrollUnit" :options="TIME_UNIT_OPTS" size="small" class="ra-sel ra-duo-u" title="scroll：时间单位（ms/s/m/h/d）" />
+            <n-input-number v-model:value="scrollNum" :min="-1" :precision="0" :validator="numOrMinusOne" size="small" class="ra-num" placeholder="5" v-tip="'scroll：滚动快照保活时长——数字+单位（ms/s/m/h/d），如 5m'" />
+            <n-select v-model:value="scrollUnit" :options="TIME_UNIT_OPTS" size="small" class="ra-sel ra-duo-u" v-tip="'scroll：时间单位（ms/s/m/h/d）'" />
           </div>
         </div>
         <div class="ra-f">
-          <label title="timeout：请求超时时长——数字+单位（ms/s/m/h/d），如 1m">timeout</label>
+          <label v-tip="'timeout：请求超时时长——数字+单位（ms/s/m/h/d），如 1m'">timeout</label>
           <div class="ra-duo">
-            <n-input-number v-model:value="timeoutNum" :min="-1" :precision="0" :validator="numOrMinusOne" size="small" class="ra-num" placeholder="1" title="timeout：请求超时时长——数字+单位（ms/s/m/h/d），如 1m" />
-            <n-select v-model:value="timeoutUnit" :options="TIME_UNIT_OPTS" size="small" class="ra-sel ra-duo-u" title="timeout：时间单位（ms/s/m/h/d）" />
+            <n-input-number v-model:value="timeoutNum" :min="-1" :precision="0" :validator="numOrMinusOne" size="small" class="ra-num" placeholder="1" v-tip="'timeout：请求超时时长——数字+单位（ms/s/m/h/d），如 1m'" />
+            <n-select v-model:value="timeoutUnit" :options="TIME_UNIT_OPTS" size="small" class="ra-sel ra-duo-u" v-tip="'timeout：时间单位（ms/s/m/h/d）'" />
           </div>
         </div>
         <div class="ra-f">
-          <label title="wait_for_active_shards：执行前须活跃的分片数——all 或整数，如 1">wait_for_active_shards</label>
-          <n-select v-model:value="wfasMode" :options="WFAS_MODE_OPTS" size="small" class="ra-sel" title="wait_for_active_shards：执行前须活跃的分片数——all 或整数，如 1" />
-          <n-input-number v-if="wfasMode === 'custom'" v-model:value="wfasNum" :min="1" :precision="0" size="small" class="ra-num" placeholder=">=1 整数" title="wait_for_active_shards：自定义活跃分片数（>=1 整数）" />
+          <label v-tip="'wait_for_active_shards：执行前须活跃的分片数——all 或整数，如 1'">wait_for_active_shards</label>
+          <n-select v-model:value="wfasMode" :options="WFAS_MODE_OPTS" size="small" class="ra-sel" v-tip="'wait_for_active_shards：执行前须活跃的分片数——all 或整数，如 1'" />
+          <n-input-number v-if="wfasMode === 'custom'" v-model:value="wfasNum" :min="1" :precision="0" size="small" class="ra-num" placeholder=">=1 整数" v-tip="'wait_for_active_shards：自定义活跃分片数（>=1 整数）'" />
         </div>
       </div>
       </div>
@@ -218,7 +218,7 @@
         <div class="ra-url">URL：<code>POST /cluster/reindex-advanced?{{ finalQs }}</code></div>
         <div class="ra-btns">
  <!-- 原始 IO 快查——本页最近一次 reindex-advanced 请求/响应原文（ioRecorder 记录环） -->
-          <button class="btn ghost" data-test="raw-io" aria-label="查看原始 IO（Reindex 高级）" title="最近一次 Reindex 请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
+          <button class="btn ghost" data-test="raw-io" aria-label="查看原始 IO（Reindex 高级）" v-tip="'最近一次 Reindex 请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
           <button class="btn ghost" @click="rebuildFromForm"><RefreshCcw :size="12" /> 预览 body</button>
           <button v-if="canOps" class="btn primary" @click="submit" :disabled="running">
             <Play :size="12" :class="{ spinning: running }" /> {{ running ? '提交中…' : '开始 Reindex' }}
@@ -244,7 +244,7 @@
  /progress 端点现成，Java 零改）；行内三态中文（进行中 x/y / 已完成 / 查不到降级）。
  UpdateByQueryView StatusPill 旁同款钮，两侧 data-test 各自独立 -->
           <button class="btn ghost sm" data-test="ra-progress" :disabled="progressLoading"
-            title="拉取该任务当前进度（一次性查询，不挂轮询）" @click="queryTaskProgress">查进度</button>
+            v-tip="'拉取该任务当前进度（一次性查询，不挂轮询）'" @click="queryTaskProgress">查进度</button>
           <span v-if="progressLoading || progressText" role="status" class="ra-prog">{{ progressLoading ? '进度查询中…' : progressText }}</span>
         </span>
  <!-- took 裸 ms → TookBadge 四档语义徽标（BulkEditorView 同款）；

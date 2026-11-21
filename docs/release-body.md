@@ -2,6 +2,20 @@
 
 **为 Spring Boot 而生的 Elasticsearch 查询工作台。** 一套原生 Vue 控制台，两种 transport：Spring Boot 服务端模式与 Chrome MV3 扩展浏览器模式。
 
+### 1.0.79 本轮
+
+- **迁移后等价性验证（MCP 第 167 个 action，三端同契约）**：`es_xmigrate verify_equivalence`——双侧计数对比 + 抽样摘要逐 id 对比 + 可选聚合对比，`jobId`（复用作业登记）或 `srcConnId+sourceIndex` 双形态，verdict 三态诚实口径（取数失败判 INCONCLUSIVE 不冒充比对过）；迁移页 DONE 行一键「等价验证」弹层 +「完成后自动等价验证」默认开 + 批量链 verdict 矩阵；`migrate_index`/`cross_cloud_structure_sync` 提示词升级为含数据终验的完整跨云链路。
+- **全站原生 title 清零**：v-tip 全局指令（单例浮层/视口翻转/长文滚动档/模态内可见/键盘与触屏通道/reduced-motion）替换约 100 文件千余处原生 title 与 80 余处组件 fallthrough，质量门禁升级为零容忍；spec 断言四形态全量随迁至浮层行为断言范式。
+- **迁移页五维补全**：事件时间线钻取/搜索/JSONL 导出、详情深链、速率曲线持久化、方案预设、diff_structure UI 化、三步向导点亮+全链 CTA、verify 落事件线、SparkLine×时间线联动定位、workbench 草稿跨会话（凭据掩埋不落盘）。
+- **MCP 口径统一**：es_xmigrate 组 schema 十参数硬化、全组工具 annotations 四 hint（parity 派生自检）、四端七处文案/参数口径差收敛。
+- **可验证交付**：Java console 全量 1,981 例 0 失败 0 跳过；UI 12,904 例全绿；mcp-parity（17 组/167 action）/ browser-parity / doc-links / zero-skipped / verify-local-mcp / typecheck 门禁全绿。
+
+### 1.0.78 本轮
+
+- **跨云结构同步 v3**：`sync_structure` 执行守恒——`planDigest` 计划摘要 + `expectPlanDigest` 漂移门（dryRun 后源结构漂移 409 PLAN_DRIFT 零意外执行）、`body` 适配后建索引体预览；`compare_capabilities` 能力对比风险矩阵与 `diff_structure` 跨集群结构 diff（计划内剔除豁免三形态）；运行中动态调速 `throttle`；别名元数据（filter/routing）随迁透传。
+- **迁移页与重建页观测升级**：事件时间线筛选芯片+数据身份守卫自动滚动+跨天分组段头；速率 SparkLine；三端行为语义统一（错误码三态/降级回退/参数边界矩阵/vendor-private 键归属模型）。
+- **可验证交付**：Java console 1,968 例、UI 12,798 例全绿，五门禁全绿。
+
 ### 1.0.77 本轮
 
 - **跨集群迁移兼容矩阵（生产 → UAT 跨厂商结构同步）**：`probe_capabilities` 探测源/目标集群厂商（阿里云/腾讯云/AWS/Elastic/OSS/未知六档，附判定依据 evidence 可回查）、版本、插件清单与节点拓扑（第 163 个 MCP action，服务端/浏览器/本地 stdio/文档四端契约逐字对齐）；兼容矩阵八规则主动预剔除——apack 私有设置、TTL、路由分配属性、目标缺失插件的分析组件（级联剔除引用它的自定义 analyzer 并降级字段）、缺失 ILM 策略五类剔除，分片数/副本数/存储介质三类建议不动数据，每刀带中文理由；`sync_structure` v2 报告（planned 预剔除计划 / reactive 建索引报错兜底 / aliases 别名随迁 / advice 建议 / warnings），`dryRun` 预览零写、执行按事实回报（skipped + synced 恒等于源别名总数）。
@@ -76,9 +90,9 @@
 
 ### 交付物
 
-- **Chrome 扩展** —— `esquerystudio-chrome-1.0.77.zip`：同一套 Vue 控制台在扩展内直连 ES；解压后在 `chrome://extensions` 加载已解压的扩展程序。浏览器模式保留索引 / Mapping / Setting / 别名 / 模板、快照 / ILM / SLM / Watcher、任务 / 节点 / REST / SQL / PIT / Reindex / Bulk、托管重建、跨集群迁移、配置校验、配置漂移、系统作业锁与护栏执行。
-- **独立服务端** —— `esquerystudio-server-1.0.77.jar`：JDK 8+，`java -jar` 后打开 `http://localhost:5601/esquerystudio.html`。
-- **嵌入式模块** —— `esquerystudio-console-1.0.77.jar` + `esquerystudio-platform-1.0.77.jar`：接入 Spring Boot 宿主，认证、连接目录、审计与品牌均可通过 SPI 接管。
+- **Chrome 扩展** —— `esquerystudio-chrome-1.0.79.zip`：同一套 Vue 控制台在扩展内直连 ES；解压后在 `chrome://extensions` 加载已解压的扩展程序。浏览器模式保留索引 / Mapping / Setting / 别名 / 模板、快照 / ILM / SLM / Watcher、任务 / 节点 / REST / SQL / PIT / Reindex / Bulk、托管重建、跨集群迁移、配置校验、配置漂移、系统作业锁与护栏执行。
+- **独立服务端** —— `esquerystudio-server-1.0.79.jar`：JDK 8+，`java -jar` 后打开 `http://localhost:5601/esquerystudio.html`。
+- **嵌入式模块** —— `esquerystudio-console-1.0.79.jar` + `esquerystudio-platform-1.0.79.jar`：接入 Spring Boot 宿主，认证、连接目录、审计与品牌均可通过 SPI 接管。
 - **可复现材料** —— sources / javadoc / SBOM 与 `SHA256SUMS` 一并附上；ES 客户端栈由宿主以 provided 契约自备。
 
 ### 链接

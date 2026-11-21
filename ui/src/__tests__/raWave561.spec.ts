@@ -34,7 +34,7 @@ describe('A 五参数 naive 组件接线（561 批裸 input+失焦校验形态�
 
   it('五参数 label/控件 :title 中文释义双挂（每参数同文恰 2 处）', () => {
     for (const p of PARAMS) {
-      expect(count(src, `title="${p.title}"`), `${p.model} 的 :title 释义须 label/控件双挂`).toBe(2);
+      expect(count(src, `v-tip="'${p.title}'"`), `${p.model} 的释义须 label/控件双挂（v-tip 形态）`).toBe(2);
     }
   });
 

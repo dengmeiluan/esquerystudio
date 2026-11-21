@@ -1,7 +1,7 @@
 <template>
   <n-popover v-if="auth.me" trigger="click" placement="bottom-end" :show-arrow="false" raw :show="umOpen" @update:show="v => umOpen = v">
     <template #trigger>
-      <button class="um-chip" :title="'当前身份：' + primaryName + '（' + roleText + '）'"
+      <button class="um-chip" v-tip="'当前身份：' + primaryName + '（' + roleText + '）'"
         :aria-label="'用户菜单：' + primaryName + '（' + roleText + '）'" :aria-expanded="umOpen">
         <span class="um-avatar" :class="'av-' + roleText.toLowerCase()">{{ initial }}</span>
         <span class="um-name">{{ primaryName }}</span>
@@ -14,7 +14,7 @@
         <span class="um-avatar lg" :class="'av-' + roleText.toLowerCase()">{{ initial }}</span>
         <div class="um-head-txt">
           <div class="um-head-name">{{ primaryName }}</div>
-          <div v-if="auth.me.displayName && auth.me.displayName !== auth.me.username" class="um-head-sub mono" :title="auth.me.username">
+          <div v-if="auth.me.displayName && auth.me.displayName !== auth.me.username" class="um-head-sub mono" v-tip="auth.me.username">
             {{ shortUsername }}
           </div>
         </div>
@@ -36,7 +36,7 @@
         </div>
         <div class="um-row" v-for="[k, v] in attrEntries" :key="k">
           <span class="um-k">{{ k }}</span>
-          <span class="um-v mono um-attr" :title="v">{{ v }}</span>
+          <span class="um-v mono um-attr" v-tip="v">{{ v }}</span>
         </div>
       </div>
       <div class="um-actions">

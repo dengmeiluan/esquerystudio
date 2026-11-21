@@ -207,7 +207,8 @@ describe('985 BoolGroupNode「+ 高级」菜单', () => {
   it('菜单打开列高级分组，点选插入对应节点', async () => {
     let last: BoolNode | null = null;
     const { host } = mount<BoolNode>(BoolGroupNode, { node: group, fields: ['status'], types: { status: 'keyword' } }, n => { last = n; });
-    const advBtn = host.querySelector('button[title^="高级算子"]') as HTMLButtonElement;
+    /* 「+ 高级」icon+文本钮迁 v-tip 后无 title/aria-label，按可见文本锚定 */
+    const advBtn = [...host.querySelectorAll('button')].find(b => b.textContent?.trim() === '高级') as HTMLButtonElement;
     advBtn.click();
     await new Promise(r => setTimeout(r));
     const pop = document.body.querySelector('.adv-pop') as HTMLElement;
@@ -226,7 +227,7 @@ describe('985 BoolGroupNode「+ 高级」菜单', () => {
   it('过滤 + Enter 直插首个命中', async () => {
     let last: BoolNode | null = null;
     const { host } = mount<BoolNode>(BoolGroupNode, { node: group, fields: ['status'], types: { status: 'keyword' } }, n => { last = n; });
-    (host.querySelector('button[title^="高级算子"]') as HTMLButtonElement).click();
+    ([...host.querySelectorAll('button')].find(b => b.textContent?.trim() === '高级') as HTMLButtonElement).click();
     await new Promise(r => setTimeout(r));
     const q = document.body.querySelector('.adv-q') as HTMLInputElement;
     expect(document.activeElement).toBe(q);   // 打开即聚焦搜索框
@@ -243,7 +244,7 @@ describe('985 BoolGroupNode「+ 高级」菜单', () => {
   it('插入复合容器（boosting）走 makeNodeByOp 全家桶', async () => {
     let last: BoolNode | null = null;
     const { host } = mount<BoolNode>(BoolGroupNode, { node: group, fields: ['status'], types: { status: 'keyword' } }, n => { last = n; });
-    const advBtn = host.querySelector('button[title^="高级算子"]') as HTMLButtonElement;
+    const advBtn = [...host.querySelectorAll('button')].find(b => b.textContent?.trim() === '高级') as HTMLButtonElement;
     advBtn.click();
     await new Promise(r => setTimeout(r));
     const pop = document.body.querySelector('.adv-pop') as HTMLElement;

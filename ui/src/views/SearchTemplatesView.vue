@@ -6,7 +6,7 @@
 <CurrentIdxChip />
 <!-- 页内历史入口（四视图统一，DslQueryView 弹窗范式）——run() 一直在
  push mode=template 历史（此前页内零出口 -->
-<button class="btn ghost sm" data-test="open-hist" @click="histOpen = true" title="查询历史"><History :size="12" /> 历史</button>
+<button class="btn ghost sm" data-test="open-hist" @click="histOpen = true" v-tip="'查询历史'"><History :size="12" /> 历史</button>
 <button class="btn ghost sm" @click="load" :disabled="busy"><RefreshCw :size="12" /> 刷新</button>
       
   <!-- 1142：模板条目右键（此前列表无右键）——载入/复制源码/删除；破坏性项进二级。 -->
@@ -26,7 +26,7 @@
       <div class="st-list">
         <div class="st-list-hd">
           <span>mustache 模板（{{ templates.length }}）</span>
-          <button aria-label="新建模板" class="btn ghost xs" @click="newTemplate" title="新建模板"><Plus :size="11" /></button>
+          <button aria-label="新建模板" class="btn ghost xs" @click="newTemplate" v-tip="'新建模板'"><Plus :size="11" /></button>
         </div>
         <!-- 空态拆两档：拉取失败（可重试）≠ 真空态（引导新建）。
  失败档手写 st-list-empty/st-list-err 合并 EmptyState compact
@@ -51,7 +51,7 @@
           @contextmenu.prevent="openTplMenu($event, t)" @keydown="onTplMenuKey($event, t)" data-row-nav @keydown.self="rowArrowNav" role="button" tabindex="0" @keydown.enter.prevent="pick(t)" @keydown.space.prevent="pick(t)">
           <FileCode2 :size="12" class="st-item-ic" />
           <!-- 裸插值换 MarkText——过滤词命中段 <mark>（textContent 与原文一致） -->
-          <span class="st-item-nm" :title="t.id"><MarkText :text="t.id" :kw="tplFilter" /></span>
+          <span class="st-item-nm" v-tip="t.id"><MarkText :text="t.id" :kw="tplFilter" /></span>
         </div>
       </div>
 
@@ -82,12 +82,12 @@
             <div v-if="curIdHint" class="il-hint" :class="'il-' + curIdLevel">{{ curIdHint }}</div>
             <span class="st-flex" />
             <button v-if="canOps" class="btn primary xs" @click="save" :disabled="!curId || busy"><Save :size="10" /> 保存</button>
-            <button v-if="canOps" aria-label="从集群删除这个已存模板（_scripts），引用它的调用方会报错" class="btn danger xs" title="从集群删除这个已存模板（_scripts），引用它的调用方会报错" @click="del" :disabled="!curId || busy || !exists(curId)"><Trash2 :size="10" /></button>
+            <button v-if="canOps" aria-label="从集群删除这个已存模板（_scripts），引用它的调用方会报错" class="btn danger xs" v-tip="'从集群删除这个已存模板（_scripts），引用它的调用方会报错'" @click="del" :disabled="!curId || busy || !exists(curId)"><Trash2 :size="10" /></button>
             <!-- 模板源高度四档钮（IndexHub ih-eh 同款视觉，editorTiers 统一件） -->
-            <div class="st-eh" role="group" aria-label="编辑器高度档位" title="编辑器高度档位：S/M/L/满">
+            <div class="st-eh" role="group" aria-label="编辑器高度档位" v-tip="'编辑器高度档位：S/M/L/满'">
               <button v-for="eh in EDITOR_H_TIERS" :key="eh.k" type="button" class="st-eh-btn"
                 :class="{ on: editorH === eh.k }" :aria-pressed="editorH === eh.k"
-                :title="'编辑器高度：' + eh.t" @click="editorH = eh.k">{{ eh.t }}</button>
+                v-tip="'编辑器高度：' + eh.t" @click="editorH = eh.k">{{ eh.t }}</button>
             </div>
           </div>
           <!-- 模板源高度四档（editorTiers + usePref st.editorH）——原 240px 钉死退役；
@@ -123,7 +123,7 @@
             <button class="btn primary sm btn-run-lock" @click="run" :disabled="!index || busy"><Play :size="12" /> {{ busy ? '执行中…' : '执行查询' }}</button>
             <!-- 原始 IO 快查（执行响应面）——本页最近一次 _search/template 执行
  请求/响应原文（render/search-template 双钮各取各的记录，548 QueryXray 双钮先例） -->
-            <button class="btn ghost sm" data-test="raw-io-search" aria-label="查看原始 IO（模板执行查询）" title="最近一次模板执行请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIoSearch"><Terminal :size="12" /> 原始 IO</button>
+            <button class="btn ghost sm" data-test="raw-io-search" aria-label="查看原始 IO（模板执行查询）" v-tip="'最近一次模板执行请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIoSearch"><Terminal :size="12" /> 原始 IO</button>
           </div>
         </div>
       </div>
@@ -136,8 +136,8 @@
             <span class="st-flex" />
             <!-- 原始 IO 快查（渲染响应面）——本页最近一次 _render/template 渲染
  请求/响应原文（ioRecorder 记录环；QueryXray 卡头钮同位范式） -->
-            <button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（模板渲染）" title="最近一次模板渲染请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIoRender"><Terminal :size="12" /> 原始 IO</button>
-            <button aria-label="复制 DSL" class="btn ghost xs" @click="copyRendered" title="复制 DSL"><Copy :size="10" /></button>
+            <button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（模板渲染）" v-tip="'最近一次模板渲染请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIoRender"><Terminal :size="12" /> 原始 IO</button>
+            <button aria-label="复制 DSL" class="btn ghost xs" @click="copyRendered" v-tip="'复制 DSL'"><Copy :size="10" /></button>
           </div>
           <!-- D：裸 JSON 换 highlightJson（rendered 已是 pretty JSON，着色 + json-view 全局范式） -->
           <pre class="st-pre json-view" v-html="highlightDslJson(rendered)"></pre>

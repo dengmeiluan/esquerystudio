@@ -11,6 +11,7 @@ vi.mock('../../utils/format', async (importOriginal) => {
 import { copyText } from '../../utils/format';
 import { useAppStore } from '../../stores/app';
 import IndexOptionRow from '../IndexOptionRow.vue';
+import { vTip } from '../../directives/vTip';
 
 const mockCopy = vi.mocked(copyText);
 const tick = () => new Promise(r => setTimeout(r));
@@ -20,6 +21,8 @@ function mount(props: Record<string, any>, onSelectAlias?: (a: string) => void) 
   const host = document.createElement('div');
   document.body.appendChild(host);
   const app = createApp({ render: () => h(IndexOptionRow, { ...props, onSelectAlias } as any) });
+  /* 组件模板用 v-tip（main.ts 全局注册），自建 app 须注册同款指令浮层才在 */
+  app.directive('tip', vTip);
   app.use(pinia);
   app.mount(host);
   return { host, app };
@@ -47,12 +50,14 @@ describe('IndexOptionRow', () => {
     expect(host.querySelector('.ior-dot')).toBeFalsy();
   });
 
-  it('长名不再 JS 硬截断：textContent 持全名，CSS ellipsis + title 全文兜底（v3.0.1）', () => {
+  it('长名不再 JS 硬截断：textContent 持全名，CSS ellipsis + v-tip 浮层全文兜底（v3.0.1）', () => {
     const name = 'my-very-long-index-name-for-prod-2026.08.07-000123';
     const { host } = mount({ name });
     const el = host.querySelector('.ior-name') as HTMLElement;
     expect(el.textContent).toBe(name);
-    expect(el.getAttribute('title')).toBe(name);
+    /* mount 已挂 body（浮层通道要求宿主在文档内）：focusin 键盘通道立即显示 */
+    el.dispatchEvent(new Event('focusin'));
+    expect(document.getElementById('vt-tip')?.textContent ?? '').toBe(name);
   });
 
   it('复制钮：以全名（非省略串）调 copyText 并 notify', async () => {

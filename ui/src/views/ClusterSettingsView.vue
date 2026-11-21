@@ -18,8 +18,8 @@
         <n-checkbox v-model:checked="showDefaults" size="small" class="cs-chk">显示 defaults 一列</n-checkbox>
         <!-- 整表复制（matrixText 内核）——TSV Excel/飞书直贴、MD 群聊直贴；
  列 Key/Persistent/Transient/Dirty（有改动标 Y），行集=当前过滤视图（所见即所复制） -->
-        <button class="btn sm ghost" :disabled="busy || !groups.length" @click="copyTable('tsv')" title="复制设置表为 TSV（Excel/飞书直贴）"><Copy :size="12" /> TSV</button>
-        <button class="btn sm ghost" :disabled="busy || !groups.length" @click="copyTable('md')" title="复制设置表为 Markdown（群聊/工单直贴）"><ClipboardCopy :size="12" /> MD</button>
+        <button class="btn sm ghost" :disabled="busy || !groups.length" @click="copyTable('tsv')" v-tip="'复制设置表为 TSV（Excel/飞书直贴）'"><Copy :size="12" /> TSV</button>
+        <button class="btn sm ghost" :disabled="busy || !groups.length" @click="copyTable('md')" v-tip="'复制设置表为 Markdown（群聊/工单直贴）'"><ClipboardCopy :size="12" /> MD</button>
       </div>
       <div class="cs-bar-r lr-bar-r">
         <!-- G171：下发钮在途文案切「下发中…」（busy 两钮共享同窗切换；
@@ -29,7 +29,7 @@
         <button class="btn sm ghost" :disabled="busy" @click="reset">丢弃改动</button>
         <!-- 原始请求/响应快查弹窗（RawIo 第六波，558b 先例同形态；
  路径子串 '/cluster/settings'=本页 GET 读取 + PUT /put 下发同前缀，本页独占调用者） -->
-        <button class="btn sm ghost" data-test="raw-io" aria-label="查看原始 IO（集群设置）" title="最近一次集群设置读取/下发请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
+        <button class="btn sm ghost" data-test="raw-io" aria-label="查看原始 IO（集群设置）" v-tip="'最近一次集群设置读取/下发请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
         <!-- G170：刷新钮守卫改绑 busy||loading——load() 只置 loading，原绑
  busy 在途零守卫可连点重入（748 S-G170 实锚 dis=false），一行刀防重入 -->
         <button class="btn sm ghost" :disabled="busy || loading" @click="load">刷新</button>
@@ -62,11 +62,11 @@
         </template>
         <template #cell-Persistent="{ row }">
           <!-- 裸 input 接集群目录——悬停 :title 出中文释义+示例（英文参数不知作用根治） -->
-          <input class="cs-in mono" :value="editP[row[1]] ?? ''" @input="onE('P', row[1], ($event.target as HTMLInputElement).value)" :placeholder="pOri[row[1]] || '—'" :title="csHint(row[1])" />
+          <input class="cs-in mono" :value="editP[row[1]] ?? ''" @input="onE('P', row[1], ($event.target as HTMLInputElement).value)" :placeholder="pOri[row[1]] || '—'" v-tip="csHint(row[1])" />
           <div v-if="csLint('P', row[1])" class="il-hint" :class="csLint('P', row[1])!.level === 'err' ? 'il-err' : 'il-warn'">{{ csLint('P', row[1])!.hint }}</div>
         </template>
         <template #cell-Transient="{ row }">
-          <input class="cs-in mono" :value="editT[row[1]] ?? ''" @input="onE('T', row[1], ($event.target as HTMLInputElement).value)" :placeholder="tOri[row[1]] || '—'" :title="csHint(row[1])" />
+          <input class="cs-in mono" :value="editT[row[1]] ?? ''" @input="onE('T', row[1], ($event.target as HTMLInputElement).value)" :placeholder="tOri[row[1]] || '—'" v-tip="csHint(row[1])" />
           <div v-if="csLint('T', row[1])" class="il-hint" :class="csLint('T', row[1])!.level === 'err' ? 'il-err' : 'il-warn'">{{ csLint('T', row[1])!.hint }}</div>
         </template>
         <template v-if="showDefaults" #cell-Default="{ value }"><span class="cs-def">{{ value }}</span></template>

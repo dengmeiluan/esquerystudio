@@ -6,7 +6,7 @@
 <!-- 页内 IndexPicker 退役换 CurrentIdxChip（W1 只读件，选索引入口收敛顶栏） -->
 <CurrentIdxChip />
 <n-checkbox v-model:checked="live" size="small" class="bt-switch"
-  :title="live ? '每次调整立即重跑（打真集群，小心生产）' : '手动点「重跑对比」（生产推荐）'">{{ live ? '⚡ 即时模式' : '🛡 手动模式' }}</n-checkbox>
+  v-tip="live ? '每次调整立即重跑（打真集群，小心生产）' : '手动点「重跑对比」（生产推荐）'">{{ live ? '⚡ 即时模式' : '🛡 手动模式' }}</n-checkbox>
       </template>
       </PageHeader>
       <LabNav current="/boost-tuner" />
@@ -27,7 +27,7 @@
  停用尾注并入 label，语义逐字不变；bt-cnt 锚类保留作 DOM 锚，
  xs 档对齐原 2xs，皮归 .pill 单源——bt-drop-chip 551 先例同谱系） -->
             <StatusPill class="bt-cnt xs" :tone="fields.length > 10 ? 'y' : 'n'" :label="`共 ${fields.length} 字段${offCount ? ' · 停用 ' + offCount : ''}`" />
-            <button class="btn ghost xs" :disabled="!fields.length" :title="allOn ? '全部停用（停用行不参与打分与生成 DSL）' : '全部启用'" @click="toggleAllFields">{{ allOn ? '全部停用' : '全部启用' }}</button>
+            <button class="btn ghost xs" :disabled="!fields.length" v-tip="allOn ? '全部停用（停用行不参与打分与生成 DSL）' : '全部启用'" @click="toggleAllFields">{{ allOn ? '全部停用' : '全部启用' }}</button>
             <button class="btn ghost xs bt-add" @click="addField"><Plus :size="10" /> 加字段</button>
           </div>
           <!-- 548 F：搜索词值位候选（W5：datalist 迁 usePopupList 弹层——候选源与
@@ -66,7 +66,7 @@
  builtQuery 同步滤除停用行） -->
             <n-checkbox class="bt-fen" size="small" :checked="x.f.disabled !== true"
                    :aria-label="(x.f.disabled !== true ? '停用' : '启用') + '字段 ' + (x.f.name || '未命名')"
-                   title="停用后不参与打分与生成 DSL"
+                   v-tip="'停用后不参与打分与生成 DSL'"
                    @update:checked="v => { x.f.disabled = !v; onTune(); }" />
             <!-- 【W3b】text/keyword 置顶（multi_match 打分字段以文本类为主），候选集不变 -->
             <FieldPicker v-model="x.f.name" :index="index" placeholder="字段名" class="bt-fname" :type-priority="['text', 'keyword']" @picked="onTune" />
@@ -77,7 +77,7 @@
  拖放原生气泡关停——×N 读数在旁，同 theme.css range 全局面板退役路径） -->
             <n-slider :value="Number(x.f.boost) || 0" :min="0" :max="10" :step="0.1" :tooltip="false" class="bt-slider"
                    :aria-label="'字段 ' + (x.f.name || '未命名') + ' 权重倍数（multi_match 提权系数）'"
-                   :title="'权重 ×' + fmtBoost(x.f.boost) + '：multi_match fields 提权系数，>1 加权 <1 降权'"
+                   v-tip="'权重 ×' + fmtBoost(x.f.boost) + '：multi_match fields 提权系数，>1 加权 <1 降权'"
                    @update:value="(v: number) => { x.f.boost = v; onTune(); }" />
             <span class="bt-boost" :class="{ hot: x.f.boost > 1, cold: x.f.boost < 1 }">×{{ fmtBoost(x.f.boost) }}</span>
             <button aria-label="删除调参字段" class="btn ghost xs" @click="fields.splice(x.i, 1); onTune()"><X :size="10" /></button>
@@ -96,7 +96,7 @@
           <button class="btn sm" @click="run(false)" :disabled="!canRun || busy || !baseline.length">
             <RefreshCw :size="12" :class="{ spinning: busy }" /> {{ busy && !lastMode ? '重跑中…' : '重跑对比' }}
           </button>
-          <button class="btn ghost sm" @click="toSandbox" :disabled="!canRun" title="把调参后的 DSL 送入搜索沙盒（可加聚合/profile 继续调优）">
+          <button class="btn ghost sm" @click="toSandbox" :disabled="!canRun" v-tip="'把调参后的 DSL 送入搜索沙盒（可加聚合/profile 继续调优）'">
             <Send :size="12" /> 送入沙盒
           </button>
           <button class="btn ghost sm" @click="exportDsl" :disabled="!canRun">
@@ -109,7 +109,7 @@
             <!-- 原始 IO 快查——本页最近一次调参执行（search-raw）请求/响应原文
  （ioRecorder 记录环；MatchMatrix/QueryXray 卡头钮同位范式；与 ScoreExplain/
  MatchMatrix 同特征属页域各自取最近一条，跨页互见） -->
-            <button class="btn ghost sm" style="margin-left:auto" data-test="raw-io" aria-label="查看原始 IO（调参执行）" title="最近一次调参执行请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
+            <button class="btn ghost sm" style="margin-left:auto" data-test="raw-io" aria-label="查看原始 IO（调参执行）" v-tip="'最近一次调参执行请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
           </div>
           <!-- W-C 批：实时 Query 走 highlightJson 范式（转义安全 v-html） -->
           <pre class="bt-dsl json-view" v-html="builtQueryHtml"></pre>
@@ -142,7 +142,7 @@
         <template v-else>
         <div style="display:flex;justify-content:flex-end;margin-bottom:var(--sp-1)">
           <!-- 排名对比复制（Markdown 贴文档） -->
-          <button class="btn sm ghost" @click="copyRankMd" title="排名对比表复制为 Markdown">复制 Markdown</button>
+          <button class="btn sm ghost" @click="copyRankMd" v-tip="'排名对比表复制为 Markdown'">复制 Markdown</button>
         </div>
         <!-- 排名对比裸表换 QRT rows 型（qrtRowsSwap529 先例，先列锚清单再动手）——
  排序/右键/导出归内核（useTableSort 宿主胶水退役， 锚同步更新）；
@@ -163,7 +163,7 @@
             <span v-else-if="value < 0" class="bt-down"><ArrowDown :size="11" /> {{ -value }}</span>
             <span v-else class="bt-flat">—</span>
           </template>
-          <template #cell-_id="{ value }"><span class="mono ell" :title="value">{{ value }}</span></template>
+          <template #cell-_id="{ value }"><span class="mono ell" v-tip="value">{{ value }}</span></template>
           <template #cell-得分="{ value }"><span class="mono">{{ Number(value).toFixed(4) }}</span></template>
           <template #cell-基准排名="{ value }"><span class="mono dim">{{ value === null ? '-' : '#' + value }}</span></template>
         </QueryResultTable>
@@ -174,7 +174,7 @@
           <TriangleAlert :size="11" /> 掉出前 {{ SIZE }}：<StatusPill v-for="d in dropped" :key="d" class="bt-drop-chip" tone="y" :label="d" />
           <!-- 掉出清单独立复制（回归通知/对比贴文档） -->
           <button class="btn ghost xs" style="margin-left:auto" @click="copyDropped"
-            :aria-label="'复制 ' + dropped.length + ' 个掉出文档 ID'" title="复制掉出文档 ID 清单">
+            :aria-label="'复制 ' + dropped.length + ' 个掉出文档 ID'" v-tip="'复制掉出文档 ID 清单'">
 复制
 </button>
         </div>

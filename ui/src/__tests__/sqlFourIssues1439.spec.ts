@@ -73,7 +73,8 @@ describe('② 「语义格式化」开关对 semOn 也生效（与查询树/索�
     const td = cell('p')!;
     expect(td.textContent?.trim(), '关开关后不能再显示 42%').toBe('0.42');
     expect(td.className, '分档色类一并熄灭').not.toMatch(/qrt-sem-/);
-    expect(td.getAttribute('title'), 'title 恒 raw').toBe('0.42');
+    /* 单元格提示已迁 v-tip 指令（DOM 无 title 属性）——「提示恒 raw」改源码锚（绑 cellMeta full） */
+    expect(QRT, '提示恒 raw').toContain('v-tip="cell === null || cell === undefined ? \'\' : (cellMeta[ri]?.[ci]?.full || \'\')"');
   });
 
   it('源码锁：两层格式化都先看 semPref', () => {

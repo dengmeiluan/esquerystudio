@@ -119,7 +119,8 @@ describe('DiagView 节点表 QRT 内核化（天罗W6 graft→五百二十五批
   it('allocation explain：can_allocate=no 挂 meta-err 档；reason 出 reasonZh 人话', async () => {
     allocationFn.mockResolvedValue(ALLOC);
     const { app, host } = await mountDiag();
-    const probe = [...host.querySelectorAll<HTMLButtonElement>('button')].find(b => b.getAttribute('title') === '分析未分配分片');
+    /* 探测钮提示语已迁 v-tip 浮层（无原生 title 属性），按可见文本「探测」锚定 */
+    const probe = [...host.querySelectorAll<HTMLButtonElement>('button')].find(b => b.textContent?.includes('探测'));
     expect(probe, '探测钮必须渲染').toBeTruthy();
     probe!.click();
     await settle(8);

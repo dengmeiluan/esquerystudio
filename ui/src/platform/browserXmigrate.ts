@@ -1551,6 +1551,234 @@ export async function diffStructure(host: HostCall, req: any): Promise<any> {
   };
 }
 
+/* ---------------- 迁移后等价性验证（verify_equivalence） ----------------
+ * 源（直连档案）vs 目标（宿主）的文档级等价性抽样验证（只读），语义与返回键名对齐
+ * 服务端 StructureSyncService.verifyEquivalence：双侧 _count(match_all) → 源 _doc 序
+ * 抽样 _id（_source:false 只要 id，size=min(钳制后 sampleSize, count)）→ 双侧 mget 取
+ * _source → sampleFields 投影（点号路径）后 canonicalJson SHA-256 前 16 hex 摘要逐 id
+ * 对比（http 无 crypto.subtle 环境走 planDigestOf 确定性降级并记 warning）；aggField
+ * 给出时附 terms 聚合对比。任一侧取数失败如实 null/告警；verdict：count 未知或样本/
+ * 聚合取数失败 → INCONCLUSIVE，总数一致+样本无缺无错配+聚合（若做）match → EQUIVALENT，
+ * 其余 DIVERGENT。jobId 形态从本机作业台账补 srcConnId/sourceIndex/destIndex（对账同款）。 */
+/* 样本差异清单回显上限（missingInDest/mismatched 各 ≤20，超限置 truncated 标记，与服务端 VERIFY_DETAIL_LIMIT 同值） */
+const VERIFY_DETAIL_LIMIT = 20;
+const VERIFY_SAMPLE_MIN = 10, VERIFY_SAMPLE_MAX = 500;
+const VERIFY_AGG_MIN = 1, VERIFY_AGG_MAX = 50;
+/* 点号路径取值（a.b.c）；路径中断/值缺席返回 null（与服务端 pickPath 同口径） */
+function pickPath(doc: any, path: string): any {
+  let cur = doc;
+  for (const part of path.split('.')) {
+    if (!cur || typeof cur !== 'object') return null;
+    cur = cur[part];
+    if (cur == null) return null;
+  }
+  return cur;
+}
+export async function verifyEquivalence(host: HostCall, req: any): Promise<any> {
+  const warnings: string[] = [];
+  /* jobId 形态：台账取参（srcConnId/sourceIndex/destIndex）；台账无此作业如实报错
+   * （对账/冲突样本同款文案），显式传参优先于台账 */
+  const jobId = String(req?.jobId || '').trim();
+  let srcConnId = String(req?.srcConnId || '').trim();
+  let sourceIndex = String(req?.sourceIndex || '').trim();
+  let destIndex = String(req?.destIndex || '').trim();
+  /* jobId 形态提升作业台账引用：验证结论落定后向该作业事件环写 VERIFY 事件
+   * （与服务端事件时间线同通道，视图时间线「门禁」档可见） */
+  let jobDoc: any = null;
+  if (jobId) {
+    jobDoc = jobs().find(x => x.jobId === jobId);
+    if (!jobDoc) throw new Error('作业不存在：' + jobId);
+    srcConnId = srcConnId || String(jobDoc.srcConnId || '').trim();
+    sourceIndex = sourceIndex || String(jobDoc.sourceIndex || '').trim();
+    destIndex = destIndex || String(jobDoc.destIndex || '').trim();
+    if (!srcConnId) {
+      throw new Error('该作业未记录源连接档案，无法验证等价性（历史手输连接的作业不支持）: ' + jobId);
+    }
+  }
+  if (!sourceIndex) throw new Error('sourceIndex 不能为空');
+  destIndex = destIndex || sourceIndex;
+  const conn = syncSourceConn({ conn: req?.conn, srcConnId });
+  const destConnId = req?.destConnId != null && String(req.destConnId).trim() !== '' ? String(req.destConnId) : null;
+  /* 数值钳制并如实记 warning（未给/非法回退缺省不告警；与服务端 clampWithWarning 同款文案）；
+   * aggSize 只在 aggField 给出时钳制告警（未做聚合不打扰） */
+  const clampWithWarning = (v: any, dft: number, lo: number, hi: number, what: string): number => {
+    const n = Number(v);
+    if (!Number.isFinite(n)) return dft;
+    const floored = Math.floor(n);
+    const clamped = Math.min(hi, Math.max(lo, floored));
+    if (clamped !== floored) warnings.push(what + ' 已从 ' + floored + ' 钳制为 ' + clamped + '（有效范围 ' + lo + '..' + hi + '）');
+    return clamped;
+  };
+  const sampleSize = clampWithWarning(req?.sampleSize, 100, VERIFY_SAMPLE_MIN, VERIFY_SAMPLE_MAX, 'sampleSize');
+  const aggField = String(req?.aggField || '').trim() || null;
+  const aggSize = aggField ? clampWithWarning(req?.aggSize, 10, VERIFY_AGG_MIN, VERIFY_AGG_MAX, 'aggSize') : 10;
+  /* 样本投影字段归一（数组或逗号串、去空白项、去重），全空=整 _source 对比 */
+  const projection = (Array.isArray(req?.sampleFields)
+    ? req.sampleFields.map((f: any) => String(f ?? '').trim())
+    : String(req?.sampleFields || '').split(',').map(f => f.trim())
+  ).filter((f: string, i: number, a: string[]) => f && a.indexOf(f) === i);
+  const projectSource = (src: any): any => {
+    if (!projection.length || !src || typeof src !== 'object') return src ?? null;
+    const out: Record<string, any> = {};
+    for (const f of projection) {
+      const v = pickPath(src, f);
+      if (v != null) out[f] = v;
+    }
+    return out;
+  };
+  /* 摘要降级说明：planDigestOf 在无 crypto.subtle 的环境内部降级确定性 hash，此处显式告警 */
+  if (!globalThis.crypto?.subtle) {
+    warnings.push('当前环境无 crypto.subtle，内容摘要降级为确定性非加密 hash（同输入同输出，仅用于等价比对）');
+  }
+  /* 双侧 _count：任一侧失败如实 null（count=0 是有效值，不与 null 混同）；404 与其他
+   * 失败分开告警（文案对齐服务端 countOf） */
+  const countOf = async (call: (p: string, m?: string, b?: string) => Promise<any>, index: string, side: string): Promise<number | null> => {
+    try {
+      const raw = await call('/' + enc(index) + '/_count', 'POST', '{"query":{"match_all":{}}}');
+      const n = Number(raw?.count);
+      return Number.isFinite(n) ? n : null;
+    } catch (e: any) {
+      if (Number(e?.status) === 404 || /404|not_?found/i.test(String(e?.message || e))) {
+        warnings.push(side + '索引不存在（404）: ' + index);
+      } else {
+        warnings.push(side + '索引 _count 取数失败: ' + String(e?.message || e));
+      }
+      return null;
+    }
+  };
+  const sourceCount = await countOf((p, m, b) => sourceCall(conn, p, m, b), sourceIndex, '源');
+  const destCount = await countOf(host, destIndex, '目标');
+  const countsMatch = sourceCount != null && destCount != null ? sourceCount === destCount : null;
+  /* 样本逐 id 内容比对：目标缺文档记 missing，其余投影后摘要对比记 matched/mismatch；
+   * 请求失败如实告警并作废本次样本（sampleOk=false → INCONCLUSIVE，不冒充比对过） */
+  const missingInDest: string[] = [];
+  const mismatched: Array<{ id: string; reason: string }> = [];
+  let checked = 0;
+  let matched = 0;
+  let missingTotal = 0;
+  let mismatchTotal = 0;
+  let sampleOk = true;
+  const projectionSeen = new Set<string>();
+  if (sourceCount != null && destCount != null && sourceCount > 0) {
+    try {
+      const size = Math.min(sampleSize, sourceCount);
+      const page = await sourceCall(conn, '/' + enc(sourceIndex) + '/_search', 'POST', JSON.stringify({
+        size, sort: ['_doc'], _source: false, query: { match_all: {} },
+      }));
+      const ids: string[] = (page?.hits?.hits || []).map((h: any) => h?._id).filter((id: any) => id != null).map(String);
+      checked = ids.length;
+      if (ids.length) {
+        const idsBody = JSON.stringify({ ids });
+        /* mget 只收 _source 在场的文档（与服务端 mgetSources 同口径：不判 found 只看 _source） */
+        const sourcesOf = (resp: any): Map<string, any> => {
+          const m = new Map<string, any>();
+          for (const d of resp?.docs || []) {
+            if (d?._id != null && d?._source != null) m.set(String(d._id), d._source);
+          }
+          return m;
+        };
+        const [srcSources, dstSources] = await Promise.all([
+          sourcesOf(await sourceCall(conn, '/' + enc(sourceIndex) + '/_mget', 'POST', idsBody)),
+          sourcesOf(await host('/' + enc(destIndex) + '/_mget', 'POST', idsBody)),
+        ]);
+        for (const id of ids) {
+          if (!dstSources.has(id)) {
+            missingTotal++;
+            if (missingInDest.length < VERIFY_DETAIL_LIMIT) missingInDest.push(id);
+            continue;
+          }
+          const srcSource = srcSources.get(id) ?? null;
+          for (const f of projection) if (pickPath(srcSource, f) != null) projectionSeen.add(f);
+          const a = await planDigestOf(canonicalJson(projectSource(srcSource)));
+          const b = await planDigestOf(canonicalJson(projectSource(dstSources.get(id))));
+          if (a === b) matched++;
+          else {
+            mismatchTotal++;
+            if (mismatched.length < VERIFY_DETAIL_LIMIT) mismatched.push({ id, reason: 'content_mismatch' });
+          }
+        }
+        for (const f of projection) {
+          if (!projectionSeen.has(f)) warnings.push('投影字段 ' + f + ' 在源样本中均未出现（请检查字段名）');
+        }
+      }
+    } catch (e: any) {
+      warnings.push('样本对比请求失败: ' + String(e?.message || e));
+      sampleOk = false;
+      checked = 0; matched = 0; missingTotal = 0; mismatchTotal = 0;
+      missingInDest.length = 0; mismatched.length = 0;
+    }
+  }
+  /* 可选 terms 聚合对比（agg 名 eq_verify，对齐服务端）：按桶 key 集差与计数差判 match；
+   * 请求失败如实告警并置 aggOk=false（→ INCONCLUSIVE，不冒充对比过） */
+  let aggregation: any = null;
+  let aggOk = true;
+  if (aggField && sourceCount != null && destCount != null) {
+    try {
+      const aggBody = JSON.stringify({ size: 0, aggs: { eq_verify: { terms: { field: aggField, size: aggSize } } } });
+      const [srcAgg, dstAgg] = await Promise.all([
+        sourceCall(conn, '/' + enc(sourceIndex) + '/_search', 'POST', aggBody),
+        host('/' + enc(destIndex) + '/_search', 'POST', aggBody),
+      ]);
+      const bucketsOf = (resp: any): Array<{ key: string; count: number }> =>
+        (resp?.aggregations?.eq_verify?.buckets || []).map((b: any) => ({ key: String(b.key), count: Number(b.doc_count) || 0 }));
+      const sourceBuckets = bucketsOf(srcAgg);
+      const destBuckets = bucketsOf(dstAgg);
+      const srcCounts = new Map(sourceBuckets.map(b => [b.key, b.count]));
+      const dstCounts = new Map(destBuckets.map(b => [b.key, b.count]));
+      const onlyInSource = sourceBuckets.filter(b => !dstCounts.has(b.key)).map(b => ({ key: b.key, count: b.count }));
+      const onlyInDest = destBuckets.filter(b => !srcCounts.has(b.key)).map(b => ({ key: b.key, count: b.count }));
+      const countDiffs = sourceBuckets
+        .filter(b => dstCounts.has(b.key) && dstCounts.get(b.key) !== b.count)
+        .map(b => ({ key: b.key, sourceCount: b.count, destCount: dstCounts.get(b.key) }));
+      aggregation = {
+        field: aggField, requestedSize: aggSize,
+        match: onlyInSource.length === 0 && onlyInDest.length === 0 && countDiffs.length === 0,
+        sourceBuckets, destBuckets, onlyInSource, onlyInDest, countDiffs,
+      };
+    } catch (e: any) {
+      warnings.push('聚合对比请求失败: ' + String(e?.message || e));
+      aggOk = false;
+      aggregation = null;
+    }
+  }
+  /* verdict（判定用全量计数，回显才截断）：count 未知或样本/聚合取数失败 → INCONCLUSIVE；
+   * 总数一致 + 样本无缺无错配 + 聚合（若做）match → EQUIVALENT（双 0 时样本恒空、
+   * countsMatch=true，自然落 EQUIVALENT）；其余 DIVERGENT */
+  const inconclusive = countsMatch == null || !sampleOk || (aggField != null && !aggOk);
+  const equivalent = countsMatch === true && missingTotal === 0 && mismatchTotal === 0
+    && (aggregation == null || aggregation.match === true);
+  const verdict = inconclusive ? 'INCONCLUSIVE' : equivalent ? 'EQUIVALENT' : 'DIVERGENT';
+  /* 验证结论落作业事件线（仅 jobId 形态——显式传参无台账归属不落）：VERIFY 事件带
+   * verdict + 双侧计数 + 样本匹配摘要；DIVERGENT 记 error / INCONCLUSIVE 记 warn */
+  if (jobId && jobDoc) {
+    const verdictZhText = verdict === 'EQUIVALENT' ? '等价' : verdict === 'DIVERGENT' ? '有分歧' : '无法判定';
+    const fmtC = (v: number | null) => v == null ? '计数未知' : String(v);
+    const parts = [
+      '等价验证 ' + verdictZhText + '（' + verdict + '）',
+      '源 ' + fmtC(sourceCount) + ' / 目标 ' + fmtC(destCount),
+    ];
+    if (checked > 0) parts.push('样本匹配 ' + matched + '/' + checked);
+    pushEvent(jobDoc, 'VERIFY', parts.join('，'),
+      verdict === 'DIVERGENT' ? 'error' : verdict === 'INCONCLUSIVE' ? 'warn' : 'info');
+    putJob(jobDoc);
+  }
+  return {
+    source: { index: sourceIndex, count: sourceCount },
+    dest: { index: destIndex, count: destCount, destConnId },
+    countsMatch,
+    sample: {
+      requested: sampleSize, checked, matched,
+      missingInDest,
+      mismatched,
+      missingTruncated: missingTotal > missingInDest.length,
+      mismatchTruncated: mismatchTotal > mismatched.length,
+    },
+    aggregation,
+    verdict,
+    warnings,
+  };
+}
+
 /* ---------------- 运行中作业调速（throttle） ----------------
  * 浏览器 xmigrate 作业为本页内的 scroll+bulk 循环（无 _reindex task），调速真实生效：
  * 限速按批粒度（每秒窗口 ≤ rps 条，窗口满睡到窗尾）。rps=-1 恢复不限速；0 与小于 -1

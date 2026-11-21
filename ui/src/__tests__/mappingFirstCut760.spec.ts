@@ -254,14 +254,14 @@ describe('760 G215 donut aria+图例中文释义（G142/G154 族·随批可裁�
     expect(svg!.getAttribute('aria-label') || '').toContain('类型分布');
   });
 
-  it('图例/弧段 title 走 fieldTypeZh 单源：keyword→精确值、text→文本（修前：英文裸 token）', async () => {
+  it('图例/弧段提示走 fieldTypeZh 单源：keyword→精确值、text→文本（修前：英文裸 token）', async () => {
     history.replaceState(null, '', '#/?idx=orders-v9');
     const host = await mountView();
     await settle(8);
-    const titles = Array.from(host.querySelectorAll<HTMLElement>('.mp-leg-t'))
-      .map(el => el.getAttribute('title') || '');
-    expect(titles.some(t => t.includes('精确值')), 'keyword 图例 title 中文').toBe(true);
-    expect(titles.some(t => t.includes('文本')), 'text 图例 title 中文').toBe(true);
+    /* 图例提示已迁 v-tip 指令（DOM 无 title 属性）——单源绑定改源码锚；
+       弧段是 SVG <title> 子元素（非属性，守卫口径外）保持 DOM 断言 */
+    const v = readFileSync(join(__dirname, '../views/MappingView.vue'), 'utf-8');
+    expect(v).toContain("v-tip=\"fieldTypeZh(s.type) + ' · ' + s.count + ' 个字段'\"");
     const arcs = Array.from(host.querySelectorAll('.mp-arc title')).map(t => t.textContent || '');
     expect(arcs.some(t => t.includes('精确值') || t.includes('文本')), '弧段原生 tooltip 同步中文').toBe(true);
   });

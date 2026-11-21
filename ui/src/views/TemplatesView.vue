@@ -7,10 +7,10 @@
 <!-- 模板类型 seg 升格（容器 role=group+aria-label+钮 aria-pressed，G192 范式） -->
           <div class="seg" role="group" aria-label="模板类型">
             <!-- KPI 大卡墙退役：两 tab 条数改分段按钮角标（tv2-kpi 两卡删除，计数与 legacy 提示全保留） -->
-            <button :class="{ on: tab === 'index' }" :aria-pressed="tab === 'index'" :title="'index_template 已注册 ' + indexTemplates.length + ' 个'" @click="tab = 'index'"><FileCode2 :size="11" /> index_template<i class="tv2-tab-n">{{ indexTemplates.length }}</i></button>
+            <button :class="{ on: tab === 'index' }" :aria-pressed="tab === 'index'" v-tip="'index_template 已注册 ' + indexTemplates.length + ' 个'" @click="tab = 'index'"><FileCode2 :size="11" /> index_template<i class="tv2-tab-n">{{ indexTemplates.length }}</i></button>
             <button
               :class="{ on: tab === 'component' }" :aria-pressed="tab === 'component'" :disabled="legacy"
-              :title="legacy ? 'component_template 需 7.8+，当前目标集群不支持' : 'component_template 可组合，共 ' + componentTemplates.length + ' 个'"
+              v-tip="legacy ? 'component_template 需 7.8+，当前目标集群不支持' : 'component_template 可组合，共 ' + componentTemplates.length + ' 个'"
               @click="!legacy && (tab = 'component')"
             >
 <Puzzle :size="11" /> component_template<i class="tv2-tab-n">{{ legacy ? '—' : componentTemplates.length }}</i>
@@ -28,10 +28,10 @@
           <button v-if="canOps" class="btn sm" @click="openNew"><Plus :size="12" /> 新建 {{ tab === 'index' ? '索引模板' : '组件模板' }}</button>
           <!-- 原始请求/响应快查弹窗（RawIo 第六波，558b 先例同形态；
  路径子串 '/cluster/templates'=本页 list/put/delete 全通道，本页独占调用者） -->
-          <button class="btn sm ghost" data-test="raw-io" aria-label="查看原始 IO（模板）" title="最近一次模板列表/保存/删除请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo">
+          <button class="btn sm ghost" data-test="raw-io" aria-label="查看原始 IO（模板）" v-tip="'最近一次模板列表/保存/删除请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo">
             <Terminal :size="12" /> 原始 IO
           </button>
-          <button aria-label="刷新模板列表" class="btn sm ghost" @click="load" :disabled="loading" title="刷新模板列表">
+          <button aria-label="刷新模板列表" class="btn sm ghost" @click="load" :disabled="loading" v-tip="'刷新模板列表'">
             <RefreshCw :size="12" :class="{ spinning: loading }" />
           </button>
         </div>
@@ -86,7 +86,7 @@
                 </template>
               </div>
             </div>
-            <button v-if="canOps" aria-label="删除" class="btn sm ghost" @click.stop="del(t)" :disabled="delBusy" title="删除">
+            <button v-if="canOps" aria-label="删除" class="btn sm ghost" @click.stop="del(t)" :disabled="delBusy" v-tip="'删除'">
               <Trash2 :size="11" />
             </button>
           </div>

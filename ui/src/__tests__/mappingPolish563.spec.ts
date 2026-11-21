@@ -53,6 +53,6 @@ describe('五百六十三批：全宽折叠节打磨五刀', () => {
   it('⑤ 节头钮 hover 反馈 + 计数 chip 动态 title', () => {
     const mv = read('../views/MappingView.vue');
     expect(mv, '折叠钮 hover 底色').toMatch(/\.mp-set-tg:hover\s*\{[^}]*background:/);
-    expect(mv, 'chip 动态 title').toMatch(/<span class="mp-set-n"[^>]*:title=/);
+    expect(mv, 'chip 动态 tip').toMatch(/<span class="mp-set-n"[^>]*v-tip=/);
   });
 });

@@ -52,6 +52,7 @@ vi.mock('../api', async (importOriginal) => {
 });
 
 import BoostTunerView from '../views/BoostTunerView.vue';
+import { vTip } from '../directives/vTip';
 
 async function settle(n = 12) {
   for (let i = 0; i < n; i++) { await nextTick(); await Promise.resolve(); }
@@ -65,6 +66,8 @@ async function mountBt() {
   });
   const app = createApp({ render: () => h(BoostTunerView) });
   app.use(createPinia());
+  /* 滑杆动态提示已迁 v-tip（1120 批前为 :title）——注册指令供浮层文本断言 */
+  app.directive('tip', vTip);
   app.use(router);
   await router.isReady();
   const host = document.createElement('div');
@@ -216,7 +219,8 @@ describe('772 G247 aria 补位（弱 P3·随批可裁·G192/G224/G235 族）', (
     const aria = slider!.getAttribute('aria-label') || '';
     expect(aria, 'aria-label 含权重语义').toContain('权重');
     expect(aria, 'aria-label 含字段名（多行滑杆可区分）').toContain('name');
-    expect(slider!.getAttribute('title'), '动态 title 既有通道不动').toContain('×1.0');
+    slider!.dispatchEvent(new Event('focusin', { bubbles: false }));
+    expect(document.getElementById('vt-tip')?.textContent ?? '', '动态权重提示走 v-tip 浮层（×N 语义不动）').toContain('×1.0');
     app.unmount();
   });
   it('挂载实锚：掉出条 role=status+chip+复制钮 aria（异步结果到达语义公告）', async () => {

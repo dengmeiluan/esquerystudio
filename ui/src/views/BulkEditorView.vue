@@ -5,7 +5,7 @@
         <template #actions>
 <!-- 手写 be-stat 串改用 MetaStrip 统一件（值亮+标签暗+·分隔；ops 数/行结构错全保留，结构错走 err 档） -->
 <MetaStrip v-if="opsCount > 0" :items="beStatItems" />
-  <button class="btn ghost sm" @click="body = ''" :disabled="!body.trim()" title="清空编辑器内容"><Trash2 :size="12" /> 清空</button>
+  <button class="btn ghost sm" @click="body = ''" :disabled="!body.trim()" v-tip="'清空编辑器内容'"><Trash2 :size="12" /> 清空</button>
   <button class="btn ghost sm" @click="doGenerate">
     <Wand2 :size="12" /> 生成范例
   </button>
@@ -74,12 +74,12 @@
           <div class="be-card-hd-r">
             <!-- 编辑器高度四档钮（editorTiers 统一件 + usePref bulk.edH，
  SearchTemplates st.editorH 同款范式）——满档沿既有 pane 弹性 flex 链不变 -->
-            <div class="be-eh" role="group" aria-label="编辑器高度档位" title="编辑器高度档位：S/M/L/满">
+            <div class="be-eh" role="group" aria-label="编辑器高度档位" v-tip="'编辑器高度档位：S/M/L/满'">
               <button v-for="eh in EDITOR_H_TIERS" :key="eh.k" type="button" class="be-eh-btn"
                 :class="{ on: editorH === eh.k }" :aria-pressed="editorH === eh.k"
-                :title="'编辑器高度：' + eh.t" @click="editorH = eh.k">{{ eh.t }}</button>
+                v-tip="'编辑器高度：' + eh.t" @click="editorH = eh.k">{{ eh.t }}</button>
             </div>
-            <button class="btn ghost xs" @click="format" title="逐行校验并对齐">
+            <button class="btn ghost xs" @click="format" v-tip="'逐行校验并对齐'">
               <AlignLeft :size="11" /> 校验
             </button>
           </div>
@@ -108,7 +108,7 @@
           <span>执行结果</span>
           <div class="be-card-hd-r">
             <!-- 原始 IO 快查——最近一次 /cluster/bulk 请求/响应原文（ioRecorder 记录环） -->
-            <button class="btn ghost xs" data-test="raw-io" aria-label="查看原始 IO（Bulk 执行）" title="最近一次 bulk 请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo">
+            <button class="btn ghost xs" data-test="raw-io" aria-label="查看原始 IO（Bulk 执行）" v-tip="'最近一次 bulk 请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo">
               <Terminal :size="11" /> 原始 IO
             </button>
             <!-- be-badge 别名着色退役（--success/--danger 与 .pill.g/.r 已做的语义色重复），模板只留 pill 系 -->

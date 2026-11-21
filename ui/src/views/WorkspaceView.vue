@@ -51,7 +51,7 @@
             <component :is="widgetOf(w.k)?.icon" :size="12" />
             {{ widgetOf(w.k)?.name }}
           </span>
-          <button aria-label="隐藏" class="btn ghost xs" @click="w.on = false; persist()" title="隐藏">
+          <button aria-label="隐藏" class="btn ghost xs" @click="w.on = false; persist()" v-tip="'隐藏'">
             <X :size="11" />
           </button>
         </div>
@@ -63,7 +63,7 @@
           <EmptyState v-if="!hResult" compact :icon="HeartPulse" text="尚未体检" action-text="一键体检" @action="loadHealth" />
           <div v-else>
             <div class="ws-score" :class="scoreCls(hResult.score)">{{ hResult.score }} / 100</div>
-            <div class="ws-sub" :title="hStatus === 'YELLOW' ? 'yellow 含副本未分配；单节点集群属常态，不影响体检得分' : ''">
+            <div class="ws-sub" v-tip="hStatus === 'YELLOW' ? 'yellow 含副本未分配；单节点集群属常态，不影响体检得分' : ''">
               正常 {{ hOk }} / {{ hResult.checks?.length || 0 }} 项 · {{ hStatus }}<template v-if="hStatus === 'YELLOW'">（单节点常态）</template>
             </div>
             <router-link to="/health-report" class="ws-link">详细报告 →</router-link>

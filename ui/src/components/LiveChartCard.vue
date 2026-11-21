@@ -19,12 +19,12 @@
         {{ title }}<em v-if="window" class="ld-chart-th">近 {{ window }}</em><em v-if="threshold != null" class="ld-chart-th">阈值 {{ threshold }}%</em>
         <!-- 窗内峰值/均值（历史卡 hc-stats 同语言）：窄刺数据鼠标难以停驻刺顶，峰值直读 -->
         <span v-if="series.length > 1" class="ld-chart-stats">最大 <b>{{ statMax }}</b> · 均值 <b>{{ statAvg }}</b></span>
-        <button class="ld-expand" type="button" :aria-label="expanded ? '还原' : '展开'" :title="expanded ? '还原' : '展开'" @click.stop="$emit('expand')">
+        <button class="ld-expand" type="button" :aria-label="expanded ? '还原' : '展开'" v-tip="expanded ? '还原' : '展开'" @click.stop="$emit('expand')">
           <Minimize2 v-if="expanded" :size="12" />
           <Maximize2 v-else :size="12" />
         </button>
       </span>
-      <b class="ld-chart-cur ld-chart-kpi" :key="curKey" :style="{ color: curColor }" :title="curTitle">{{ curText }}</b>
+      <b class="ld-chart-cur ld-chart-kpi" :key="curKey" :style="{ color: curColor }" v-tip="curTitle">{{ curText }}</b>
     </div>
     <div ref="wrapEl" class="ld-svgwrap" @mousemove="onMove" @mouseleave="onLeave">
       <svg v-if="series.length > 1" :viewBox="'0 0 300 ' + LD_H" class="ld-svg" preserveAspectRatio="none">

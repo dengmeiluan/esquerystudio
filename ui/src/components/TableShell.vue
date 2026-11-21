@@ -12,7 +12,7 @@
  （RT rt-th-in flex 包裹+lucide 排序图标 vs QRT 平铺+文本箭头）、截断提示行（文案差异 +
  autoRenderMore446/rtRenderMore525 锚源码字面量）。 -->
 <script lang="ts">
-import { defineComponent, h, type PropType } from 'vue';
+import { defineComponent, h, resolveDirective, withDirectives, type Directive, type PropType, type VNode } from 'vue';
 import { ArrowUp, X } from 'lucide-vue-next';
 import JsonTree from './JsonTree.vue';
 import { isMenuKey, menuKeyAnchor } from '../utils/menuKey';
@@ -25,23 +25,26 @@ export const TableExpandRow = defineComponent({
     open: { type: Boolean, default: false },
     colspan: { type: Number, required: true },
     label: { type: String, default: '' },
-    /* RT 传 _id 作 title；QRT 不传 → 属性缺席（与两内核现状一致） */
+    /* RT 传 _id 作 tip；QRT 不传 → 值缺席（与两内核现状一致） */
     labelTitle: { type: String as PropType<string | undefined>, default: undefined },
     data: { type: Object as PropType<Record<string, any> | null>, default: null },
   },
   emits: { close: () => true },
   setup(props, { emit }) {
+    /* 渲染函数挂全局 v-tip（模板指令等价）；app 未注册该指令时（部分单测挂具）退化为无 tip，
+     与原生 title 缺席同形，不参与 DOM */
+    const tipDir = resolveDirective('tip') as Directive | undefined;
+    const tip = (v: VNode, value: unknown): VNode => (tipDir ? withDirectives(v, [[tipDir, value]]) : v);
     return () => props.open
       ? h('tr', { class: 'rt-expand' }, [
           h('td', { colspan: props.colspan }, [
             h('div', { class: 'rt-expand-hd mono' }, [
-              h('span', { title: props.labelTitle }, props.label),
-              h('button', {
+              tip(h('span', {}, props.label), props.labelTitle),
+              tip(h('button', {
                 class: 'rt-expand-close',
                 'aria-label': '收起此行详情',
-                title: '收起此行详情（Esc 全部收起）',
                 onClick: () => emit('close'),
-              }, [h(X, { size: 11 })]),
+              }, [h(X, { size: 11 })]), '收起此行详情（Esc 全部收起）'),
             ]),
             h(JsonTree, { data: props.data, tools: true, maxChildren: 200, maxStrLen: 4000 }),
           ]),
@@ -50,9 +53,10 @@ export const TableExpandRow = defineComponent({
   },
 });
 
-/* 长列表回顶钮—— RT/QRT 同款；class/aria-label/title 由调用方透传（attr fallthrough
- 落到根 button）—— a11y 守卫锚两内核源码 aria-label="回到顶部" 字面量，串必须留在
- 内核文件；样式仍留各自内核 scoped（子组件根继承父 scopeId，零样式迁移）。 */
+/* 长列表回顶钮—— RT/QRT 同款；class/aria-label 由调用方透传（attr fallthrough 落到根
+ button），title 已迁 v-tip 指令（同样作用于根 button）—— a11y 守卫锚两内核源码
+ aria-label="回到顶部" 字面量，串必须留在内核文件；样式仍留各自内核 scoped
+ （子组件根继承父 scopeId，零样式迁移）。 */
 export const TableBacktop = defineComponent({
   name: 'TableBacktop',
   emits: { top: () => true },

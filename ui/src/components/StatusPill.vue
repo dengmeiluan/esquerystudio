@@ -2,7 +2,7 @@
   <!-- W-D：统一自绘状态徽标。色板不自带——tone 直挂 theme.css 既有 .pill g|y|r|b|n
  语义档单源（theme.css 状态 pill 段），胶囊形态/字号/字重全归全局 .pill；
  en 有值时渲染英文小字档（SnapshotsView sv-st-en 双语范式合并，中文主体 + 弱化英文后缀） -->
-  <span class="pill" :class="tone" :title="title || undefined">{{ label }}<span v-if="en" class="sp-en">{{ en }}</span></span>
+  <span class="pill" :class="tone" v-tip="title || undefined">{{ label }}<span v-if="en" class="sp-en">{{ en }}</span></span>
 </template>
 
 <script setup lang="ts">

@@ -62,7 +62,7 @@ describe('六百三十四批 G14：健康词汇 CLUSTER_HEALTH_ZH 单源接线',
   it('健康分布：裸英文换单源中文主显；raw 键保留下钻与检索', () => {
     expect(ov).toContain('{{ clusterHealthZh(h.name) || h.name }}');
     expect(ov, '下钻 raw 键零触').toMatch(/@click="goHealth\(h\.name\)"/);
-    expect(ov, 'raw 键仍在 title').toMatch(/:title="'查看 ' \+ h\.name \+ ' 索引清单'"/);
+    expect(ov, 'raw 键仍在 v-tip').toMatch(/v-tip="'查看 ' \+ h\.name \+ ' 索引清单'"/);
   });
 
   it('KPI 集群状态：单源中文主显 + raw 枚举入 tip', () => {

@@ -10,7 +10,7 @@
     <EmptyState v-if="!store.pickedIdx" :icon="Braces" text="先在顶栏选择一个索引" centered>
       <template v-if="recentPicks.length" #default>
         <span class="mp-recent-label">最近使用：</span>
-        <button v-for="n in recentPicks" :key="n" class="mp-recent-chip mono" :title="'选中并打开：' + n" @click="store.pick(n)">{{ n }}</button>
+        <button v-for="n in recentPicks" :key="n" class="mp-recent-chip mono" v-tip="'选中并打开：' + n" @click="store.pick(n)">{{ n }}</button>
       </template>
     </EmptyState>
 
@@ -18,7 +18,7 @@
       <!-- 统一页头：图标 + 页面名 + 索引名入 PageHeader #subtitle（.mono-trunc 截断 + title 全名），本地 .mp-head/.mp-title/.mp-sub 删除 -->
       <PageHeader :icon="Braces" title="Mapping">
         <template #subtitle>
-          <span class="mono mono-trunc" :title="store.pickedIdx">{{ store.pickedIdx }}</span>
+          <span class="mono mono-trunc" v-tip="store.pickedIdx">{{ store.pickedIdx }}</span>
           · {{ fmtNum(docCount) }} 条文档 · {{ fieldRows.length }} 个字段
         </template>
         <template #actions>
@@ -79,7 +79,7 @@
               <div class="mp-legend">
                 <div v-for="s in donutSegs" :key="s.type" class="mp-leg-row">
                   <span class="mp-leg-dot" :style="{ background: s.color }"></span>
-                  <span class="mono mp-leg-t" :title="fieldTypeZh(s.type) + ' · ' + s.count + ' 个字段'">{{ s.type }}</span>
+                  <span class="mono mp-leg-t" v-tip="fieldTypeZh(s.type) + ' · ' + s.count + ' 个字段'">{{ s.type }}</span>
                   <span class="mono mp-leg-n">{{ s.count }}</span>
                 </div>
               </div>
@@ -98,21 +98,21 @@
       <div class="mp-set-sec">
         <div class="mp-set-head">
           <button type="button" class="mp-set-tg" :class="{ closed: setCollapsed }"
-            :aria-expanded="!setCollapsed" title="索引 Settings：展开/收起（记忆保留）"
+            :aria-expanded="!setCollapsed" v-tip="'索引 Settings：展开/收起（记忆保留）'"
             @click="setCollapsed = !setCollapsed">
             <SlidersHorizontal :size="13" />
             Settings
             <span class="mp-set-n" :class="{ zero: settingsRows.length === 0 }"
-              :title="'当前 ' + settingsRows.length + ' 行' + (showDefaults ? '（含集群默认值，灰显行=未显式设置）' : '（仅显式设置，开「含默认值」看全量）')">{{ settingsRows.length }}</span>
+              v-tip="'当前 ' + settingsRows.length + ' 行' + (showDefaults ? '（含集群默认值，灰显行=未显式设置）' : '（仅显式设置，开「含默认值」看全量）')">{{ settingsRows.length }}</span>
             <span v-if="staticCount" class="mp-set-static">静态 {{ staticCount }}</span>
             <ChevronDown :size="13" class="mp-set-chev" :style="{ transform: setCollapsed ? 'rotate(-90deg)' : '' }" />
           </button>
           <span class="mp-set-sp"></span>
           <!-- 高度四档循环（IndexHub settingsH 同款；usePref 记忆，
  满=''=不设上限吃满页面滚动） -->
-          <button aria-label="Settings 区高度档位" class="btn sm ghost" :title="'Settings 区高度：' + (settingsH || '满') + '（点击循环 四档）'" @click="cycleSettingsH"><ArrowUpDown :size="11" /></button>
+          <button aria-label="Settings 区高度档位" class="btn sm ghost" v-tip="'Settings 区高度：' + (settingsH || '满') + '（点击循环 四档）'" @click="cycleSettingsH"><ArrowUpDown :size="11" /></button>
           <button class="btn sm" :class="{ primary: showDefaults }" :disabled="defaultsLoading"
-            title="叠加集群默认值（include_defaults），灰显区分显式设置" @click="toggleDefaults">
+            v-tip="'叠加集群默认值（include_defaults），灰显区分显式设置'" @click="toggleDefaults">
             <span v-if="defaultsLoading" class="spinning"></span> 含默认值
           </button>
         </div>
@@ -138,7 +138,7 @@ ES 仅允许<b>新增</b>字段；修改已有字段类型需走零停机重建�
       <template #footer>
         <div style="display:flex;justify-content:flex-end;gap:var(--sp-2)">
           <button class="btn" @click="addOpen = false">取消</button>
-          <button v-if="canOps" class="btn primary" :disabled="!newMappingValid || putting" :title="newMappingValid ? '' : 'JSON 不合法'" @click="askPutMapping">{{ putting ? '提交中…' : '提交' }}</button>
+          <button v-if="canOps" class="btn primary" :disabled="!newMappingValid || putting" v-tip="newMappingValid ? '' : 'JSON 不合法'" @click="askPutMapping">{{ putting ? '提交中…' : '提交' }}</button>
         </div>
       </template>
     </n-modal>
@@ -152,7 +152,7 @@ ES 仅允许<b>新增</b>字段；修改已有字段类型需走零停机重建�
       <template #footer>
         <div style="display:flex;justify-content:flex-end;gap:var(--sp-2)">
           <button class="btn" @click="settingsOpen = false">取消</button>
-          <button v-if="canSettings" class="btn primary" :disabled="!newSettingsValid || putting" :title="newSettingsValid ? '' : 'JSON 不合法'" @click="askPutSettings">{{ putting ? '提交中…' : '提交' }}</button>
+          <button v-if="canSettings" class="btn primary" :disabled="!newSettingsValid || putting" v-tip="newSettingsValid ? '' : 'JSON 不合法'" @click="askPutSettings">{{ putting ? '提交中…' : '提交' }}</button>
         </div>
       </template>
     </n-modal>
@@ -162,12 +162,12 @@ ES 仅允许<b>新增</b>字段；修改已有字段类型需走零停机重建�
       <!-- 点击 JSON 即全选——复制按钮万一被浏览器策略拦（iframe 剪贴板权限），
  手动 Ctrl+C 是零门槛兜底，不再「看得见复制不上」 -->
       <!-- rawJson 走 highlightJson 高亮（转义安全 v-html；rawJson 本身已是 JSON.stringify(_,null,2) pretty 串） -->
-      <pre ref="rawPreEl" class="mono mp-raw scroll-y" role="button" tabindex="0" title="点击全选，Ctrl+C 复制" @click="selectAllRaw" @keydown.enter.prevent="selectAllRaw" @keydown.space.prevent="selectAllRaw" v-html="highlightJson(rawJson)"></pre>
+      <pre ref="rawPreEl" class="mono mp-raw scroll-y" role="button" tabindex="0" v-tip="'点击全选，Ctrl+C 复制'" @click="selectAllRaw" @keydown.enter.prevent="selectAllRaw" @keydown.space.prevent="selectAllRaw" v-html="highlightJson(rawJson)"></pre>
       <template #footer>
         <div style="display:flex;justify-content:flex-end;gap:var(--sp-2)">
           <!-- 跨页直通——复制 JSON 的最高频目的地是托管重建改分词，sessionStorage
  契约直传（零剪贴板参与、必然成功），落地自动解析拆填审编框 -->
-          <button class="btn" :disabled="!store.pickedIdx" :title="store.pickedIdx ? '直达托管重建审编步，自动解析拆填' : '需先选中索引'" @click="sendToRebuild"><Hammer :size="12" /> 发送到托管重建</button>
+          <button class="btn" :disabled="!store.pickedIdx" v-tip="store.pickedIdx ? '直达托管重建审编步，自动解析拆填' : '需先选中索引'" @click="sendToRebuild"><Hammer :size="12" /> 发送到托管重建</button>
           <button class="btn" @click="copyRaw"><Copy :size="12" /> 复制全部</button>
           <button class="btn" @click="rawOpen = false">关闭</button>
         </div>

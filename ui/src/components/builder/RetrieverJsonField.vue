@@ -4,7 +4,7 @@
     <!-- JSON 编辑位升档 JsonArea 统一件（Monaco 承担编辑器形态）；
          useJsonDraft 语义保留：合法 JSON 即写树、半截/类型不符只标红不写、清空=移除该键 -->
     <JsonArea class="rte-ta" :class="{ bad }" :model-value="draft.text.value" :rows="3"
-      :placeholder="placeholder" :title="label + '（JSON；清空=移除该键）'"
+      :placeholder="placeholder" v-tip="label + '（JSON；清空=移除该键）'"
       @update:model-value="onInput" />
   </label>
 </template>

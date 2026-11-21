@@ -851,6 +851,417 @@ public class StructureSyncService {
         return String.join("; ", parts);
     }
 
+    // ---------------------------------------------------------------- 迁移后等价性验证
+
+    /** 等价性验证明细清单（missingInDest/mismatched）的输出上限，超出置截断标志。 */
+    private static final int VERIFY_DETAIL_LIMIT = 20;
+
+    /** 样本抽取量钳制下限。 */
+    private static final int VERIFY_SAMPLE_MIN = 10;
+    /** 样本抽取量钳制上限（单次 _search/_mget 请求规模约束）。 */
+    private static final int VERIFY_SAMPLE_MAX = 500;
+    /** 聚合桶数钳制上下限。 */
+    private static final int VERIFY_AGG_MIN = 1;
+    private static final int VERIFY_AGG_MAX = 50;
+
+    /**
+     * 迁移后等价性验证（verify_equivalence，只读）：
+     * {@code {source:{index,count}, dest:{index,count,destConnId}, countsMatch,
+     * sample:{requested,checked,matched,missingInDest[≤20],mismatched[≤20],
+     * missingTruncated,mismatchTruncated}, aggregation:null|{field,requestedSize,match,
+     * sourceBuckets,destBuckets,onlyInSource,onlyInDest,countDiffs}, verdict, warnings}}。
+     *
+     * <p>语义：count 为两侧 {@code _count}（match_all）；任一侧索引不存在（404）该侧 count=null
+     * + warning + INCONCLUSIVE（不是异常）。样本=源 {@code _search}（{@code sort:["_doc"]}、
+     * {@code _source:false}、{@code size=min(sampleSize,500,源count)}）取 id 集，两侧
+     * {@code _mget} 取 _source 后按 canonical JSON（键全层排序）SHA-256 前 16 hex 摘要逐 id
+     * 对比（{@code sampleFields} 非空时先投影再哈希）；目标端无此文档进 {@code missingInDest}，
+     * 摘要不同进 {@code mismatched}（reason=content_mismatch）。聚合（aggField 非空时）：两侧
+     * {@code _search size:0} terms(field,aggSize) 的 key→count 差集对比。</p>
+     *
+     * <p>verdict：countsMatch 且 missingInDest/mismatched 均空且（未请求聚合或聚合 match）→
+     * EQUIVALENT（双侧 count=0 同样成立，sample.checked=0）；count 任一 null 或样本/聚合请求
+     * 失败 → INCONCLUSIVE；否则 DIVERGENT。warnings 记录钳制、索引缺失、投影字段未出现等。</p>
+     *
+     * @param srcConn      已解析的源集群连接（必填）
+     * @param sourceIndex  源索引名（精确业务索引）
+     * @param destConnId   目标连接 id 回显（null/空=宿主集群）
+     * @param destConn     已解析的目标集群连接；null=目标走宿主集群
+     * @param destIndex    目标索引名；空则与 sourceIndex 同名
+     * @param sampleSize   样本量；null=100，钳制 10..500
+     * @param sampleFields 样本投影字段（空=全 _source 对比）
+     * @param aggField     聚合对比字段；空=不做聚合对比
+     * @param aggSize      聚合桶数；null=10，钳制 1..50
+     */
+    public Map<String, Object> verifyEquivalence(RemoteClusterConn srcConn, String sourceIndex,
+                                                 String destConnId, RemoteClusterConn destConn, String destIndex,
+                                                 Integer sampleSize, List<String> sampleFields,
+                                                 String aggField, Integer aggSize) {
+        if (srcConn == null) {
+            throw new IllegalArgumentException("缺少源连接信息 srcConn");
+        }
+        String src = requireIndexName(sourceIndex, "sourceIndex");
+        String dest = destIndex == null || destIndex.trim().isEmpty() ? src : destIndex.trim();
+        localAdmin.guardExactDataIndex(src);
+        localAdmin.guardExactDataIndex(dest);
+        String destConnEcho = destConnId == null || destConnId.trim().isEmpty() ? null : destConnId.trim();
+
+        List<String> warnings = new ArrayList<>();
+        int effectiveSampleSize = clampWithWarning(sampleSize == null ? 100 : sampleSize,
+                VERIFY_SAMPLE_MIN, VERIFY_SAMPLE_MAX, "sampleSize", warnings);
+        String agg = aggField == null ? null : aggField.trim();
+        if (agg != null && agg.isEmpty()) {
+            agg = null;
+        }
+        int effectiveAggSize = agg == null ? 10
+                : clampWithWarning(aggSize == null ? 10 : aggSize, VERIFY_AGG_MIN, VERIFY_AGG_MAX,
+                        "aggSize", warnings);
+        List<String> projection = normalizeSampleFields(sampleFields);
+
+        RestHighLevelClient srcRest = null;
+        RestHighLevelClient destRest = null;
+        try {
+            srcRest = remoteClientFactory == null ? null : remoteClientFactory.build(srcConn);
+            RestClient srcLl = srcRest == null ? null : srcRest.getLowLevelClient();
+            final RestClient destLl;
+            if (destConn != null) {
+                destRest = remoteClientFactory == null ? null : remoteClientFactory.build(destConn);
+                destLl = destRest == null ? null : destRest.getLowLevelClient();
+            } else {
+                destLl = null;
+            }
+            ClusterGet sourceRead = path -> sourceGet(srcLl, path);
+            ClusterGet targetRead = destLl == null ? this::targetGet : path -> destGet(destLl, path);
+            QueryPost sourceQuery = (path, json) -> sourcePost(srcLl, path, json);
+            QueryPost targetQuery = destLl == null
+                    ? (path, json) -> targetPost(path, json)
+                    : (path, json) -> destPost(destLl, path, json);
+
+            Long srcCount = countOf(sourceRead, src, "源", warnings);
+            Long destCount = countOf(targetRead, dest, "目标", warnings);
+            Boolean countsMatch = srcCount == null || destCount == null
+                    ? null : srcCount.longValue() == destCount.longValue();
+
+            int checked = 0;
+            int matched = 0;
+            int missingTotal = 0;
+            int mismatchTotal = 0;
+            List<String> missingInDest = new ArrayList<>();
+            List<Map<String, Object>> mismatched = new ArrayList<>();
+            boolean sampleOk = true;
+            Set<String> projectionSeen = new LinkedHashSet<>();
+            if (srcCount != null && destCount != null && srcCount > 0) {
+                try {
+                    int size = (int) Math.min((long) effectiveSampleSize, srcCount);
+                    Map<String, Object> search = new LinkedHashMap<>();
+                    search.put("query", entry("match_all", new LinkedHashMap<String, Object>()));
+                    search.put("sort", Collections.singletonList("_doc"));
+                    search.put("size", size);
+                    search.put("_source", false);
+                    List<String> ids = searchHitIds(sourceQuery.post("/" + src + "/_search",
+                            OBJECT_MAPPER.writeValueAsString(search)));
+                    checked = ids.size();
+                    if (!ids.isEmpty()) {
+                        String idsBody = OBJECT_MAPPER.writeValueAsString(entry("ids", ids));
+                        Map<String, Object> srcSources = mgetSources(
+                                sourceQuery.post("/" + src + "/_mget", idsBody));
+                        Map<String, Object> dstSources = mgetSources(
+                                targetQuery.post("/" + dest + "/_mget", idsBody));
+                        for (String id : ids) {
+                            Object srcSource = srcSources.get(id);
+                            Object dstSource = dstSources.get(id);
+                            if (dstSource == null) {
+                                missingTotal++;
+                                if (missingInDest.size() < VERIFY_DETAIL_LIMIT) {
+                                    missingInDest.add(id);
+                                }
+                                continue;
+                            }
+                            markProjectionSeen(srcSource, projection, projectionSeen);
+                            if (contentDigest(projectSource(srcSource, projection))
+                                    .equals(contentDigest(projectSource(dstSource, projection)))) {
+                                matched++;
+                            } else {
+                                mismatchTotal++;
+                                if (mismatched.size() < VERIFY_DETAIL_LIMIT) {
+                                    mismatched.add(entry("id", id, "reason", "content_mismatch"));
+                                }
+                            }
+                        }
+                        for (String field : projection == null
+                                ? Collections.<String>emptyList() : projection) {
+                            if (!projectionSeen.contains(field)) {
+                                warnings.add("投影字段 " + field + " 在源样本中均未出现（请检查字段名）");
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    warnings.add("样本对比请求失败: " + rootMsg(e));
+                    sampleOk = false;
+                    checked = 0;
+                    matched = 0;
+                    missingTotal = 0;
+                    mismatchTotal = 0;
+                    missingInDest.clear();
+                    mismatched.clear();
+                }
+            }
+
+            Map<String, Object> aggregation = null;
+            boolean aggOk = true;
+            if (agg != null && srcCount != null && destCount != null) {
+                try {
+                    Map<String, Object> aggBody = new LinkedHashMap<>();
+                    aggBody.put("size", 0);
+                    aggBody.put("aggs", entry("eq_verify",
+                            entry("terms", entry("field", agg, "size", effectiveAggSize))));
+                    String body = OBJECT_MAPPER.writeValueAsString(aggBody);
+                    aggregation = compareTerms(agg, effectiveAggSize,
+                            sourceQuery.post("/" + src + "/_search", body),
+                            targetQuery.post("/" + dest + "/_search", body));
+                } catch (Exception e) {
+                    warnings.add("聚合对比请求失败: " + rootMsg(e));
+                    aggOk = false;
+                    aggregation = null;
+                }
+            }
+
+            boolean inconclusive = countsMatch == null || !sampleOk || (agg != null && !aggOk);
+            boolean equivalent = Boolean.TRUE.equals(countsMatch)
+                    && missingTotal == 0 && mismatchTotal == 0
+                    && (aggregation == null || Boolean.TRUE.equals(aggregation.get("match")));
+            String verdict = inconclusive ? "INCONCLUSIVE" : equivalent ? "EQUIVALENT" : "DIVERGENT";
+
+            Map<String, Object> source = new LinkedHashMap<>();
+            source.put("index", src);
+            source.put("count", srcCount);
+            Map<String, Object> destBlock = new LinkedHashMap<>();
+            destBlock.put("index", dest);
+            destBlock.put("count", destCount);
+            destBlock.put("destConnId", destConnEcho);
+            Map<String, Object> sample = new LinkedHashMap<>();
+            sample.put("requested", effectiveSampleSize);
+            sample.put("checked", checked);
+            sample.put("matched", matched);
+            sample.put("missingInDest", missingInDest);
+            sample.put("mismatched", mismatched);
+            sample.put("missingTruncated", missingTotal > missingInDest.size());
+            sample.put("mismatchTruncated", mismatchTotal > mismatched.size());
+            Map<String, Object> out = new LinkedHashMap<>();
+            out.put("source", source);
+            out.put("dest", destBlock);
+            out.put("countsMatch", countsMatch);
+            out.put("sample", sample);
+            out.put("aggregation", aggregation);
+            out.put("verdict", verdict);
+            out.put("warnings", warnings);
+            logger.info("[StructureSyncService] verify {} -> {} verdict={} counts={}/{} matched={}/{} "
+                            + "missing={} mismatched={}", src, dest, verdict, srcCount, destCount,
+                    matched, checked, missingTotal, mismatchTotal);
+            return out;
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalStateException("等价性验证失败: " + rootMsg(e), e);
+        } finally {
+            closeQuietly(srcRest);
+            closeQuietly(destRest);
+        }
+    }
+
+    /** 数值钳制并如实记 warning（未越界不动、不告警）。 */
+    private static int clampWithWarning(int value, int min, int max, String what, List<String> warnings) {
+        int clamped = Math.max(min, Math.min(max, value));
+        if (clamped != value) {
+            warnings.add(what + " 已从 " + value + " 钳制为 " + clamped + "（有效范围 " + min + ".." + max + "）");
+        }
+        return clamped;
+    }
+
+    /** 样本投影字段归一：去空白项/去重；全空返回 null（=全 _source 对比）。 */
+    private static List<String> normalizeSampleFields(List<String> sampleFields) {
+        if (sampleFields == null) {
+            return null;
+        }
+        List<String> out = new ArrayList<>();
+        for (String field : sampleFields) {
+            if (field == null) {
+                continue;
+            }
+            String trimmed = field.trim();
+            if (!trimmed.isEmpty() && !out.contains(trimmed)) {
+                out.add(trimmed);
+            }
+        }
+        return out.isEmpty() ? null : out;
+    }
+
+    /** {@code _count} 取数：404 → null + 「索引不存在」warning；其余失败 → null + warning（不冒充 0）。 */
+    private static Long countOf(ClusterGet getter, String index, String side, List<String> warnings) {
+        try {
+            Map<String, Object> root = getter.get("/" + index + "/_count");
+            Object count = root == null ? null : root.get("count");
+            return count instanceof Number ? ((Number) count).longValue() : null;
+        } catch (ResponseException re) {
+            int status = re.getResponse().getStatusLine().getStatusCode();
+            if (status == 404) {
+                warnings.add(side + "索引不存在（404）: " + index);
+            } else {
+                warnings.add(side + "索引 _count 取数失败（HTTP " + status + "）: " + rootMsg(re));
+            }
+            return null;
+        } catch (Exception e) {
+            warnings.add(side + "索引 _count 取数失败: " + rootMsg(e));
+            return null;
+        }
+    }
+
+    /** {@code _search} 响应取命中 _id 清单（响应顺序保留，供样本对比与 mget 取数）。 */
+    private static List<String> searchHitIds(Map<String, Object> searchResponse) {
+        List<String> out = new ArrayList<>();
+        Object hits = searchResponse == null ? null : searchResponse.get("hits");
+        Object list = hits instanceof Map ? ((Map<?, ?>) hits).get("hits") : null;
+        if (list instanceof List) {
+            for (Object o : (List<?>) list) {
+                if (o instanceof Map && ((Map<?, ?>) o).get("_id") != null) {
+                    out.add(String.valueOf(((Map<?, ?>) o).get("_id")));
+                }
+            }
+        }
+        return out;
+    }
+
+    /** {@code _mget} 响应取 _id → _source（found=false/无 _source 的条目不进映射=缺失侧如实呈现）。 */
+    private static Map<String, Object> mgetSources(Map<String, Object> mgetResponse) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        Object docs = mgetResponse == null ? null : mgetResponse.get("docs");
+        if (docs instanceof List) {
+            for (Object o : (List<?>) docs) {
+                if (!(o instanceof Map)) {
+                    continue;
+                }
+                Map<?, ?> doc = (Map<?, ?>) o;
+                Object id = doc.get("_id");
+                Object source = doc.get("_source");
+                if (id != null && source != null) {
+                    out.put(String.valueOf(id), source);
+                }
+            }
+        }
+        return out;
+    }
+
+    /** 样本投影：只保留 projection 指定的键（点号嵌套路径），未出现的字段不进投影；
+     * projection 为空返回原值。两侧同口径投影后再摘要，投影外字段差异不算内容差异。 */
+    private static Object projectSource(Object source, List<String> projection) {
+        if (projection == null || projection.isEmpty() || !(source instanceof Map)) {
+            return source;
+        }
+        Map<String, Object> out = new LinkedHashMap<>();
+        for (String field : projection) {
+            Object value = pickPath((Map<?, ?>) source, field);
+            if (value != null) {
+                out.put(field, value);
+            }
+        }
+        return out;
+    }
+
+    /** 点号路径取值（{@code a.b.c}）；路径中断/值为 null 返回 null。 */
+    private static Object pickPath(Map<?, ?> doc, String path) {
+        Object cur = doc;
+        for (String part : path.split("\\.")) {
+            if (!(cur instanceof Map)) {
+                return null;
+            }
+            cur = ((Map<?, ?>) cur).get(part);
+            if (cur == null) {
+                return null;
+            }
+        }
+        return cur;
+    }
+
+    /** 记录投影字段在源样本 _source 中的实际出现情况（全样本未出现的字段由调用方记 warning）。 */
+    private static void markProjectionSeen(Object source, List<String> projection, Set<String> seen) {
+        if (projection == null || !(source instanceof Map)) {
+            return;
+        }
+        for (String field : projection) {
+            if (pickPath((Map<?, ?>) source, field) != null) {
+                seen.add(field);
+            }
+        }
+    }
+
+    /** terms 聚合对比：key→count 差集（onlyInSource/onlyInDest/countDiffs）与两侧原始桶清单。 */
+    private static Map<String, Object> compareTerms(String field, int requestedSize,
+                                                    Map<String, Object> srcAgg, Map<String, Object> dstAgg) {
+        List<Map<String, Object>> srcBuckets = bucketsOf(srcAgg);
+        List<Map<String, Object>> dstBuckets = bucketsOf(dstAgg);
+        Map<String, Long> srcCounts = countsOf(srcBuckets);
+        Map<String, Long> dstCounts = countsOf(dstBuckets);
+        List<Map<String, Object>> onlyInSource = new ArrayList<>();
+        for (Map.Entry<String, Long> e : srcCounts.entrySet()) {
+            if (!dstCounts.containsKey(e.getKey())) {
+                onlyInSource.add(entry("key", e.getKey(), "count", e.getValue()));
+            }
+        }
+        List<Map<String, Object>> onlyInDest = new ArrayList<>();
+        for (Map.Entry<String, Long> e : dstCounts.entrySet()) {
+            if (!srcCounts.containsKey(e.getKey())) {
+                onlyInDest.add(entry("key", e.getKey(), "count", e.getValue()));
+            }
+        }
+        List<Map<String, Object>> countDiffs = new ArrayList<>();
+        for (Map.Entry<String, Long> e : srcCounts.entrySet()) {
+            Long dst = dstCounts.get(e.getKey());
+            if (dst != null && dst.longValue() != e.getValue().longValue()) {
+                countDiffs.add(entry("key", e.getKey(), "sourceCount", e.getValue(), "destCount", dst));
+            }
+        }
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("field", field);
+        out.put("requestedSize", requestedSize);
+        out.put("match", onlyInSource.isEmpty() && onlyInDest.isEmpty() && countDiffs.isEmpty());
+        out.put("sourceBuckets", srcBuckets);
+        out.put("destBuckets", dstBuckets);
+        out.put("onlyInSource", onlyInSource);
+        out.put("onlyInDest", onlyInDest);
+        out.put("countDiffs", countDiffs);
+        return out;
+    }
+
+    /** 聚合响应取 {@code eq_verify} 桶清单（{@code {key,doc_count}} → {@code {key,count}}，响应顺序保留）。 */
+    private static List<Map<String, Object>> bucketsOf(Map<String, Object> aggResponse) {
+        List<Map<String, Object>> out = new ArrayList<>();
+        Object aggs = aggResponse == null ? null : aggResponse.get("aggregations");
+        Object named = aggs instanceof Map ? ((Map<?, ?>) aggs).get("eq_verify") : null;
+        Object buckets = named instanceof Map ? ((Map<?, ?>) named).get("buckets") : null;
+        if (buckets instanceof List) {
+            for (Object o : (List<?>) buckets) {
+                if (o instanceof Map) {
+                    Map<?, ?> bucket = (Map<?, ?>) o;
+                    out.add(entry("key", String.valueOf(bucket.get("key")),
+                            "count", bucket.get("doc_count")));
+                }
+            }
+        }
+        return out;
+    }
+
+    /** 桶清单 → key→count 映射（count 非 Number 的畸形桶跳过）。 */
+    private static Map<String, Long> countsOf(List<Map<String, Object>> buckets) {
+        Map<String, Long> out = new LinkedHashMap<>();
+        for (Map<String, Object> bucket : buckets) {
+            Object count = bucket.get("count");
+            if (count instanceof Number) {
+                out.put(String.valueOf(bucket.get("key")), ((Number) count).longValue());
+            }
+        }
+        return out;
+    }
+
     @SuppressWarnings("unchecked")
     private static Map<String, Object> deepCopy(Map<String, Object> in) {
         return OBJECT_MAPPER.convertValue(in, Map.class);
@@ -914,6 +1325,11 @@ public class StructureSyncService {
         } catch (Exception e) {
             throw new IllegalStateException("计划摘要序列化失败", e);
         }
+        return sha256Hex16(json);
+    }
+
+    /** canonical JSON 的 SHA-256 前 16 hex（计划摘要与样本内容摘要共用）。 */
+    private static String sha256Hex16(String json) {
         try {
             java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
             byte[] digest = md.digest(json.getBytes(java.nio.charset.StandardCharsets.UTF_8));
@@ -924,6 +1340,16 @@ public class StructureSyncService {
             return out.toString();
         } catch (java.security.NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 摘要算法不可用", e);
+        }
+    }
+
+    /** 样本内容摘要：_source（或投影后 _source）canonical JSON 的 SHA-256 前 16 hex——
+     * 与 {@link #planDigestOf} 同款（键全层排序、同输入稳定复现），键序差异不算内容差异。 */
+    static String contentDigest(Object source) {
+        try {
+            return sha256Hex16(CANONICAL_MAPPER.writeValueAsString(source));
+        } catch (Exception e) {
+            throw new IllegalStateException("样本摘要序列化失败", e);
         }
     }
 
@@ -1008,6 +1434,11 @@ public class StructureSyncService {
     /** 集群信息 GET 通道：路径 → 已解析 JSON（源/目标/任意已存连接三处复用）。 */
     interface ClusterGet {
         Map<String, Object> get(String path) throws Exception;
+    }
+
+    /** 集群查询 POST 通道（_search/_mget 查询体）：路径+JSON 体 → 已解析 JSON（等价性验证用）。 */
+    interface QueryPost {
+        Map<String, Object> post(String path, String jsonBody) throws Exception;
     }
 
     /**
@@ -1328,6 +1759,21 @@ public class StructureSyncService {
         return lowLevelGet(ll, path);
     }
 
+    /** 源侧 low-level POST 查询（_search/_mget）；包内可见供测试覆写（不触真实集群）。 */
+    Map<String, Object> sourcePost(RestClient ll, String path, String jsonBody) throws Exception {
+        return lowLevelPost(ll, path, jsonBody);
+    }
+
+    /** 目标（宿主）侧 low-level POST 查询；包内可见供测试覆写。 */
+    Map<String, Object> targetPost(String path, String jsonBody) throws Exception {
+        return lowLevelPost(localClient.get().getLowLevelClient(), path, jsonBody);
+    }
+
+    /** 目标为指定连接（destConnId）时的 low-level POST 查询；包内可见供测试覆写。 */
+    Map<String, Object> destPost(RestClient ll, String path, String jsonBody) throws Exception {
+        return lowLevelPost(ll, path, jsonBody);
+    }
+
     /** 目标为指定连接（destConnId）时的 PUT 建索引；语义同 {@link #targetPut}，包内可见供测试覆写。 */
     PutResult destTargetPut(RestClient ll, String destIndex, String jsonBody) throws Exception {
         return performPut(ll, "PUT", "/" + destIndex, jsonBody);
@@ -1389,6 +1835,15 @@ public class StructureSyncService {
 
     private static Map<String, Object> lowLevelGet(RestClient ll, String path) throws Exception {
         Response resp = ll.performRequest(new Request("GET", path));
+        return OBJECT_MAPPER.readValue(bodyOf(resp), Map.class);
+    }
+
+    /** low-level POST 查询：非 2xx 按底层异常抛出（ResponseException 含状态码），由调用方分类。 */
+    private static Map<String, Object> lowLevelPost(RestClient ll, String path, String jsonBody)
+            throws Exception {
+        Request req = new Request("POST", path);
+        req.setJsonEntity(jsonBody);
+        Response resp = ll.performRequest(req);
         return OBJECT_MAPPER.readValue(bodyOf(resp), Map.class);
     }
 

@@ -127,7 +127,7 @@ describe('五百四十七批：RT refreshable 内建（撤销 546 批「G2 为 Q
   it('钮形制源码锚：aria-label/title 逐字 + rt-tool-btn 形制 + 位次（561 同步更新：合并 TableRefreshBtn 片段组件）+ 546 字据撤销', () => {
     /* 五百六十一批同步更新：刷新钮合并 TableRefreshBtn（QRT/RT 同款单一出处）——aria/title/
        图标文案逐字同步更新组件源，类名经 btnCls prop 注入（rt-tool-btn 串留内核挂载位） */
-    expect(refreshBtnSrc).toMatch(/<button v-if="on" class="btn sm ghost" :class="btnCls" aria-label="刷新结果"\s*\n\s*title="刷新结果（重跑当前查询）" @click="\$emit\('refresh'\)">/);
+    expect(refreshBtnSrc).toMatch(/<button v-if="on" class="btn sm ghost" :class="btnCls" aria-label="刷新结果"\s*\n\s*v-tip="'刷新结果（重跑当前查询）'" @click="\$emit\('refresh'\)">/);
     expect(refreshBtnSrc).toMatch(/<RotateCcw :size="13" \/> 刷新/);
     expect(rt).toContain('btn-cls="rt-tool-btn"');
     /* 字据撤销=指令句退役（「」内为历史引述，不在禁列） */

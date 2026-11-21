@@ -7,7 +7,7 @@
       <span
         v-for="(p, i) in sentence.query" :key="i"
         class="qsb-p" :class="['k-' + p.kind, { clk: !!p.nodeId }]"
-        :title="p.nodeId ? (p.title || p.text) + '（点击定位）' : p.title"
+        v-tip="p.nodeId ? (p.title || p.text) + '（点击定位）' : p.title"
         :role="p.nodeId ? 'button' : undefined" :tabindex="p.nodeId ? 0 : undefined"
         @click="p.nodeId && emit('locate', p.nodeId)"
         @keydown.enter.prevent="p.nodeId && emit('locate', p.nodeId)"
@@ -15,7 +15,7 @@
       >{{ p.text }}</span>
     </div>
     <div v-if="sentence.meta.length" class="qsb-meta">
-      <span v-for="(p, i) in sentence.meta" :key="'m' + i" class="qsb-p" :class="'k-' + p.kind" :title="p.title">{{ p.text }}</span>
+      <span v-for="(p, i) in sentence.meta" :key="'m' + i" class="qsb-p" :class="'k-' + p.kind" v-tip="p.title">{{ p.text }}</span>
     </div>
   </div>
 </template>

@@ -7,7 +7,7 @@
     <div class="srt-tx">上次工作现场<b>{{ label }}</b></div>
     <div class="srt-acts">
       <button type="button" class="btn sm primary srt-go" @click="emit('resume')">继续上次</button>
-      <button type="button" class="btn sm ghost srt-x" aria-label="关闭「上次工作现场」提示" title="关闭" @click="emit('close')">关闭</button>
+      <button type="button" class="btn sm ghost srt-x" aria-label="关闭「上次工作现场」提示" v-tip="'关闭'" @click="emit('close')">关闭</button>
     </div>
   </div>
 </template>

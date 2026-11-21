@@ -138,7 +138,8 @@ describe('776 G253 文档卡原始响应轻形态（铁律 F·头名；768 G240/
     const btn = rawBtn();
     expect(btn, '卡头 FileJson 原始响应钮').toBeTruthy();
     expect(btn!.getAttribute('aria-pressed')).toBe('false');
-    expect(btn!.getAttribute('title')).toContain('_doc');
+    /* 钮提示已迁 v-tip 指令（DOM 无 title 属性），文案含 _doc 语义改源码锚 */
+    expect(src).toContain('v-tip="\'查看 GET /_doc 完整响应（含 _index/_id/_version/_found 元数据）\'"');
   });
 
   it('G253b 切换原始响应：pressed=true+完整元数据在场（_index/_version/_found）', async () => {

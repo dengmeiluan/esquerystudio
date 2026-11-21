@@ -8,17 +8,17 @@
     <template v-if="isObj">
       <JsonArea class="mlt-json" :class="{ bad: jsonEdit.bad.value }" :model-value="jsonEdit.text.value" :rows="3"
                 placeholder="like 文档（JSON 对象：{ _index,_id } 引用或 { doc:{…} } 内联）"
-                title="相似源文档；合法 JSON 对象即写回（非法半截态标红不写）"
+                v-tip="'相似源文档；合法 JSON 对象即写回（非法半截态标红不写）'"
                 @update:model-value="jsonEdit.onInput" />
     </template>
     <template v-else-if="isArr">
       <div class="mlt-chips" role="group" aria-label="like 列表：回车添加文本项，点对象项选中编辑">
         <button v-for="(item, i) in arr" :key="i" type="button"
                 class="mlt-chip mono" :class="{ sel: selIdx === i, doc: isDoc(item) }"
-                :title="chipTitle(item)" @click="isDoc(item) ? (selIdx = selIdx === i ? null : i) : undefined">
+                v-tip="chipTitle(item)" @click="isDoc(item) ? (selIdx = selIdx === i ? null : i) : undefined">
           <span class="mlt-chip-v">{{ chipText(item) }}</span>
           <span class="mlt-chip-x" role="button" :aria-label="'删除第 ' + (i + 1) + ' 项'"
-                :title="'删除该项'" @click.stop="delItem(i)">×</span>
+                v-tip="'删除该项'" @click.stop="delItem(i)">×</span>
         </button>
         <input
           class="inp mono mlt-in" v-model="draft"
@@ -30,7 +30,7 @@
       <JsonArea
         v-if="selIdx !== null && isDoc(arr[selIdx])"
         class="mlt-json mlt-sel" :class="{ bad: selEdit.bad.value }" :model-value="selEdit.text.value" :rows="3"
-        title="编辑选中的文档对象项；合法 JSON 即写回该位"
+        v-tip="'编辑选中的文档对象项；合法 JSON 即写回该位'"
         @update:model-value="selEdit.onInput" />
     </template>
   </div>

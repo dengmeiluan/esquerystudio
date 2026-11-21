@@ -3,7 +3,7 @@
     <div class="pf-hd">
       <PageHeader :icon="Flame" title="Profile 火焰图" subtitle="解析 _search?profile=true · 分片瓶颈 · 耗时排序 · 一键定位慢查询">
       <template #actions>
-<button class="btn ghost sm" @click="loadSample" title="填示例查询">
+<button class="btn ghost sm" @click="loadSample" v-tip="'填示例查询'">
   <FileText :size="12" /> 示例
 </button>
       </template>
@@ -17,10 +17,10 @@
         <Play :size="12" :class="{ spinning: busy }" /> {{ busy ? '分析中…' : '分析' }}
       </button>
       <!-- 编辑器高度四档钮（editorTiers 统一件，SearchTemplatesView st.editorH 同款范式） -->
-      <div class="pf-eh" role="group" aria-label="编辑器高度档位" title="编辑器高度档位：S/M/L/满">
+      <div class="pf-eh" role="group" aria-label="编辑器高度档位" v-tip="'编辑器高度档位：S/M/L/满'">
         <button v-for="eh in EDITOR_H_TIERS" :key="eh.k" type="button" class="pf-eh-btn"
           :class="{ on: editorH === eh.k }" :aria-pressed="editorH === eh.k"
-          :title="'编辑器高度：' + eh.t" @click="editorH = eh.k">{{ eh.t }}</button>
+          v-tip="'编辑器高度：' + eh.t" @click="editorH = eh.k">{{ eh.t }}</button>
       </div>
     </div>
 
@@ -67,7 +67,7 @@
             :style="{ paddingLeft: n.depth * 16 + 'px' }"
             @contextmenu.prevent="openFlameMenu($event, n, i)" @keydown="onFlameMenuKey($event, n, i)" data-row-nav @keydown.self="rowArrowNav">
             <div class="pf-flame-bar" :style="{ width: (n.took / focused.took * 100).toFixed(1) + '%', background: heatColor(n.took) }"
-              :title="`${n.type} · ${n.description || ''} · ${(n.took / 1_000_000).toFixed(2)}ms`">
+              v-tip="`${n.type} · ${n.description || ''} · ${(n.took / 1_000_000).toFixed(2)}ms`">
               <span class="pf-flame-type">{{ n.type }}</span>
               <span class="pf-flame-ms">{{ (n.took / 1_000_000).toFixed(2) }}ms</span>
             </div>
@@ -84,7 +84,7 @@
           <span class="pf-sum mono">Σ（前 10）{{ hotOpsSumMs }}ms</span>
           <!-- MD 复制钮（matrixText 统一内核，DiagView「Markdown 贴文档」同款入口形态） -->
           <button class="btn ghost xs" style="margin-left:auto" @click="copyHotOpsMd"
-            title="最慢操作表复制为 Markdown（群聊/工单直贴）"><ClipboardCopy :size="11" /> Markdown</button>
+            v-tip="'最慢操作表复制为 Markdown（群聊/工单直贴）'"><ClipboardCopy :size="11" /> Markdown</button>
         </div>
         <!-- 小表接 QRT rows 型（cols+二维行，耗时纳秒→ms 与原表同 3 位小数口径）——
  白得排序/列漏斗/单元格详情/复制矩阵/五格式导出；行内容为纯标量（描述全文进 title，

@@ -75,7 +75,7 @@ describe('1120 MCP 契约门禁口径看守', () => {
   it('门禁在当前仓库终态上真实跑绿（含负控自检）', () => {
     const ok = runGate();
     expect(ok).toContain('17 action groups');
-    expect(ok).toContain('166 actions');
+    expect(ok).toContain('167 actions');
     const negative = runGate(['--negative-control']);
     expect(negative).toContain('negative control OK');
   });

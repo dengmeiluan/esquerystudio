@@ -6,12 +6,12 @@
  554 单行纪律锁同步更新读本文件）。 -->
 <template>
   <span v-if="active" :class="spanCls"
-        title="仅筛选当前结果集（前端内存），不修改查询；要改查询条件请用单元格菜单「加入查询条件并重查」">
+        v-tip="'仅筛选当前结果集（前端内存），不修改查询；要改查询条件请用单元格菜单「加入查询条件并重查」'">
   已筛选 {{ active }} 列 · {{ shown }}/{{ total }} 行
   <button :class="fmodeCls" :aria-label="'筛选组合档：' + mode + '（点击切换）'"
-    :title="'多列筛选组合：' + mode + '（点击切换为 ' + (mode === 'AND' ? 'OR 任一列命中' : 'AND 全部命中') + '）'"
+    v-tip="'多列筛选组合：' + mode + '（点击切换为 ' + (mode === 'AND' ? 'OR 任一列命中' : 'AND 全部命中') + '）'"
     @click="$emit('toggle-mode')">{{ mode }}</button>
-  <button :class="clearCls" aria-label="清除全部筛选" title="清除全部筛选" @click="$emit('clear')">✕</button>
+  <button :class="clearCls" aria-label="清除全部筛选" v-tip="'清除全部筛选'" @click="$emit('clear')">✕</button>
   </span>
 </template>
 

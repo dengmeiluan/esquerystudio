@@ -18,7 +18,7 @@
         class="fs-btn"
         :data-focus-pane="paneId"
         :aria-label="enabled ? `还原${title}` : `聚焦${title}`"
-        :title="enabled ? `还原${title}（Esc 也可退出）` : `聚焦${title}`"
+        v-tip="enabled ? `还原${title}（Esc 也可退出）` : `聚焦${title}`"
         @click="enabled ? deactivate() : activate()"
       >
         <Maximize2 v-if="!enabled" :size="12" />

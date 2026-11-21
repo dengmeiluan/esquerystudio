@@ -30,14 +30,14 @@
       <div class="alv-bar-r lr-bar-r">
         <!-- 展开 filter/routing 开关：原生 checkbox 升档 NCheckbox（.alv-chk 落位类挂根） -->
         <n-checkbox v-model:checked="showFilter" size="small" class="alv-chk">展开 filter/routing</n-checkbox>
-        <button v-if="canOps" class="btn sm primary" @click="openCreate" title="新建别名绑定">
+        <button v-if="canOps" class="btn sm primary" @click="openCreate" v-tip="'新建别名绑定'">
           <Plus :size="12" /> 新建别名
         </button>
         <!-- 原始 IO 快查——本页最近一次 alias-actions 写操作请求/响应原文（ioRecorder 记录环） -->
-        <button class="btn sm ghost" data-test="raw-io" aria-label="查看原始 IO（别名图）" title="最近一次别名写操作请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo">
+        <button class="btn sm ghost" data-test="raw-io" aria-label="查看原始 IO（别名图）" v-tip="'最近一次别名写操作请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo">
           <Terminal :size="12" /> 原始 IO
         </button>
-        <button aria-label="刷新别名列表" class="btn sm ghost" @click="load" :disabled="loading" title="刷新别名列表">
+        <button aria-label="刷新别名列表" class="btn sm ghost" @click="load" :disabled="loading" v-tip="'刷新别名列表'">
           <RefreshCw :size="12" :class="{ spinning: loading }" />
         </button>
       </div>
@@ -79,7 +79,7 @@
             <span>filter DSL（可选，形如 {"term":{"status":1}}）</span>
             <!-- filter 编辑框高度三档循环钮（ra.script-h 同款形态），useTierCycle('aliases.filterH') 跨会话记忆 -->
             <button class="btn ghost xs" style="margin-left:auto" data-test="alv-filter-h"
-              :title="'filter 编辑框高度档：' + filterH + ' 行'" @click.prevent="cycleFilterH">高</button>
+              v-tip="'filter 编辑框高度档：' + filterH + ' 行'" @click.prevent="cycleFilterH">高</button>
           </div>
           <!-- filter JsonArea 接 dsl-assist（bodyKind 'search'——filter 就是查询子句组合，
  DevTools「仅 search 档」门控同款）+ lintDsl 体检提示条（fields 源=新建面板选中的物理索引）；
@@ -169,14 +169,14 @@
           <span class="mono">{{ w.alias }}</span>
           <!-- alv-warn-tag 纯 warn 色私造胶囊改用 StatusPill 统一件（warn→y 语义档） -->
           <StatusPill tone="y" :label="w.reason" />
-          <span class="mono alv-warn-idxs" :title="w.indices.join(', ')">{{ w.indices.join(' , ') }}</span>
+          <span class="mono alv-warn-idxs" v-tip="w.indices.join(', ')">{{ w.indices.join(' , ') }}</span>
         </div>
       </div>
       <div v-for="(g, i) in groups" :key="g.alias" class="alv-group" :class="{ 'alv-deep-hit': isDeepHit(g) }" :data-hit-idx="i + 1">
         <div class="alv-g-hd" tabindex="0" @contextmenu.prevent="openAliasMenu($event, g)" @keydown="onAliasMenuKey($event, g)" data-row-nav @keydown.self="rowArrowNav">
           <div class="alv-g-hd-l">
             <Link2 :size="13" class="alv-g-ic" />
-            <span class="mono alv-g-alias" :title="g.alias"><MarkText :text="g.alias" :kw="query" /></span>
+            <span class="mono alv-g-alias" v-tip="g.alias"><MarkText :text="g.alias" :kw="query" /></span>
             <!-- 五处手写 pill 改用 StatusPill 统一件（色档/tone 语义归组件单源，
  原 .pill b/r/n/g 裸挂退役； 前「p-* 无色胶囊」旧症一并随组件化封死） -->
             <StatusPill tone="b" :label="g.rows.length + ' 索引'" />
@@ -185,13 +185,13 @@
             <StatusPill v-else-if="g.writeCount === 1" tone="g" label="正常" />
           </div>
           <div class="alv-g-hd-r">
-            <button v-if="canFullAlias" class="btn sm" @click="openSwitch(g)" :title="'零停机原子切换指向'">
+            <button v-if="canFullAlias" class="btn sm" @click="openSwitch(g)" v-tip="'零停机原子切换指向'">
               <ArrowLeftRight :size="11" /> 切换
             </button>
-            <button class="btn sm" @click="goInspect(g.alias)" :title="'查看别名详情'">
+            <button class="btn sm" @click="goInspect(g.alias)" v-tip="'查看别名详情'">
               <ExternalLink :size="11" /> 详情
             </button>
-            <button class="btn sm" @click="goQuery(g.alias)" :title="'跳转 DSL 查询'">
+            <button class="btn sm" @click="goQuery(g.alias)" v-tip="'跳转 DSL 查询'">
               <TerminalSquare :size="11" /> 查询
             </button>
           </div>
@@ -206,7 +206,7 @@
                 <span class="alv-arrow-line"></span>
                 <span class="alv-arrow-tip">▸</span>
               </span>
-              <span class="mono alv-arrow-idx" :title="'打开索引工作区：' + r.index" tabindex="0" role="button" @keydown.enter.prevent="goHub(r.index)" @keydown.space.prevent="goHub(r.index)" @click="goHub(r.index)"><MarkText :text="r.index" :kw="query" /></span>
+              <span class="mono alv-arrow-idx" v-tip="'打开索引工作区：' + r.index" tabindex="0" role="button" @keydown.enter.prevent="goHub(r.index)" @keydown.space.prevent="goHub(r.index)" @click="goHub(r.index)"><MarkText :text="r.index" :kw="query" /></span>
               <!-- 行内 write 徽标改用 StatusPill（alv-write-badge 锚类保留在外层） -->
               <StatusPill v-if="r.isWriteIndex === true" tone="g" label="可写" class="alv-write-badge" />
               <StatusPill v-else-if="r.isWriteIndex === false" tone="b" label="只读" class="alv-write-badge" />
@@ -226,13 +226,13 @@
                   </n-popover>
                 </MetaStrip>
               </template>
-              <button v-if="canFullAlias && g.rows.length > 1 && r.isWriteIndex !== true" class="btn sm ghost" :disabled="acting" @click="setWrite(g, r.index)" :title="'设为唯一 write index（其余自动设 false）'">
+              <button v-if="canFullAlias && g.rows.length > 1 && r.isWriteIndex !== true" class="btn sm ghost" :disabled="acting" @click="setWrite(g, r.index)" v-tip="'设为唯一 write index（其余自动设 false）'">
                 设写
               </button>
-              <button v-if="canFullAlias" :aria-label="'解绑此索引'" class="btn sm ghost alv-danger" :disabled="acting" @click="unbind(g.alias, r.index)" :title="'解绑此索引'">
+              <button v-if="canFullAlias" :aria-label="'解绑此索引'" class="btn sm ghost alv-danger" :disabled="acting" @click="unbind(g.alias, r.index)" v-tip="'解绑此索引'">
                 <Trash2 :size="10" />
               </button>
-              <button :aria-label="'设为当前索引'" class="btn sm ghost" @click="pickIndex(r.index)" :title="'设为当前索引'">
+              <button :aria-label="'设为当前索引'" class="btn sm ghost" @click="pickIndex(r.index)" v-tip="'设为当前索引'">
                 <MousePointer :size="10" />
               </button>
             </div>

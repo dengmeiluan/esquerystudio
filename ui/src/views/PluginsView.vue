@@ -4,7 +4,7 @@
       <template #actions>
 <!-- G148：原始请求/响应快查入口（Slm/Lifecycle D6 同款 rim 族；
  路径子串 '/cluster/plugins'=本页 pluginsMatrix 单通道；判空不开空弹窗） -->
-<button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（插件矩阵）" title="最近一次 _cat/plugins 请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo">
+<button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（插件矩阵）" v-tip="'最近一次 _cat/plugins 请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo">
           <Terminal :size="12" /> 原始 IO
         </button>
 <button class="btn ghost sm" @click="doLoad" :disabled="busy">
@@ -38,7 +38,7 @@
           <!-- IndexHub 新范式→MetaStrip 统一件：note 蓝横幅 + KPI 统计条 + warn 横幅三层堆叠合并为卡头一行
  inline 元信息串，warn 仅真有不一致时内联；ES 7.10 API 边界全文走根 :title 兜底，段级 tip 各自细节 -->
           <!-- 插槽前手写 sep 退役——组件「有默认插槽自动渲染 .ms-sep」承担，图例段原样 -->
-          <MetaStrip class="pl-strip" :items="plMeta" :title="plBaseTip">
+          <MetaStrip class="pl-strip" :items="plMeta" v-tip.long="plBaseTip">
             <span class="pl-hint">✅ = 已装 · ❌ = 未装</span>
           </MetaStrip>
         </div>
@@ -61,7 +61,7 @@
           </template>
           <template #row-actions="{ row }">
             <!-- 插件行菜单入口（原行右键迁槽——复制插件名/SSH 命令/指南，菜单本体保留） -->
-            <button class="btn ghost xs" :aria-label="'插件 ' + row[0] + ' 操作菜单'" title="复制插件名 / SSH 安装命令 / 打开指南"
+            <button class="btn ghost xs" :aria-label="'插件 ' + row[0] + ' 操作菜单'" v-tip="'复制插件名 / SSH 安装命令 / 打开指南'"
               @click.stop="openPluginMenu($event, String(row[0]))"><Terminal :size="10" /> 安装/卸载</button>
           </template>
         </QueryResultTable>

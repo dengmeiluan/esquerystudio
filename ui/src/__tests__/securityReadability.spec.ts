@@ -28,7 +28,7 @@ describe('安全中心深度改造（一百八十八批）', () => {
   it('URI 短显示（剥 /internal(/es)(/index) 前缀），title 全量', () => {
     expect(src).toContain("replace(/^\\/internal(\\/es)?(\\/index)?/, '')");
     /* 五百二十九批锚同步更新：裸 td → #cell-URI 作用域槽内 span（QRT 换壳后派生展示走槽） */
-    expect(src).toMatch(/<span class="mono uri" :title="value">\{\{ shortUri\(value\) \}\}<\/span>/);
+    expect(src).toMatch(/<span class="mono uri" v-tip="value">\{\{ shortUri\(value\) \}\}<\/span>/);
   });
 
   it('审计时间绝对化（TimeCell abs 取证模式）', () => {

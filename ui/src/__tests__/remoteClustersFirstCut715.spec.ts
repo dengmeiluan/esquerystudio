@@ -31,6 +31,14 @@ vi.mock('../api', async (importOriginal) => {
 });
 
 import RemoteClustersView from '../views/RemoteClustersView.vue';
+import { vTip } from '../directives/vTip';
+
+/* 段级中文备注已迁 v-tip 浮层（MetaStrip 内部指令，DOM 无 title 属性）——
+   focusin 通道立即显示，读取 #vt-tip 单例浮层文本断言 */
+const tipOf = (el: HTMLElement): string => {
+  el.dispatchEvent(new Event('focusin', { bubbles: false }));
+  return document.getElementById('vt-tip')?.textContent ?? '';
+};
 
 async function settle(n = 12) {
   for (let i = 0; i < n; i++) { await nextTick(); await Promise.resolve(); }
@@ -45,6 +53,7 @@ async function mountView() {
   await router.push('/');
   await router.isReady();
   const app = createApp({ render: () => h(RemoteClustersView) });
+  app.directive('tip', vTip);
   app.use(pinia);
   app.use(router);
   const host = document.createElement('div');
@@ -95,26 +104,26 @@ beforeEach(() => {
 });
 
 describe('G55：metaOf 四段 label 中文备注补齐（铁律 F 英文参数必须有中文备注）', () => {
-  it('① seeds 段 title=种子节点地址；initial_timeout 段 title=初始连接超时', async () => {
+  it('① seeds 段浮层=种子节点地址；initial_timeout 段浮层=初始连接超时', async () => {
     seedRemotes();
     const { host } = await mountView();
     const card0 = cards(host)[0];
     expect(card0, 'search-prod 卡必须在场').toBeTruthy();
     const segSeeds = metaSeg(card0, 'seeds');
     expect(segSeeds, 'seeds 段必须在场（sniff 卡）').toBeTruthy();
-    expect(segSeeds!.getAttribute('title'), 'seeds 段中文备注').toBe('种子节点地址');
+    expect(tipOf(segSeeds!), 'seeds 段中文备注').toBe('种子节点地址');
     const segTo = metaSeg(card0, 'initial_timeout');
     expect(segTo, 'initial_timeout 段必须在场（有超时值卡）').toBeTruthy();
-    expect(segTo!.getAttribute('title'), 'initial_timeout 段中文备注').toBe('初始连接超时');
+    expect(tipOf(segTo!), 'initial_timeout 段中文备注').toBe('初始连接超时');
   });
 
-  it('② proxy 段 title=代理地址（proxy 卡）', async () => {
+  it('② proxy 段浮层=代理地址（proxy 卡）', async () => {
     seedRemotes();
     const { host } = await mountView();
     const card1 = cards(host)[1];
     const segProxy = metaSeg(card1, 'proxy');
     expect(segProxy, 'proxy 段必须在场（proxy 卡）').toBeTruthy();
-    expect(segProxy!.getAttribute('title'), 'proxy 段中文备注').toBe('代理地址');
+    expect(tipOf(segProxy!), 'proxy 段中文备注').toBe('代理地址');
   });
 
   it('③ skip_unavailable 双形态：false 段补中文备注；true 段既有容忍断连 tip+warn tone 零回归', async () => {
@@ -123,13 +132,13 @@ describe('G55：metaOf 四段 label 中文备注补齐（铁律 F 英文参数�
     const [card0, card1] = cards(host);
     const segFalse = metaSeg(card0, 'skip_unavailable');
     expect(segFalse, 'skip false 段必须在场').toBeTruthy();
-    expect(segFalse!.getAttribute('title'), 'false 段补齐中文备注（R95 时点悬停零备注）')
+    expect(tipOf(segFalse!), 'false 段补齐中文备注（R95 时点悬停零备注）')
       .toBe('远端不可达时是否跳过（当前 false：不可达即报错）');
     expect(segFalse!.querySelector('b')!.className, 'false 段不带 warn 色（语义差=色差契约保持）')
       .not.toContain('ms-warn');
     const segTrue = metaSeg(card1, 'skip_unavailable');
     expect(segTrue, 'skip true 段必须在场').toBeTruthy();
-    expect(segTrue!.getAttribute('title'), 'true 段既有降级解释文案零回归')
+    expect(tipOf(segTrue!), 'true 段既有降级解释文案零回归')
       .toBe('容忍断连：远端集群不可达时查询可降级继续');
     expect(segTrue!.querySelector('b')!.className).toContain('ms-warn');
   });

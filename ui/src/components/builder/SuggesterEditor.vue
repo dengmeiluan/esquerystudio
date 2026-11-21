@@ -9,7 +9,7 @@
     <div class="sged-hd">
       <span class="sged-lb">建议器</span>
       <n-select class="sged-type" size="tiny" :value="typeKey ?? ''" :options="typeOptions" :disabled="typeKey === null"
-                :title="typeKey === null ? '自定义建议器形态：类型位锁定，参数走下方整表编辑防丢数据' : '建议器类型'"
+                v-tip="typeKey === null ? '自定义建议器形态：类型位锁定，参数走下方整表编辑防丢数据' : '建议器类型'"
                 @update:value="setType" />
       <span class="sged-hint">{{ typeHint }}</span>
     </div>

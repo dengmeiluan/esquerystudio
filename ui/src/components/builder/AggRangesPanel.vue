@@ -7,13 +7,13 @@
     <div v-for="(r, i) in rows" :key="i" class="arp-row">
       <span class="arp-idx mono">{{ i + 1 }}</span>
       <input class="inp mono arp-in arp-from" :value="cellText(i, 'from')" placeholder="from 起（含）"
-             title="区间下界（含）；date-math（如 now-10M/M）或数值，留空 = 负无穷开区间" @input="setCell(i, 'from', ($event.target as HTMLInputElement).value)" />
+             v-tip="'区间下界（含）；date-math（如 now-10M/M）或数值，留空 = 负无穷开区间'" @input="setCell(i, 'from', ($event.target as HTMLInputElement).value)" />
       <span class="arp-sep">→</span>
       <input class="inp mono arp-in arp-to" :value="cellText(i, 'to')" placeholder="to 止（不含）"
-             title="区间上界（不含）；date-math 或数值，留空 = 正无穷开区间" @input="setCell(i, 'to', ($event.target as HTMLInputElement).value)" />
+             v-tip="'区间上界（不含）；date-math 或数值，留空 = 正无穷开区间'" @input="setCell(i, 'to', ($event.target as HTMLInputElement).value)" />
       <input class="inp mono arp-in arp-key" :value="cellText(i, 'key')" placeholder="key 桶名（可空）"
-             title="桶自定义名（可空=ES 默认 from-to 拼名）" @input="setCell(i, 'key', ($event.target as HTMLInputElement).value)" />
-      <button aria-label="删除区间行" class="btn sm ghost danger" title="删除该区间" @click="delRow(i)">
+             v-tip="'桶自定义名（可空=ES 默认 from-to 拼名）'" @input="setCell(i, 'key', ($event.target as HTMLInputElement).value)" />
+      <button aria-label="删除区间行" class="btn sm ghost danger" v-tip="'删除该区间'" @click="delRow(i)">
         <X :size="12" />
       </button>
     </div>

@@ -18,6 +18,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createApp, h, nextTick } from 'vue';
 import { createPinia } from 'pinia';
 import { createRouter, createMemoryHistory } from 'vue-router';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { draftStorageKey } from '../composables/useScopedDraft';
 
 const askConfirmFn = vi.fn();
@@ -178,7 +180,7 @@ async function openMonitorStep(host: HTMLElement, jobRow: any) {
   const rows = [...host.querySelectorAll('table.qrt-tbl tbody tr')];
   const row = rows.find(tr => (tr.textContent || '').includes(jobRow.jobId));
   expect(row, '最近作业表必须渲染出该作业行').toBeTruthy();
-  (row!.querySelector('button[title="查看任务详情"]') as HTMLButtonElement).click();
+  (row!.querySelector('button[aria-label="查看任务详情"]') as HTMLButtonElement).click();
   await settle(10);
 }
 
@@ -203,12 +205,17 @@ afterEach(() => {
 });
 
 describe('执行参数表单：渲染与校验', () => {
+  /* 源码锚（1120 批 title→v-tip 迁移后 DOM 无 title 属性，文案在场改锚源码绑定） */
+  const arSrc = readFileSync(join(__dirname, '../views/AdhocRebuildView.vue'), 'utf8');
+
   it('步 2 在场：限流数字框（placeholder「-1 不限」）+ slices 下拉缺省 auto，自定义数字框条件出现', { timeout: 20000 }, async () => {
     const { host } = await mountAR({ step: '2', indexName: 'bond_index', strategy: 'INCREMENTAL' });
     const rps = host.querySelector('[data-test="ar-tuning-rps"]');
     expect(rps, '限流输入框在场（NInputNumber 根，data-test 锚保留）').toBeTruthy();
     expect(numInputOf(host, '[data-test="ar-tuning-rps"]').placeholder, 'placeholder 落内部 input').toBe('-1 不限');
-    expect(rps!.getAttribute('title'), 'title 落组件根（attrs 透传）').toContain('requests_per_second');
+    expect(rps!.getAttribute('title'), '原生 title 已迁 v-tip（DOM 无 title 属性）').toBeNull();
+    expect(arSrc, '限流释义改 v-tip 绑定（含 requests_per_second 语义不丢）')
+      .toContain(`v-tip="'每秒批次数（requests_per_second）：大索引重建时限制写入速率保护集群，-1 或留空不限'"`);
     const mode = host.querySelector('[data-test="ar-tuning-slices-mode"]');
     expect(mode, 'slices 下拉在场（NSelect 根，data-test 锚保留）').toBeTruthy();
     expect(mode!.textContent, '缺省档回显 auto（自动）').toContain('auto（自动）');

@@ -621,6 +621,20 @@ span.spin { display: inline-block; width: 14px; height: 14px; border: 2px solid 
    按浮岛档纪律禁降；原 scoped 拷贝的局部 10 由档位纪律收编） */
 .float-pop.inplace { position: absolute; top: 100%; left: 0; min-width: 100%; }
 
+/* v-tip 全局指令浮层（directives/vTip.ts 单例，元素 id=vt-tip）：原生 title 的统一替代，
+   受主题 token 控制、可换行（overflow-wrap 兜住无空格长标识符）、长文本档可滚动。
+   圆角照抄 .float-pop 基类的 r-m；z 档必须取 --z-island 浮岛档——宿主大量位于
+   naive 模态/抽屉/弹层（naive 动态 2000+、ModalShell 1300+）内部，popover 档会被
+   遮罩压住导致弹层内提示不可见；默认档补 max-height 兜底防超长动态值无限撑高 */
+.vt-pop { position: fixed; z-index: var(--z-island); background: var(--bg2); border: 1px solid var(--line); box-shadow: var(--shadow-pop); border-radius: var(--r-m); color: var(--tx1); font-size: var(--fs-2xs); padding: 6px 10px; max-width: 260px; max-height: min(320px, 40vh); overflow-y: auto; overflow-wrap: anywhere; }
+/* 长文本档：320px 宽档（v-tip.long 修饰符或 { text, long } 值），200px 限高内滚动 */
+.vt-pop.vt-long { max-width: 320px; max-height: 200px; overflow-y: auto; }
+/* 进入 120ms 淡入：指令侧 display:block + 强制 reflow 后挂 .vt-show 二段式触发；
+   离场不做淡出——单例节点隐藏即 display:none，80ms 隐藏窗口期内的宿主切换直接复用重定位 */
+.vt-pop { opacity: 0; transition: opacity 120ms ease-out; }
+.vt-pop.vt-show { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .vt-pop { transition: none; } }
+
 /* 弹层淡入（pop）。离场期间一律 pointer-events:none：离场中的遮罩/浮层是「视觉残影」，
    绝不允许拦截点击（后台标签页 transition 被节流冻结时，隐形遮罩会永久挡住整页——真实踩坑）。
    fade 过渡族三规则退役（ 路由过渡孤儿；全站 transition name=

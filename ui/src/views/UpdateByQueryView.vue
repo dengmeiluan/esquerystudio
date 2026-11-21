@@ -10,7 +10,7 @@
               <Pencil :size="12" /> update_by_query
             </button>
             <button class="uq-mode-b danger" :class="{ act: mode === 'delete' }" :aria-pressed="mode === 'delete'"
-        :disabled="!canDelete" :title="canDelete ? '' : '当前授权不含删除权限'" @click="canDelete && (mode = 'delete')">
+        :disabled="!canDelete" v-tip="canDelete ? '' : '当前授权不含删除权限'" @click="canDelete && (mode = 'delete')">
               <Trash2 :size="12" /> delete_by_query
             </button>
           </div>
@@ -31,7 +31,7 @@
             <!-- G243：八字段 label 补 title 中文悬停释义（铁律 F「不知道这参数
  干什么」即缺陷；ReindexAdvanced 745 G159「参数名：中文说明」形态，label
  文本不动英文留检索；option/placeholder 既有中文覆盖不动） -->
-            <label title="索引：批量写的目标索引——支持通配符 pattern（如 logs-*）与逗号分隔多索引（a,b,c），命中即全量生效">索引（支持 pattern，如 logs-* / a,b,c）</label>
+            <label v-tip="'索引：批量写的目标索引——支持通配符 pattern（如 logs-*）与逗号分隔多索引（a,b,c），命中即全量生效'">索引（支持 pattern，如 logs-* / a,b,c）</label>
             <div class="uq-idx-row">
               <!-- 页内 IndexPicker 退役换 CurrentIdxChip 只读件（「选索引」唯一入口收敛顶栏）；
  写类页不开 useIdxState follow（统一件口径），「用当前索引」回填钮保留（AdhocRebuild 范式） -->
@@ -43,7 +43,7 @@
             </div>
           </div>
           <div class="uq-field">
-            <label title="max_docs：本次最多处理的文档数上限——留空不限；适合先小批量试写再全量">max_docs（可选上限）</label>
+            <label v-tip="'max_docs：本次最多处理的文档数上限——留空不限；适合先小批量试写再全量'">max_docs（可选上限）</label>
             <input v-model="maxDocs" class="inp" placeholder="留空 = 不限" />
           </div>
           <div class="uq-field">
@@ -52,7 +52,7 @@
             <n-select v-model:value="conflicts" :options="UQ_CONFLICTS_OPTS" size="small" class="uq-sel" />
           </div>
           <div class="uq-field">
-            <label title="slices：并行分片数——auto 按目标索引分片数自动切分（推荐）；指定数字可提升并行度但占用更多资源">slices（并行分片）</label>
+            <label v-tip="'slices：并行分片数——auto 按目标索引分片数自动切分（推荐）；指定数字可提升并行度但占用更多资源'">slices（并行分片）</label>
             <input v-model="slices" class="inp" placeholder="auto / 数字" @blur="slicesCheck(slices)" />
             <div v-if="slicesHint" class="il-hint" :class="'il-' + slicesLevel">{{ slicesHint }}</div>
           </div>
@@ -74,7 +74,7 @@
             <n-select v-model:value="refresh" :options="UQ_REFRESH_OPTS" size="small" class="uq-sel" />
           </div>
           <div class="uq-field">
-            <label title="scroll：批量拉取的滚动窗口时长（如 5m）——控制游标存活时间，大任务设过短会中断">scroll</label>
+            <label v-tip="'scroll：批量拉取的滚动窗口时长（如 5m）——控制游标存活时间，大任务设过短会中断'">scroll</label>
             <input v-model="scroll" class="inp" placeholder="如 5m" />
           </div>
       </div>
@@ -83,7 +83,7 @@
         <div class="uq-card-hd">
           <span>Query {{ mode === 'update' ? '+ Script（可选）' : '（必填，防误删）' }}</span>
           <div class="uq-card-hd-r">
-            <button class="btn ghost xs" @click="queryStr = ''; scriptSource = ''" :disabled="!queryStr && !bodyStr" title="清空 query 和 script">清空</button>
+            <button class="btn ghost xs" @click="queryStr = ''; scriptSource = ''" :disabled="!queryStr && !bodyStr" v-tip="'清空 query 和 script'">清空</button>
             <button class="btn ghost xs" @click="loadTpl('match_all')" :disabled="mode === 'delete'">match_all</button>
             <button class="btn ghost xs" @click="loadTpl('term')">term</button>
             <button class="btn ghost xs" @click="loadTpl('range')">range</button>
@@ -102,7 +102,7 @@
           <div class="uq-script-hd">Painless Script（可选，与 doc 二选一）<!-- ：直达调试入口 --><router-link class="uq-lab-link" to="/painless-lab">去 Painless Lab 调试</router-link>
             <!-- 脚本面高度档循环钮（SqlConsoleView codeH「高」钮同款形态） -->
             <button class="btn ghost xs" style="margin-left:auto" data-test="ubq-script-h"
-              :title="'脚本编辑器高度档：' + scriptH" @click="cycleScriptH">高</button>
+              v-tip="'脚本编辑器高度档：' + scriptH" @click="cycleScriptH">高</button>
           </div>
           <!-- 28vh → 42vh 弹性档 + usePref 记忆（SqlConsole codeH 三档循环同款，
  editorTiers 族口径：st.editorH/qx.taH 先例）。
@@ -158,7 +158,7 @@
           <span>结果</span>
           <div class="uq-card-hd-r">
             <!-- 原始 IO 快查——本页 update/delete_by_query 最近一次请求/响应原文（ioRecorder 记录环） -->
-            <button class="btn ghost xs" data-test="raw-io" aria-label="查看原始 IO（批量写执行）" title="最近一次 update/delete_by_query 请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo">
+            <button class="btn ghost xs" data-test="raw-io" aria-label="查看原始 IO（批量写执行）" v-tip="'最近一次 update/delete_by_query 请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo">
               <Terminal :size="11" /> 原始 IO
             </button>
             <!-- uq-badge code-bg 私造徽标改用 StatusPill 统一件（中性 n 档：taskId
@@ -167,7 +167,7 @@
             <!-- 死 API 激活——api.progress(taskId) 一次性拉取（InternalEsIndexRebuildController
  /progress 端点现成，Java 零改）；行内三态中文（ReindexAdvancedView 同款） -->
             <button v-if="result.taskId" class="btn ghost xs" data-test="ubq-progress" :disabled="progressLoading"
-              title="拉取该任务当前进度（一次性查询，不挂轮询）" @click="queryTaskProgress">{{ progressLoading ? '查进度中…' : '查进度' }}</button>
+              v-tip="'拉取该任务当前进度（一次性查询，不挂轮询）'" @click="queryTaskProgress">{{ progressLoading ? '查进度中…' : '查进度' }}</button>
             <button v-if="result.taskId" class="btn ghost xs" @click="goTaskTree">
               <ExternalLink :size="11" /> 到任务树
             </button>

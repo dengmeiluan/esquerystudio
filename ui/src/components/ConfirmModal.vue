@@ -22,8 +22,8 @@
         </div>
       </div>
       <div v-if="level === 'critical' && guardText" class="cf-guard">
-        <div class="cf-guard-tip">输入 <b class="mono">{{ guardText }}</b> 以确认操作：</div>
-        <input ref="guardRef" v-model="guardInput" class="inp mono" :placeholder="guardText" @keydown.enter="ok" />
+        <div :id="guardTipId" class="cf-guard-tip" role="note">输入 <b class="mono">{{ guardText }}</b> 以确认操作：</div>
+        <input ref="guardRef" v-model="guardInput" class="inp mono" :placeholder="guardText" :aria-label="'输入确认词 ' + guardText" :aria-describedby="guardTipId" :aria-invalid="!!guardInput && guardInput !== guardText" @keydown.enter="ok" />
       </div>
       <!-- W10：会话级防呆——仅调用方显式 dismissable 且非 critical/无守卫时给
  checkbox；勾选并确认后按 title 哈希写 sessionStorage，askConfirm 命中即直接放行 -->
@@ -73,6 +73,7 @@ const emit = defineEmits<{
 }>();
 
 const guardInput = ref('');
+const guardTipId = `cf-guard-tip-${Math.random().toString(36).slice(2, 8)}`;
 const guardRef = ref<HTMLInputElement>();
 const okBtnRef = ref<HTMLButtonElement>();
 const boxRef = ref<HTMLElement>();

@@ -67,6 +67,9 @@ public class CrossClusterMigrateController {
         this.connStore = connStore;
         this.envPagesResolver = envPagesResolver;
         this.pageAuthEnabled = pageAuthEnabled;
+        /* 等价性验证的 id 形态（服务层统一入口）需要服务内解析连接档案：装配期注入档案解析器
+           （含密取档仅服务端流转，与 storedConn 同源）。 */
+        migrateService.setConnProfileResolver(connStore::get);
     }
 
     /** 旧集群连通性自检 + 列出旧集群索引。connId 非空时用已存档案（body 可传 {}）。 */
@@ -206,6 +209,100 @@ public class CrossClusterMigrateController {
                 resolveDestConn(destConnId, request), destIndex);
         diffOut.put("destConnId", destConnId);
         return diffOut;
+    }
+
+    /**
+     * 迁移后等价性验证（只读）：双侧 {@code _count}(match_all) 对比 + 源抽样对比（源
+     * {@code _search} sort:_doc 取 id 集，两侧 {@code _mget} 取 _source 后 canonical JSON
+     * SHA-256 前 16 hex 摘要逐 id 对比，sampleFields 投影后哈希）+ 可选 terms 聚合对比
+     * （aggField），产出 verdict=EQUIVALENT/DIVERGENT/INCONCLUSIVE 与 warnings（钳制、
+     * 索引缺失、投影字段未出现等）。目标索引不存在（404）→ 该侧 count=null + INCONCLUSIVE
+     * （不是异常）。body：{jobId? | srcConnId+sourceIndex, conn?, destConnId?, destIndex?,
+     * sampleSize?（默认 100，钳 10..500），sampleFields?（数组或逗号串），aggField?,
+     * aggSize?（默认 10，钳 1..50）}。jobId 形态从作业档案取参，归属校验同 resume
+     * （创建者本人或 ADMIN）；srcConnId 形态同 sync_structure（必须已存档案）。
+     */
+    @PostMapping("verify-equivalence")
+    public Map<String, Object> verifyEquivalence(@RequestBody Map<String, Object> body,
+                                                 HttpServletRequest request) {
+        String jobId = str(body.get("jobId"));
+        String srcConnId;
+        String sourceIndex;
+        String destIndex = str(body.get("destIndex"));
+        if (!jobId.isEmpty()) {
+            MigrateJobES job = migrateService.progress(jobId);
+            requireJobSource(job, request, true);
+            srcConnId = job.getSrcConnId() == null ? "" : job.getSrcConnId().trim();
+            if (srcConnId.isEmpty()) {
+                throw new IllegalArgumentException("该作业未记录源连接档案，无法验证（历史手输连接的作业不支持）: " + jobId);
+            }
+            sourceIndex = job.getSourceIndex() == null ? "" : job.getSourceIndex().trim();
+            String jobDest = job.getDestIndex() == null ? "" : job.getDestIndex().trim();
+            if (!jobDest.isEmpty()) {
+                destIndex = jobDest;
+            }
+        } else {
+            srcConnId = str(body.get("srcConnId"));
+            sourceIndex = str(body.get("sourceIndex"));
+        }
+        requireSourceWrite(srcConnId, request);
+        if (sourceIndex.isEmpty()) {
+            throw new IllegalArgumentException("sourceIndex 不能为空");
+        }
+        RemoteClusterConn manual = body.get("conn") instanceof Map
+                ? JOB_COPY.convertValue(body.get("conn"), RemoteClusterConn.class) : null;
+        String destConnId = normalizeDestConnId(str(body.get("destConnId")));
+        return migrateService.verifyEquivalence(pick(manual, srcConnId, request), sourceIndex, destConnId,
+                resolveDestConn(destConnId, request), destIndex,
+                intOrNull(body.get("sampleSize"), "sampleSize"),
+                stringList(body.get("sampleFields"), "sampleFields"),
+                str(body.get("aggField")), intOrNull(body.get("aggSize"), "aggSize"));
+    }
+
+    /** body 数值参数：null→null；Number 取整；非空数字串解析；其余形态 400（与兄弟端点同错误形态）。 */
+    private static Integer intOrNull(Object raw, String what) {
+        if (raw == null) {
+            return null;
+        }
+        if (raw instanceof Number) {
+            return ((Number) raw).intValue();
+        }
+        if (raw instanceof String && !((String) raw).trim().isEmpty()) {
+            try {
+                return Integer.parseInt(((String) raw).trim());
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException(what + " 必须为整数");
+            }
+        }
+        throw new IllegalArgumentException(what + " 必须为整数");
+    }
+
+    /** body 字符串清单参数：数组或逗号分隔串（空白项剔除）；全空/缺省返回 null。 */
+    private static List<String> stringList(Object raw, String what) {
+        if (raw == null) {
+            return null;
+        }
+        List<String> out = new ArrayList<>();
+        if (raw instanceof String) {
+            for (String part : ((String) raw).split(",")) {
+                String trimmed = part.trim();
+                if (!trimmed.isEmpty()) {
+                    out.add(trimmed);
+                }
+            }
+        } else if (raw instanceof List) {
+            for (Object item : (List<?>) raw) {
+                if (item != null) {
+                    String trimmed = String.valueOf(item).trim();
+                    if (!trimmed.isEmpty()) {
+                        out.add(trimmed);
+                    }
+                }
+            }
+        } else {
+            throw new IllegalArgumentException(what + " 必须为字符串数组或逗号分隔串");
+        }
+        return out.isEmpty() ? null : out;
     }
 
     /**

@@ -29,11 +29,11 @@ describe('六百三十二批①：时长/缓动令牌（theme.css，零 @media /
     expect(CSS, '常规时长').toContain('--dur-base: 320ms;');
     expect(CSS, '编排间隔').toContain('--stagger: 60ms;');
   });
-  it('不破 adaptive556 计数锁（@media 恒 3 / reduced-motion 恒 2——783 批 R66 兜底族退役 4→3）', () => {
+  it('不破 adaptive556 计数锁（@media 3→4 / reduced-motion 2→3——v-tip 迁移把 .vt-pop 的 prefers-reduced-motion 块入册）', () => {
     const media = (CSS.match(/@media/g) ?? []).length;
     const rm = (CSS.match(/prefers-reduced-motion/g) ?? []).length;
-    expect(media, '@media 计数不变').toBe(3);
-    expect(rm, 'reduced-motion 计数不变').toBe(2);
+    expect(media, '@media 计数随迁：901 布局档 + 全站/ind-bar/vt-pop 三个 reduced-motion 块').toBe(4);
+    expect(rm, 'reduced-motion 计数随迁：全站档/vt-pop/ind-bar').toBe(3);
   });
 });
 

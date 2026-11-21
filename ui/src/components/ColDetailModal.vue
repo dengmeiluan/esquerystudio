@@ -27,7 +27,7 @@
  运行时锚零迁移）；自造 focus 边框由 :focus-within 焦点环承接 -->
         <SearchFilterBar v-if="stats.topTotal > 20" v-model="kw" class="rt-cd-kw-wrap" input-class="rt-cd-kw mono" placeholder="过滤高频值…" />
         <div v-for="(e, i) in topView" :key="i" class="rt-cd-row mono">
-          <span class="rt-cd-v" :title="labelOf(e.v)">{{ labelOf(e.v) }}</span>
+          <span class="rt-cd-v" v-tip="labelOf(e.v)">{{ labelOf(e.v) }}</span>
           <span class="rt-cd-n">{{ e.n }} 行</span>
         </div>
         <div v-if="!topView.length" class="rt-cd-none">无匹配值</div>
@@ -38,7 +38,7 @@
       <div v-if="stats.dist" class="rt-cd-dist">
         <div class="rt-cd-t"><span>分布</span></div>
         <div class="rt-cd-bars">
-          <div v-for="(b, i) in stats.dist.bins" :key="i" class="rt-cd-bar" :title="`${b.from}~${b.to}: ${b.count}`">
+          <div v-for="(b, i) in stats.dist.bins" :key="i" class="rt-cd-bar" v-tip="`${b.from}~${b.to}: ${b.count}`">
             <div class="rt-cd-bar-fill" :style="{ height: distBarH(b.count) }"></div>
           </div>
         </div>

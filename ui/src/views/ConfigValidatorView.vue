@@ -21,7 +21,7 @@
 </button>
 <!-- G249：原始 IO 快查（557/757 同款三件套）——本页最近一次校验
  （POST config-lab/validate）请求/响应原文（ioRecorder 记录环）；页头恒渲染位 -->
-<button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（索引配置校验）" title="最近一次校验（config-lab/validate）请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
+<button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（索引配置校验）" v-tip="'最近一次校验（config-lab/validate）请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
       </template>
       </PageHeader>
 </div>
@@ -66,8 +66,8 @@
           <input v-model="settingsFind.kw.value" class="inp mono cv-find" aria-label="搜 settings" placeholder="搜 settings…" @input="settingsFind.run()"
             @keydown.enter.prevent="settingsFind.kw.value.trim() && ($event.shiftKey ? settingsFind.prev() : settingsFind.next())" />
           <span class="mono cv-find-mc">{{ settingsFind.current.value }}/{{ settingsFind.count.value }}</span>
-          <button type="button" class="btn ghost xs" :disabled="!settingsFind.count.value" title="上一个 (Shift+Enter)" @click="settingsFind.prev()">↑</button>
-          <button type="button" class="btn ghost xs" :disabled="!settingsFind.count.value" title="下一个 (Enter)" @click="settingsFind.next()">↓</button>
+          <button type="button" class="btn ghost xs" :disabled="!settingsFind.count.value" v-tip="'上一个 (Shift+Enter)'" @click="settingsFind.prev()">↑</button>
+          <button type="button" class="btn ghost xs" :disabled="!settingsFind.count.value" v-tip="'下一个 (Enter)'" @click="settingsFind.next()">↓</button>
         </div>
         <MonacoEditor ref="cvSettingsMonaco" v-model="settingsText" height="100%" :dsl-assist="cvSettingsAssist" @execute="doValidate(true)" />
       </div>
@@ -81,8 +81,8 @@
           <input v-model="mappingFind.kw.value" class="inp mono cv-find" aria-label="搜 mapping" placeholder="搜 mapping…" @input="mappingFind.run()"
             @keydown.enter.prevent="mappingFind.kw.value.trim() && ($event.shiftKey ? mappingFind.prev() : mappingFind.next())" />
           <span class="mono cv-find-mc">{{ mappingFind.current.value }}/{{ mappingFind.count.value }}</span>
-          <button type="button" class="btn ghost xs" :disabled="!mappingFind.count.value" title="上一个 (Shift+Enter)" @click="mappingFind.prev()">↑</button>
-          <button type="button" class="btn ghost xs" :disabled="!mappingFind.count.value" title="下一个 (Enter)" @click="mappingFind.next()">↓</button>
+          <button type="button" class="btn ghost xs" :disabled="!mappingFind.count.value" v-tip="'上一个 (Shift+Enter)'" @click="mappingFind.prev()">↑</button>
+          <button type="button" class="btn ghost xs" :disabled="!mappingFind.count.value" v-tip="'下一个 (Enter)'" @click="mappingFind.next()">↓</button>
         </div>
         <MonacoEditor ref="cvMappingMonaco" v-model="mappingText" height="100%" :dsl-assist="cvMappingAssist" @execute="doValidate(true)" />
       </div>
@@ -110,7 +110,7 @@
           <span class="ms-i ms-t"><TookBadge :ms="report.elapsedMs" title="校验耗时" /></span>
         </MetaStrip>
         <!-- W2 批：问题清单高度档（usePref configvalidator.issuesH，默认 380=原写死值） -->
-        <button class="btn ghost xs" data-cv-issues-h :title="'问题清单高度档：' + cvIssuesH + 'px'" @click="cycleIssuesH">高</button>
+        <button class="btn ghost xs" data-cv-issues-h v-tip="'问题清单高度档：' + cvIssuesH + 'px'" @click="cycleIssuesH">高</button>
         <div class="cv-rp-act" v-if="report.valid && report.dryRunPassed">
           <input v-model="createName" class="inp sm-inp" placeholder="新索引名" />
           <div v-if="createNameHint" class="il-hint" :class="'il-' + createNameLevel">{{ createNameHint }}</div>
@@ -139,13 +139,13 @@
           <code v-if="iss.fix" class="cv-iss-fixkey">{{ iss.fix.key }}<template v-if="iss.fix.action === 'ADD_SETTING' && iss.fix.value != null">={{ iss.fix.value }}</template></code>
           <button v-if="iss.fix && iss.fix.action === 'REMOVE_SETTING'" type="button"
                   class="btn ghost xs" style="flex-shrink:0" data-test="cv-fix-remove"
-                  :title="'从 settings 移除键 ' + iss.fix.key + '（确认后执行）'"
+                  v-tip="'从 settings 移除键 ' + iss.fix.key + '（确认后执行）'"
                   @click.stop="applyFixRemoveSetting(iss)">
             <Trash2 :size="11" /> 一键移除
           </button>
           <button v-else-if="iss.fix && iss.fix.action === 'ADD_SETTING'" type="button"
                   class="btn ghost xs" style="flex-shrink:0" data-test="cv-fix-add"
-                  :title="'向 settings 补充键 ' + iss.fix.key + (iss.fix.value != null ? '=' + iss.fix.value : '') + '（确认后执行）'"
+                  v-tip="'向 settings 补充键 ' + iss.fix.key + (iss.fix.value != null ? '=' + iss.fix.value : '') + '（确认后执行）'"
                   @click.stop="applyFixAddSetting(iss)">
             <Plus :size="11" /> 一键补充
           </button>

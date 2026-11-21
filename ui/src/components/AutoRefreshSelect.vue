@@ -6,7 +6,7 @@
  对外契约零变化：v-model:ms(number)/sizes/label/disabled 四 props、.arf-sel
  类锚与 title/aria 透传原样，10+ 消费页零改。档位/文案由 ms 值生成 -->
   <n-select v-model:value="ms" class="arf-sel" :options="opts" size="small"
-    :title="label" :aria-label="label" :disabled="disabled" />
+    v-tip="label" :aria-label="label" :disabled="disabled" />
 </template>
 
 <script setup lang="ts">

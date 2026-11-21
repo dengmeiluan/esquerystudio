@@ -72,6 +72,7 @@ const lastCap = () => monacoCaps[monacoCaps.length - 1];
 import DevToolsView from '../views/DevToolsView.vue';
 import RestView from '../views/RestView.vue';
 import { useAppStore } from '../stores/app';
+import { vTip } from '../directives/vTip';
 
 const RAW_OK = { status: 200, body: '{"ok":true}' };
 
@@ -94,6 +95,7 @@ async function mountView(comp: any, hash = '#/') {
   await router.push('/');
   await router.isReady();
   const app = createApp({ render: () => h(comp) });
+  app.directive('tip', vTip); /* RestView method 置灰提示已迁 v-tip 指令，注册后经浮层读取 */
   apps.push(app);
   app.use(pinia);
   app.use(router);
@@ -272,7 +274,10 @@ describe('W3-T11 RestView 智能补全渗透', () => {
     await key(inp, 'Enter');
     expect(inp.value).toBe('/_reindex');
     expect(mBtn('GET').disabled, 'GET 不在 [POST] 必须置灰').toBe(true);
-    expect(mBtn('GET').title, '置灰必须带可用方法提示').toContain('POST');
+    /* 置灰提示已迁 v-tip 指令（DOM 无 title 属性）：focusin 通道立即显示单例浮层 #vt-tip，
+       合成事件不受按钮 disabled 影响（真实浏览器 disabled 不聚焦，指令键盘监听仍可被合成事件触达） */
+    mBtn('GET').dispatchEvent(new Event('focusin', { bubbles: false }));
+    expect(document.getElementById('vt-tip')?.textContent ?? '', '置灰必须带可用方法提示').toContain('POST');
     expect(mBtn('POST').disabled).toBe(false);
     expect(mBtn('POST').classList.contains('on'), '当前 method 必须自动纠正为 POST').toBe(true);
     const btn = findBtn(host, '插入 body 骨架');

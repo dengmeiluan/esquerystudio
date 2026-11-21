@@ -7,7 +7,7 @@
 <template #subtitle>
         <!-- 795 件4：subtitle 精简一档——采样细节（后台常驻/切页降档）收进 title 悬浮，
  常驻态一句话（轮询档+阈值告警+运行态） -->
-        <span :title="`后台常驻采样：切页降为 ${bgMs / 1000}s 不中断；挂墙模式恒定 5s`">{{ intervalMs / 1000 }}s 轮询 · 阈值告警 ·
+        <span v-tip="`后台常驻采样：切页降为 ${bgMs / 1000}s 不中断；挂墙模式恒定 5s`">{{ intervalMs / 1000 }}s 轮询 · 阈值告警 ·
             <b :class="running ? 'rn' : 'st'">{{ running ? '实时' : '已暂停' }}</b></span>
       </template>
       <template #actions>
@@ -15,7 +15,7 @@
         <AutoRefreshSelect v-model:ms="intervalMs" :sizes="[2000, 5000, 10000, 30000, 60000]" :label="fullscreen ? '轮询间隔：挂墙模式恒定 5s' : '轮询间隔'" :disabled="fullscreen" />
         <!-- 趋势窗长（对标阿里云时间控件多档体验）——六卡/对比卡折线展示点数，偏好落盘
  （select 升档 NSelect：数值档 value 直绑免 .number 修饰） -->
-        <n-select v-model:value="windowPts" :options="windowPtsOpts" size="small" class="ld-sel" aria-label="趋势窗长" title="趋势窗长：实时折线展示的采样点数" />
+        <n-select v-model:value="windowPts" :options="windowPtsOpts" size="small" class="ld-sel" aria-label="趋势窗长" v-tip="'趋势窗长：实时折线展示的采样点数'" />
         <button class="btn ghost sm" @click="toggle">
           <Pause v-if="running" :size="12" />
           <Play v-else :size="12" />
@@ -87,12 +87,12 @@
         <div class="ld-chart-tt">
           <span class="ld-chart-tt-top">运行中任务<em class="ld-chart-th">托管 / 迁移 / Reindex / 快照</em>
             <!-- ②任务卡走势：会话窗任务数 spark（<2 点不画=宁缺毋假；全局口径不随集群切换清位） -->
-            <svg v-if="mon.jobCountSeries.length > 1" class="ld-job-spark" :viewBox="'0 0 72 18'" preserveAspectRatio="none" aria-hidden="true" role="img" :title="'本次会话运行任务数走势（最近 ' + mon.jobCountSeries.length + ' 点）'"><polyline :points="sparklinePoints(mon.jobCountSeries, 72, 18)" fill="none" stroke="var(--dv-blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
+            <svg v-if="mon.jobCountSeries.length > 1" class="ld-job-spark" :viewBox="'0 0 72 18'" preserveAspectRatio="none" aria-hidden="true" role="img" v-tip="'本次会话运行任务数走势（最近 ' + mon.jobCountSeries.length + ' 点）'"><polyline :points="sparklinePoints(mon.jobCountSeries, 72, 18)" fill="none" stroke="var(--dv-blue)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" /></svg>
           </span>
-          <b class="ld-chart-cur" :key="runningJobs.length" style="color:var(--dv-blue)" title="托管重建 / 跨集群迁移 / Reindex 任务 / 快照">{{ runningJobs.length }}</b>
+          <b class="ld-chart-cur" :key="runningJobs.length" style="color:var(--dv-blue)" v-tip="'托管重建 / 跨集群迁移 / Reindex 任务 / 快照'">{{ runningJobs.length }}</b>
         </div>
         <div v-if="runningJobs.length" class="ld-jobs">
-          <div v-for="j in runningJobs.slice(0, 5)" :key="j.id" class="ld-job" :title="j.kindName + '「' + j.label + '」' + (j.pct >= 0 ? ' 进度 ' + j.pct + '%' : '')">
+          <div v-for="j in runningJobs.slice(0, 5)" :key="j.id" class="ld-job" v-tip="j.kindName + '「' + j.label + '」' + (j.pct >= 0 ? ' 进度 ' + j.pct + '%' : '')">
             <!-- 徽标改用 StatusPill（jobTone 本地字典收口 utils/esEnumZh 的 jobKindTone） -->
             <StatusPill :tone="jobKindTone(j.kindName)" :label="j.kindName" />
             <span class="ld-job-lb">{{ j.label }}</span>
@@ -117,7 +117,7 @@
         <!-- 件1：区块头汇总（节点/master/水位告警一眼读出） -->
         <span class="ld-nodes-sum">{{ nodesSummary }}</span>
         <button ref="cmpEntryRef" type="button" class="ld-ncmp-entry" :aria-expanded="cmpPanelOpen"
-          :title="cmpPanelOpen ? '收起节点对比' : '展开节点对比'" @click="toggleCmpPanel">
+          v-tip="cmpPanelOpen ? '收起节点对比' : '展开节点对比'" @click="toggleCmpPanel">
           <GitCompareArrows :size="12" />节点对比
         </button>
       </div>
@@ -130,20 +130,20 @@
           <!-- 896 #10 主节点专项视角：仅看 master（role 口径与区块头 nodesSummary 同源）；
            控件升档 NCheckbox（role=checkbox 键盘可达） -->
           <n-checkbox v-model:checked="cmpOnlyMaster" size="small" class="ld-ncmp-master"
-            title="只对比 master 角色节点（集群稳定性关键少数）">仅 master</n-checkbox>
-          <button v-if="hiddenNodes.length" type="button" class="ld-ncmp-restore" title="恢复全部已隐藏节点" @click="hiddenNodes = []">已隐藏 {{ hiddenNodes.length }} ▸ 恢复</button>
+            v-tip="'只对比 master 角色节点（集群稳定性关键少数）'">仅 master</n-checkbox>
+          <button v-if="hiddenNodes.length" type="button" class="ld-ncmp-restore" v-tip="'恢复全部已隐藏节点'" @click="hiddenNodes = []">已隐藏 {{ hiddenNodes.length }} ▸ 恢复</button>
           <span class="seg ld-seg" role="group" aria-label="节点对比指标">
             <span class="seg-thumb" :style="segPillStyle(CMP_METRICS.length, cmpMetricIdx)" aria-hidden="true" />
             <button v-for="m in CMP_METRICS" :key="m.k" type="button" :class="{ on: cmpMetric === m.k }"
               :aria-pressed="cmpMetric === m.k" @click="cmpMetric = m.k">{{ m.label }}</button>
           </span>
           <!-- 展开钮（能力与顶部卡/历史卡统一；全屏态面板 fixed 覆盖视口） -->
-          <button type="button" class="ld-ncmp-expand" :aria-label="expandedCard === 'cmp' ? '还原' : '展开'" :title="expandedCard === 'cmp' ? '还原' : '展开'"
+          <button type="button" class="ld-ncmp-expand" :aria-label="expandedCard === 'cmp' ? '还原' : '展开'" v-tip="expandedCard === 'cmp' ? '还原' : '展开'"
             @click="toggleExpand('cmp')">
             <Minimize2 v-if="expandedCard === 'cmp'" :size="12" />
             <Maximize2 v-else :size="12" />
           </button>
-          <button type="button" class="ld-ncmp-close" aria-label="收起节点对比" title="收起（Esc）" @click="closeCmpPanel">✕</button>
+          <button type="button" class="ld-ncmp-close" aria-label="收起节点对比" v-tip="'收起（Esc）'" @click="closeCmpPanel">✕</button>
         </div>
         <template v-if="cmpHasData">
           <!-- 悬浮命中域=绘图域本体（877 全量扫描定谳）：监听原挂 .ld-ncmp-panel（含头部行/
@@ -194,11 +194,11 @@
                 <span class="ld-hv-t">{{ cmpHit.t ? fmtTime(cmpHit.t) : '' }}</span>
                 <span v-for="r in cmpRowsCapped.rows" :key="r.name" class="ld-ncmp-tip-r"
                   @mouseenter="cmpHot = r.name" @mouseleave="cmpHot = null">
-                  <i :style="{ background: r.color }" /><b :title="r.name">{{ shortNode(r.name) }}</b><em>{{ r.v }}</em>
-                  <button type="button" class="ld-ncmp-hide" :aria-label="'隐藏节点 ' + r.name + ' 的曲线'" title="隐藏该节点曲线（头部可一键恢复）" @click.stop="toggleNode(r.name)">×</button>
+                  <i :style="{ background: r.color }" /><b v-tip="r.name">{{ shortNode(r.name) }}</b><em>{{ r.v }}</em>
+                  <button type="button" class="ld-ncmp-hide" :aria-label="'隐藏节点 ' + r.name + ' 的曲线'" v-tip="'隐藏该节点曲线（头部可一键恢复）'" @click.stop="toggleNode(r.name)">×</button>
                 </span>
                 <span v-if="cmpRowsCapped.hidden" class="ld-ncmp-tip-r ld-ncmp-tip-more"
-                  :title="'其余 ' + cmpRowsCapped.hidden + ' 节点：' + cmpRows.slice(CMP_TIP_CAP).map(r => r.name).join('、') + '（行尾 × 可隐藏节点减行）'">+{{ cmpRowsCapped.hidden }} 节点…</span>
+                  v-tip="'其余 ' + cmpRowsCapped.hidden + ' 节点：' + cmpRows.slice(CMP_TIP_CAP).map(r => r.name).join('、') + '（行尾 × 可隐藏节点减行）'">+{{ cmpRowsCapped.hidden }} 节点…</span>
               </div>
             </template>
             </div>
@@ -216,7 +216,7 @@
  常驻=有节点即显示，不随 cmpHasData 条件块） -->
         <div class="ld-cmp-legend">
           <button v-for="c in cmpChips" :key="c.name" type="button" class="ld-cmp-lg" :class="{ off: c.off }"
-            :aria-pressed="!c.off" :title="(c.off ? '点击显示 ' : '点击隐藏 ') + c.name + ' 的曲线'" @click="toggleNode(c.name)"
+            :aria-pressed="!c.off" v-tip="(c.off ? '点击显示 ' : '点击隐藏 ') + c.name + ' 的曲线'" @click="toggleNode(c.name)"
             @mouseenter="cmpHot = c.name" @mouseleave="cmpHot = null"
             @focus="cmpHot = c.name" @blur="cmpHot = null">
             <i :style="{ background: c.color }" aria-hidden="true" />{{ shortNode(c.name) }}<em class="mono">{{ c.cur }}</em>
@@ -231,7 +231,7 @@
         <EmptyState v-if="!sortedNodes.length" class="ld-nodes-empty" compact :icon="MonitorSpeaker" text="暂无节点数据" />
         <!-- 节点卡可点下钻 /diag?node={name}（告警条 alertRoute 同语汇；role/tabindex/Enter=铁律 B 键盘可达） -->
         <div v-for="n in sortedNodes" :key="n.nodeId" class="ld-node" :class="nodeTone(n)" role="button" tabindex="0"
-          :aria-label="`节点 ${n.name}，点击进入诊断`" title="点击进入诊断"
+          :aria-label="`节点 ${n.name}，点击进入诊断`" v-tip="'点击进入诊断'"
           @click="router.push({ path: '/diag', query: { node: n.name } })"
           @contextmenu.prevent="openLdRowMenu($event, 'node-card', n)"
           @keydown="onLdCardKey($event, 'node-card', n)" data-row-nav @keydown.self="rowArrowNav">
@@ -293,7 +293,7 @@
       </div>
       <!-- 告警横条键盘可达（role/tabindex/Enter 触发——纯 click 绑定对键盘用户不可达） -->
       <div v-for="a in activeAlerts" :key="a.key" class="ld-alert" :class="a.severity" role="button" tabindex="0"
-        :aria-label="`告警：${a.title}，点击定位到对应处置`" title="点击定位到对应处置"
+        :aria-label="`告警：${a.title}，点击定位到对应处置`" v-tip="'点击定位到对应处置'"
         @click="alertRoute(a)" @contextmenu.prevent="openLdRowMenu($event, 'active-alert', a)"
         @keydown="onLdCardKey($event, 'active-alert', a)" data-row-nav @keydown.self="rowArrowNav">
         <span class="ld-alert-m">
@@ -331,7 +331,7 @@
           <span class="ld-hist-sub">服务端每分钟采样 · {{ nodeMode ? '节点叠加' : (clusterFilter || '多集群叠加') }} · 环形保留</span>
           <span class="ld-hist-sp"></span>
           <!-- R6 环形治理用量条：审计+监控合计/30GB 上限，治理口径透明化（拉取失败静默隐藏） -->
-          <span v-if="ring" class="ld-hist-ring" :title="'审计 ' + fmtSize(ring.auditBytes) + ' + 监控 ' + fmtSize(ring.monitorBytes) + ' / 上限 ' + fmtSize(ring.capBytes)">
+          <span v-if="ring" class="ld-hist-ring" v-tip="'审计 ' + fmtSize(ring.auditBytes) + ' + 监控 ' + fmtSize(ring.monitorBytes) + ' / 上限 ' + fmtSize(ring.capBytes)">
             <span class="ld-hist-ring-bar"><i :style="{ width: ringPct + '%' }" /></span>
             <span class="mono">{{ fmtSize(ring.totalBytes) }} / {{ fmtSize(ring.capBytes) }}</span>
           </span>
@@ -345,10 +345,10 @@
           <span class="seg-thumb" :style="segPillStyle(HIST_GROUPS.length, histGroupIdx)" aria-hidden="true" />
           <button v-for="g in HIST_GROUPS" :key="g.key" type="button"
             :class="{ on: histGroup === g.key }" :aria-pressed="histGroup === g.key"
-            :title="'分组：' + g.label" @click="histGroup = g.key">{{ g.short }}</button>
+            v-tip="'分组：' + g.label" @click="histGroup = g.key">{{ g.short }}</button>
         </span>
         <span class="ld-hist-sp"></span>
-        <n-select v-model:value="mh2Range" :options="mh2RangeOpts" size="small" class="ld-sel" aria-label="时间范围" title="时间范围" />
+        <n-select v-model:value="mh2Range" :options="mh2RangeOpts" size="small" class="ld-sel" aria-label="时间范围" v-tip="'时间范围'" />
         <!-- 自定义时间档收官：起止 NDatePicker datetime 档（naive-ui 统一件，键盘可达+clearable），
          value=epoch 毫秒（null=未选），rangeMs 单源直读毫秒 -->
         <template v-if="mh2Range === 'custom'">
@@ -358,15 +358,15 @@
           <label class="ld-dp-lbl">
             <span class="sr-only">自定义开始时间</span>
             <n-date-picker v-model:value="customFrom" type="datetime" size="small" class="ld-dp" clearable
-              aria-label="自定义开始时间" title="自定义开始时间" />
+              aria-label="自定义开始时间" v-tip="'自定义开始时间'" />
           </label>
           <label class="ld-dp-lbl">
             <span class="sr-only">自定义结束时间</span>
             <n-date-picker v-model:value="customTo" type="datetime" size="small" class="ld-dp" clearable
-              aria-label="自定义结束时间" title="自定义结束时间" />
+              aria-label="自定义结束时间" v-tip="'自定义结束时间'" />
           </label>
         </template>
-        <n-select v-model:value="clusterFilter" :options="clusterFilterOpts" size="small" class="ld-sel" aria-label="筛选集群" title="筛选集群" />
+        <n-select v-model:value="clusterFilter" :options="clusterFilterOpts" size="small" class="ld-sel" aria-label="筛选集群" v-tip="'筛选集群'" />
         <button class="btn ghost sm" :disabled="histLoading" @click="loadHist"><RotateCw :size="12" /> 刷新</button>
         <!-- 低频控件收进 ⋯（铁律 C「工具行默认可见按钮 ≤5，其余收进 ⋯」）。
 	 明面＝分组 seg / 时间范围 / 筛选集群 / 刷新 / ⋯ ＝ 5。
@@ -379,13 +379,13 @@
             <template #trigger>
               <button ref="histMoreSumEl" type="button" class="ld-hist-more-sum" aria-label="更多选项"
                 aria-haspopup="true" :aria-expanded="histMoreOpen" @click="histMoreOpen = !histMoreOpen"
-                title="更多选项：聚合方式 / 自动刷新 / 按节点查看">⋯</button>
+                v-tip="'更多选项：聚合方式 / 自动刷新 / 按节点查看'">⋯</button>
             </template>
           <div class="ld-hist-more-pop">
             <!-- 聚合方式：avg=桶均值（趋势口径）| max=桶内峰值（瞬时尖峰），随取数下推服务端 -->
             <div class="ld-hist-more-row">
               <span class="ld-hist-more-lb">聚合方式</span>
-              <n-select v-model:value="mhAgg" :options="mhAggOpts" size="small" class="ld-sel" aria-label="聚合方式" title="聚合方式：均值看趋势，峰值看突刺" />
+              <n-select v-model:value="mhAgg" :options="mhAggOpts" size="small" class="ld-sel" aria-label="聚合方式" v-tip="'聚合方式：均值看趋势，峰值看突刺'" />
             </div>
             <!-- 聚合粒度（周期）档（对标阿里云每卡头「(周期:1分钟)」；626 裁决 D8
  周期半边，零 Java 改动）。落点在 ⋯ 浮层内——明面已用满 5 控件（铁律 C）。
@@ -393,16 +393,16 @@
  （原始查询 size 钳 3000 + asc，长窗会丢最新点）。 -->
             <div class="ld-hist-more-row">
               <span class="ld-hist-more-lb">聚合粒度</span>
-              <n-select v-model:value="histPeriod" :options="histPeriodOpts" size="small" class="ld-sel" aria-label="聚合粒度" :title="histPeriodSelTitle" />
+              <n-select v-model:value="histPeriod" :options="histPeriodOpts" size="small" class="ld-sel" aria-label="聚合粒度" v-tip="histPeriodSelTitle" />
             </div>
             <!-- 自动刷新（对标阿里云基础监控自动刷新开关）：挂墙大屏历史自动推进，
  档位关/30s/1m/5m 偏好记忆 live.histAuto 默认关；页面隐藏/KeepAlive 失活自动停 -->
             <div class="ld-hist-more-row">
               <span class="ld-hist-more-lb">自动刷新</span>
-              <n-select v-model:value="histAutoMs" :options="histAutoOpts" size="small" class="ld-sel" aria-label="自动刷新" title="自动刷新：关闭或按档位自动推进历史" @update:value="onHistAutoChange" />
+              <n-select v-model:value="histAutoMs" :options="histAutoOpts" size="small" class="ld-sel" aria-label="自动刷新" v-tip="'自动刷新：关闭或按档位自动推进历史'" @update:value="onHistAutoChange" />
             </div>
             <n-checkbox v-model:checked="byNode" size="small" class="ld-hist-node" :disabled="!clusterFilter"
-              :title="clusterFilter ? '叠加展示该集群内各节点的序列' : '需先选定具体集群才有节点序列'">按节点查看</n-checkbox>
+              v-tip="clusterFilter ? '叠加展示该集群内各节点的序列' : '需先选定具体集群才有节点序列'">按节点查看</n-checkbox>
           </div>
           </n-popover>
         </span>
@@ -415,7 +415,7 @@
  有 CRIT/WARN chips 时保留行） -->
       <div v-if="srvActive.length" class="ld-hist-alerts" role="status" aria-label="服务端告警">
         <span v-for="a in srvActive" :key="(a.connId || '') + '|' + a.metric" class="ld-hist-al"
-          :class="a.level === 'CRIT' ? 'crit' : a.level === 'WARN' ? 'warn' : 'info'" :title="srvAlertTitle(a)">
+          :class="a.level === 'CRIT' ? 'crit' : a.level === 'WARN' ? 'warn' : 'info'" v-tip="srvAlertTitle(a)">
           <b>{{ a.connName || a.connId || '未知集群' }}</b>
           <span class="mono">{{ a.metric }}={{ srvAlertVal(a.value) }}</span>
           <span v-if="a.message" class="ld-hist-al-msg">{{ a.message }}</span>
@@ -462,7 +462,7 @@
       <div class="ld-detail">
         <div class="ld-detail-hd">
           <button type="button" class="ld-detail-toggle" :aria-expanded="detailOpen"
-            :title="detailOpen ? '收起监控明细' : '展开监控明细'" @click="toggleDetail">
+            v-tip="detailOpen ? '收起监控明细' : '展开监控明细'" @click="toggleDetail">
             <ChevronDown :size="12" class="ld-detail-chev" :class="{ open: detailOpen }" />监控明细
           </button>
           <!-- 件3：seg 收起态隐藏（「该 UI 样式非常丑陋」=收起条 seg 挤左侧两行；
@@ -488,7 +488,7 @@
             <n-popover trigger="click" placement="bottom-end" :show="detailMoreOpen" @update:show="onDetailMoreToggle">
               <template #trigger>
                 <button ref="detailMoreSumEl" type="button" class="ld-detail-more-sum" aria-label="更多操作"
-                  aria-haspopup="menu" :aria-expanded="detailMoreOpen" title="导出当前视图"
+                  aria-haspopup="menu" :aria-expanded="detailMoreOpen" v-tip="'导出当前视图'"
                   @click="detailMoreOpen = !detailMoreOpen">⋯</button>
               </template>
               <div class="ld-detail-more-menu" role="menu">
@@ -508,7 +508,7 @@
               </span>
               <span class="ld-top-metric-sp"></span>
               <!-- 展开钮（能力与顶部卡/历史卡统一；曲线区包层 fixed 全屏） -->
-              <button v-if="topView === 'curve'" type="button" class="ld-ncmp-expand" :aria-label="expandedCard === 'top' ? '还原' : '展开'" :title="expandedCard === 'top' ? '还原' : '展开'"
+              <button v-if="topView === 'curve'" type="button" class="ld-ncmp-expand" :aria-label="expandedCard === 'top' ? '还原' : '展开'" v-tip="expandedCard === 'top' ? '还原' : '展开'"
                 @click="toggleExpand('top')">
                 <Minimize2 v-if="expandedCard === 'top'" :size="12" />
                 <Maximize2 v-else :size="12" />
@@ -525,7 +525,7 @@
               </span>
               <span class="ld-top-metric-unit mono">{{ topMetric === 'idx' ? 'doc/秒' : topMetric === 'qps' ? '次/秒' : 'ms/次' }}</span>
               <span class="ld-top-metric-sp"></span>
-              <label class="ld-top-limit" title="快照拉取宽度（服务端 limit 参数，上限 20）">
+              <label class="ld-top-limit" v-tip="'快照拉取宽度（服务端 limit 参数，上限 20）'">
                 Top <n-select v-model:value="topLimit" :options="topLimitOpts" size="small" class="ld-sel" aria-label="Top 索引数量" />
               </label>
             </div>
@@ -558,7 +558,7 @@
             </div>
             <!-- 件1：常显图例（色点+索引名+当前值；曲线颜色↔索引映射不再仅 hover 可见） -->
             <div v-if="topView === 'curve' && topHasData" class="ld-top-legend" aria-label="Top 索引曲线图例">
-              <span v-for="s in topCurves" :key="'lg' + s.key" class="ld-top-lg" :title="s.name + '（' + s.cluster + '）当前' + (topMetric === 'idx' ? '写入速率' : '查询 QPS')">
+              <span v-for="s in topCurves" :key="'lg' + s.key" class="ld-top-lg" v-tip="s.name + '（' + s.cluster + '）当前' + (topMetric === 'idx' ? '写入速率' : '查询 QPS')">
                 <i :style="{ background: s.color }" /><b>{{ s.name }}</b><em>{{ fmtNum(s.cur) }}</em>
               </span>
             </div>
@@ -571,7 +571,7 @@
               </thead>
               <tbody>
                 <tr v-for="r in topStatRows" :key="'st' + r.key" @contextmenu.prevent="openLdRowMenu($event, 'top', r)">
-                  <td class="mono" :title="r.name">{{ r.name }}</td>
+                  <td class="mono" v-tip="r.name">{{ r.name }}</td>
                   <td>{{ r.cluster }}</td>
                   <td class="mono num">{{ fmtNum(r.min) }}</td>
                   <td class="mono num">{{ fmtNum(r.max) }}</td>
@@ -605,7 +605,7 @@
               <div class="ld-detail-tools">
                 <div class="ld-slow-bar">
                   <n-input-number :value="slowThresholdMs" size="small" class="ld-slow-inp" :min="100" :step="100"
-                    :update-value-on-input="false" :input-props="{ 'aria-label': '耗时阈值毫秒' }" title="耗时阈值（毫秒）"
+                    :update-value-on-input="false" :input-props="{ 'aria-label': '耗时阈值毫秒' }" v-tip="'耗时阈值（毫秒）'"
                     @update:value="onSlowThreshold" />
                   <span class="ld-hist-sub">ms</span>
                   <button class="btn ghost sm" :disabled="slowLoading" @click="loadSlow"><RotateCw :size="12" :class="{ spinning: slowLoading }" /> 刷新</button> <!-- 件2：在途图标旋转=铁律 D 在途可感知（713 家族/IlmView 同款惯例） -->
@@ -674,7 +674,7 @@
         </div>
         <div v-for="n in nodeRows" :key="n.nodeName || n.connId" class="ld-hist-ntab-r" role="row"
           @contextmenu.prevent="openLdRowMenu($event, 'node', n)">
-          <span class="mono" role="cell" :title="n.nodeName || n.connId || ''">{{ shortNode(n.nodeName || n.connId || '') }}</span>
+          <span class="mono" role="cell" v-tip="n.nodeName || n.connId || ''">{{ shortNode(n.nodeName || n.connId || '') }}</span>
           <span class="mono" role="cell">{{ fmtN(n.heapUsedPct) }}</span>
           <span class="mono" role="cell">{{ fmtN(n.cpuPct) }}</span>
           <span class="mono" role="cell">{{ fmtN(n.diskUsedPct) }}</span>

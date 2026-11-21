@@ -918,6 +918,13 @@ export const api = {
        destConnId 可选（同上），destIndex 缺省=sourceIndex */
     diffStructure: (req: { srcConnId: string; sourceIndex: string; destConnId?: string; destIndex?: string }, target?: string) =>
       post<any>('/diff-structure', req, XB, xbTargetInit(target)),
+    /* 迁移后等价性验证（只读）：双侧 _count + 样本逐 id 内容摘要（canonical SHA-256 前 16 hex）
+       对比 + 可选 terms 聚合对比，verdict EQUIVALENT/DIVERGENT/INCONCLUSIVE；
+       jobId 形态从作业台账补 srcConnId/sourceIndex/destIndex，destConnId 可选（同上） */
+    verifyEquivalence: (req: {
+      jobId?: string; srcConnId?: string; sourceIndex?: string; destConnId?: string; destIndex?: string;
+      sampleSize?: number; sampleFields?: string[] | string; aggField?: string; aggSize?: number;
+    }, target?: string) => post<any>('/verify-equivalence', req, XB, xbTargetInit(target)),
     /* 运行中作业调速（写）：rps docs/s，-1 恢复不限速 */
     throttle: (jobId: string, rps: number, target?: string) =>
       post<{ ok: boolean; jobId: string; rps: number; appliedAt: number }>('/throttle', { jobId, rps }, XB, xbTargetInit(target)),

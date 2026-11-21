@@ -20,7 +20,7 @@
       />
       <!-- v5 回归实测：.stop 必须带——clear 会同步移除本钮（v-if="modelValue"），mousedown 冒泡到
  document 时 target 已 detach，onDocDown 的 contains(detached)=false 会误判「点外」关掉刚开的弹层 -->
-      <button aria-label="清空" v-if="modelValue" class="ixp-x" title="清空" tabindex="-1" @mousedown.prevent.stop="clear">
+      <button aria-label="清空" v-if="modelValue" class="ixp-x" v-tip="'清空'" tabindex="-1" @mousedown.prevent.stop="clear">
         <X :size="11" />
       </button>
     </div>

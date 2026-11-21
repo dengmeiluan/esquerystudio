@@ -40,6 +40,7 @@ vi.mock('../../api', async (importOriginal) => {
 });
 
 import TopologyView from '../TopologyView.vue';
+import { vTip } from '../../directives/vTip';
 
 async function settle(n = 12) {
   for (let i = 0; i < n; i++) { await nextTick(); await Promise.resolve(); }
@@ -51,6 +52,8 @@ async function mountTp() {
   await router.push('/');
   await router.isReady();
   const app = createApp({ render: () => h(TopologyView) });
+  /* 1120 批整条 :title→v-tip.long——注册指令，容器全文改 focusin 浮层断言 */
+  app.directive('tip', vTip);
   app.use(pinia);
   app.use(router);
   const host = document.createElement('div');
@@ -61,12 +64,17 @@ async function mountTp() {
 }
 
 type MetaItem = { v: string; label: string; tip: string };
+/* 段级/整条提示已迁 v-tip 浮层（1120 批前为 title 属性）——focusin 通道立即显示，读单例浮层文本 */
+function tipOf(el: HTMLElement): string {
+  el.dispatchEvent(new Event('focusin', { bubbles: false }));
+  return document.getElementById('vt-tip')?.textContent ?? '';
+}
 function metaItems(host: HTMLElement): MetaItem[] {
   /* .top-meta 是 MetaStrip 根（fallthrough class 与 .ms 同元素），段项直接下查 */
   return Array.from(host.querySelectorAll('.top-meta .ms-i')).map(el => ({
     v: el.querySelector('b')?.textContent ?? '',
     label: el.querySelector('i')?.textContent ?? '',
-    tip: (el as HTMLElement).title ?? '',
+    tip: tipOf(el as HTMLElement),
   }));
 }
 function shardTotals(it: MetaItem) {
@@ -89,7 +97,9 @@ describe('Topology 拓扑口径统一（G31/704 批）', () => {
     expect(t.total).toBe(t.pri + t.rep);
     expect(m[0].v).toBe('2');
     expect(m[4].v).toBe('2');
-    expect(host.querySelector('.top-meta')!.getAttribute('title'), ':title 同 filtered 口径').toContain('分片总数 7');
+    const metaEl = host.querySelector('.top-meta') as HTMLElement;
+    metaEl.dispatchEvent(new Event('focusin', { bubbles: false }));
+    expect(document.getElementById('vt-tip')?.textContent ?? '', '兜底浮层同 filtered 口径').toContain('分片总数 7');
     app.unmount();
     host.remove();
   });
@@ -108,9 +118,11 @@ describe('Topology 拓扑口径统一（G31/704 批）', () => {
     expect(m[4].v, '索引项=当前视图唯一索引数（G31 病灶：全量 2 标当前视图）').toBe('1');
     expect(m[4].label).toContain('当前视图');
     expect(m[1].tip, '全量对照走 tip 分项标明').toContain('全量 7');
-    const title = host.querySelector('.top-meta')!.getAttribute('title')!;
-    expect(title, ':title 分片总数同 filtered 口径').toContain('分片总数 4');
-    expect(title, ':title 索引同当前视图口径').toContain('索引 1（当前视图）');
+    const meta = host.querySelector('.top-meta') as HTMLElement;
+    meta.dispatchEvent(new Event('focusin', { bubbles: false }));
+    const tip = document.getElementById('vt-tip')?.textContent ?? '';
+    expect(tip, '兜底浮层分片总数同 filtered 口径').toContain('分片总数 4');
+    expect(tip, '兜底浮层索引同当前视图口径').toContain('索引 1（当前视图）');
     app.unmount();
     host.remove();
   });

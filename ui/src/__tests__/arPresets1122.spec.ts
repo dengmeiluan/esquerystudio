@@ -95,7 +95,7 @@ async function mountAR(job: any) {
   /* 进监控步开重跑弹层（预设行在弹层内） */
   const rows = [...host.querySelectorAll('table.qrt-tbl tbody tr')];
   const row = rows.find(tr => (tr.textContent || '').includes(job.jobId));
-  (row!.querySelector('button[title="查看任务详情"]') as HTMLButtonElement).click();
+  (row!.querySelector('button[aria-label="查看任务详情"]') as HTMLButtonElement).click();
   await settle(10);
   (host.querySelector<HTMLButtonElement>('[data-test="adhoc-retry"]'))!.click();
   await settle(8);

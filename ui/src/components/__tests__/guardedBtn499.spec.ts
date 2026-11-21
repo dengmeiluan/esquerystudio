@@ -98,4 +98,38 @@ describe('GuardedActionButton 护栏协议（476 批）', () => {
     await nextTick();
     expect(insight.estimate).not.toHaveBeenCalled();
   });
+
+  it('HIGH 守卫输入：aria 关联（label/describedby/invalid 动态）+ Enter=执行（不可用时忽略）', async () => {
+    insight.estimate.mockResolvedValue({ riskLevel: 'HIGH', confirmToken: 'tok-h', analysis: { items: [] } });
+    insight.execute.mockResolvedValue({ receiptId: 'aaaabbbbcccc' });
+    const host = await mountBtn('my-index');
+    await clickRun(host);
+    await nextTick(); await nextTick();
+    const inp = document.querySelector('.ga-guard input') as HTMLInputElement;
+    const tip = document.querySelector('.ga-guard-tip') as HTMLElement;
+    expect(inp.getAttribute('aria-label')).toBe('输入确认词 my-index');
+    expect(tip.id).toMatch(/^ga-guard-tip-/);
+    expect(inp.getAttribute('aria-describedby'), '守卫输入关联提示节点 id').toBe(tip.id);
+    expect(inp.getAttribute('aria-invalid'), '空输入不播报 invalid（进弹窗即「无效」是误报）').toBe('false');
+    /* Enter 不可用时忽略（doExecute 内 canExecute 拦截） */
+    inp.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    await nextTick(); await nextTick();
+    expect(insight.execute).not.toHaveBeenCalled();
+    /* 输错确认词 → invalid 仍真，Enter 仍不执行 */
+    inp.value = 'wrong';
+    inp.dispatchEvent(new Event('input', { bubbles: true }));
+    await nextTick();
+    expect(inp.getAttribute('aria-invalid')).toBe('true');
+    inp.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    await nextTick(); await nextTick();
+    expect(insight.execute).not.toHaveBeenCalled();
+    /* 输对确认词 → invalid 转 false，Enter 触发执行 */
+    inp.value = 'my-index';
+    inp.dispatchEvent(new Event('input', { bubbles: true }));
+    await nextTick();
+    expect(inp.getAttribute('aria-invalid')).toBe('false');
+    inp.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    await nextTick(); await nextTick();
+    expect(insight.execute).toHaveBeenCalledWith('act-1', { idx: 'a' }, 'tok-h');
+  });
 });

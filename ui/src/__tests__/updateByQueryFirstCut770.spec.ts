@@ -119,8 +119,15 @@ const TIP_KEYS: Record<string, string> = {
   'wait_for_completion': '异步', 'requests_per_second': '限流', 'refresh': '刷新', 'scroll': '窗口',
 };
 /* 释义超长迁 Tip long（UQ_PARAM_TIPS 单源数组）的四参数——label 不再带原生 title，
-   释义锚随迁源码形态（Tip 浮层未 hover 不在挂载 DOM）；其余四字段保持原生短 title */
+   释义锚随迁源码形态（Tip 浮层未 hover 不在挂载 DOM）；其余四字段短释义已迁
+   v-tip 指令（DOM 无 title 属性），按下表锁源码锚 */
 const TIP_MIGRATED = ['conflicts', 'wait_for_completion', 'requests_per_second', 'refresh'];
+const V_TIP_KEYS: Record<string, string> = {
+  '索引': 'v-tip="\'索引：批量写的目标索引——支持通配符 pattern',
+  'max_docs': 'v-tip="\'max_docs：本次最多处理的文档数上限',
+  'slices': 'v-tip="\'slices：并行分片数',
+  'scroll': 'v-tip="\'scroll：批量拉取的滚动窗口时长',
+};
 
 beforeEach(() => {
   document.body.innerHTML = '';
@@ -188,7 +195,7 @@ describe('770 G241 预估钮在途双态（铁律 D·头名·768 G238/766 G234/7
 });
 
 describe('770 G243 八字段 label 中文悬停释义（铁律 F·次刀·G191/G183/561 五参数族）', () => {
-  it('挂载实锚：八字段全在场；短 title 四字段保持，迁 Tip 四字段原生 title 已清', async () => {
+  it('挂载实锚：八字段全在场；短释义四字段保持（v-tip），迁 Tip 四字段原生 title 已清', async () => {
     const { app, host } = await mountUq();
     const labels = [...host.querySelectorAll('.uq-field label')] as HTMLLabelElement[];
     expect(labels.length, '八字段（双 sec 布局）').toBe(8);
@@ -199,23 +206,19 @@ describe('770 G243 八字段 label 中文悬停释义（铁律 F·次刀·G191/G
       if (!key) { misses.push(`无关键词映射:${tx}`); continue; }
       if (TIP_MIGRATED.includes(key)) {
         if (l.getAttribute('title')) misses.push(`${tx}:释义已迁 Tip，原生 title 应清除`);
-      } else {
-        const title = l.getAttribute('title') || '';
-        if (!title) misses.push(`${tx}:title 空`);
-        else if (!title.includes(TIP_KEYS[key])) misses.push(`${tx}:缺「${TIP_KEYS[key]}」`);
+      } else if (!V_TIP_KEYS[key] || !src.includes(V_TIP_KEYS[key])) {
+        /* 短释义已迁 v-tip 指令（DOM 无 title 属性）——按字段锁源码锚 */
+        misses.push(`${tx}:v-tip 释义缺失`);
       }
     }
     expect(misses, '八字段释义缺口').toEqual([]);
     app.unmount();
   });
-  it('源码锁：短 title 四字段释义保持；迁 Tip 四字段接线在场且旧 label title 写法不回潮', () => {
-    const locks: [RegExp, string][] = [
-      [/<label title="索引：[^"]*通配[^"]*">索引（支持 pattern，如 logs-\* \/ a,b,c）<\/label>/, '索引'],
-      [/<label title="max_docs：[^"]*上限[^"]*">max_docs（可选上限）<\/label>/, 'max_docs'],
-      [/<label title="slices：[^"]*并行[^"]*">slices（并行分片）<\/label>/, 'slices'],
-      [/<label title="scroll：[^"]*窗口[^"]*">scroll<\/label>/, 'scroll'],
-    ];
-    for (const [re, name] of locks) expect(src, `${name} label title 中文释义`).toMatch(re);
+  it('源码锁：短释义四字段 v-tip 保持；迁 Tip 四字段接线在场且旧 label title 写法不回潮', () => {
+    /* 短释义已迁 v-tip 指令——四字段锁源码锚 */
+    for (const [name, anchor] of Object.entries(V_TIP_KEYS)) {
+      expect(src, `${name} label v-tip 中文释义`).toContain(anchor);
+    }
     /* 迁 Tip 四参数：UQ_PARAM_TIPS 单源数组接线（conflicts/wait_for_completion/
        requests_per_second/refresh 依序 0..3） */
     expect(src).toContain('<Tip long :text="UQ_PARAM_TIPS[0]"><label>conflicts</label></Tip>');

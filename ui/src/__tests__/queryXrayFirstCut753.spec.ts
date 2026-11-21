@@ -18,6 +18,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createApp, h, nextTick } from 'vue';
 import { createPinia } from 'pinia';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 const routeMock = { path: '/query-xray', query: {} as Record<string, any> };
 vi.mock('vue-router', () => ({
@@ -174,15 +176,15 @@ describe('753 G190 透视/取证双钮在途窗 spinning+文案（铁律 D·751 
 });
 
 describe('753 G191 tv 输入行 label+qx-fstat 中文释义（铁律 F·745 G156 双语同款）', () => {
-  it('doc _id/fields 两 label span title 悬停中文（G191 病灶：修前 tips=["",""]）', async () => {
+  it('doc _id/fields 两 label span 提示悬停中文（G191 病灶：修前 tips=["",""]）', async () => {
     const host = await mountView();
     await gotoTvTab(host);
     const spans = Array.from(host.querySelectorAll('.qx-inp > span')) as HTMLElement[];
     expect(spans.length, '两输入行 label').toBe(2);
-    const t1 = spans[0]!.getAttribute('title') || '';
-    const t2 = spans[1]!.getAttribute('title') || '';
-    expect(t1.includes('文档'), 'doc _id label 中文释义').toBe(true);
-    expect(t2.includes('字段'), 'fields label 中文释义').toBe(true);
+    /* label 提示已迁 v-tip 指令（DOM 无 title 属性）——中文释义改源码锚 */
+    const v = readFileSync(join(__dirname, '../views/QueryXrayView.vue'), 'utf-8');
+    expect(v).toContain('v-tip="\'要取证的文档 _id\'"');
+    expect(v).toContain('v-tip="\'要取词频的字段列表，逗号分隔；空 = 全部 text 字段\'"');
   });
 
   it('qx-fstat 统计行 title 含 doc_count/sum_ttf 中文释义（G191 病灶：修前 title 空）', async () => {
@@ -198,11 +200,9 @@ describe('753 G191 tv 输入行 label+qx-fstat 中文释义（铁律 F·745 G156
     await settle(12);
     const fstat = host.querySelector('.qx-fstat') as HTMLElement;
     expect(fstat, 'qx-fstat 在场（取证结果渲染后）').toBeTruthy();
-    const t = fstat.getAttribute('title') || '';
-    expect(t.includes('doc_count'), 'doc_count 键留检索').toBe(true);
-    expect(t.includes('sum_ttf'), 'sum_ttf 键留检索').toBe(true);
-    expect(t.includes('文档总数') || t.includes('总数'), 'doc_count 中文释义').toBe(true);
-    expect(t.includes('词频总和') || t.includes('总和'), 'sum_ttf 中文释义').toBe(true);
+    /* 统计行提示已迁 v-tip 指令（DOM 无 title 属性）——释义改源码锚 */
+    const v = readFileSync(join(__dirname, '../views/QueryXrayView.vue'), 'utf-8');
+    expect(v).toContain("v-tip=\"'字段全局统计：doc_count=该字段的文档总数，sum_ttf=该字段的词频总和'\"");
   });
 });
 

@@ -2,14 +2,14 @@
   <!-- follow 档视图页内只读「当前索引」chip——选索引入口收敛 TopBar 唯一处
  （别名组/recent/健康度都在顶栏），本件只读 store 自显 + 三个助攻动作。
  未选索引整件不渲染（根 v-if），页内空态兜底契约留给各视图。 -->
-  <span v-if="store.pickedIdx" ref="rootEl" class="cic" :title="store.pickedIdx"
+  <span v-if="store.pickedIdx" ref="rootEl" class="cic" v-tip="store.pickedIdx"
         @contextmenu.prevent="openMenu" @keydown="onChipKey">
     <span class="cic-dot" :class="'h-' + (store.pickedInfo?.health || 'grey')" aria-hidden="true"></span>
     <span class="cic-nm">{{ store.pickedIdx }}</span>
     <span v-if="meta" class="cic-meta">{{ meta }}</span>
-    <button aria-label="去索引工作区" class="cic-btn" title="去索引工作区" @click="gotoIndices"><ExternalLink :size="11" /></button>
-    <button aria-label="复制深链" class="cic-btn" title="复制深链（含 ?idx=，分享直达本页）" @click="copyLink"><Copy :size="11" /></button>
-    <button aria-label="清除当前索引" class="cic-btn" title="清除当前索引（清除后跟随顶栏）" @click="store.pick('')"><X :size="11" /></button>
+    <button aria-label="去索引工作区" class="cic-btn" v-tip="'去索引工作区'" @click="gotoIndices"><ExternalLink :size="11" /></button>
+    <button aria-label="复制深链" class="cic-btn" v-tip="'复制深链（含 ?idx=，分享直达本页）'" @click="copyLink"><Copy :size="11" /></button>
+    <button aria-label="清除当前索引" class="cic-btn" v-tip="'清除当前索引（清除后跟随顶栏）'" @click="store.pick('')"><X :size="11" /></button>
     <!-- 右键复用共享 CellContextMenu；只读/本地动作，不触发集群写 -->
     <CellContextMenu
       v-if="menu"

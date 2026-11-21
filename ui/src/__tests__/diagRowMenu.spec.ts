@@ -19,7 +19,7 @@ describe('DiagView 节点行右键菜单（一百八十七批→五百二十五�
     expect(src).toMatch(/<template #row-actions="\{ row \}">/);
     expect(src).toMatch(/:aria-label="'按节点 ' \+ \(row\[0\] \|\| ''\) \+ ' 采热线程'"/);
     expect(src).toMatch(/@click\.stop="loadHot\(String\(row\[0\] \|\| ''\)\)"/);
-    expect(src).toContain('title="按此节点采热线程"');
+    expect(src).toContain('v-tip="\'按此节点采热线程\'"');
   });
   it('QRT rows 型接管（diag:nodes 维度）；行资源全量信息走内核复制行 JSON/行内展开', () => {
     expect(src).toContain(':cols="ND_COLS" :rows="nodesMatrix" sortable');

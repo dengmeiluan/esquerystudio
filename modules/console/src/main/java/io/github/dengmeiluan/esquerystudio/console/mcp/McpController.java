@@ -183,12 +183,46 @@ public class McpController {
                 "probe_capabilities", "es_xmigrate_probe_capabilities",
                 "compare_capabilities", "es_xmigrate_compare_capabilities",
                 "diff_structure", "es_xmigrate_diff_structure",
+                "verify_equivalence", "es_xmigrate_verify_equivalence",
                 "throttle", "es_xmigrate_throttle"));
         return Collections.unmodifiableMap(groups);
     }
     private static Map<String, String> actions(String... pairs) {
         Map<String, String> out = new LinkedHashMap<>();
         for (int i = 0; i + 1 < pairs.length; i += 2) out.put(pairs[i], pairs[i + 1]);
+        return out;
+    }
+    /** 组级 MCP annotations 静态表（tools/list 逐组输出）：readOnlyHint=true 仅限零写
+        action 的组；destructiveHint=true 仅限含 DESTRUCTIVE action 的组；idempotentHint
+        同 readOnlyHint；openWorldHint=true 全组。值按组静态声明，不随 key 白名单裁剪变化。 */
+    public static final Map<String, Map<String, Object>> TOOL_ANNOTATIONS = buildToolAnnotations();
+    private static Map<String, Map<String, Object>> buildToolAnnotations() {
+        Map<String, Map<String, Object>> out = new LinkedHashMap<>();
+        out.put("es_connections", annotations(true, false));
+        out.put("es_search", annotations(true, false));
+        out.put("es_sql", annotations(true, false));
+        out.put("es_documents", annotations(false, true));
+        out.put("es_indices", annotations(false, true));
+        out.put("es_data_streams", annotations(false, true));
+        out.put("es_templates", annotations(false, true));
+        out.put("es_analysis", annotations(false, false));
+        out.put("es_cluster", annotations(false, false));
+        out.put("es_batch", annotations(false, true));
+        out.put("es_transforms", annotations(false, true));
+        out.put("es_snapshots", annotations(false, true));
+        out.put("es_lifecycle", annotations(false, true));
+        out.put("es_automation", annotations(false, true));
+        out.put("es_rest", annotations(false, true));
+        out.put("es_adhoc_rebuild", annotations(false, true));
+        out.put("es_xmigrate", annotations(false, true));
+        return Collections.unmodifiableMap(out);
+    }
+    private static Map<String, Object> annotations(boolean readOnly, boolean destructive) {
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("readOnlyHint", readOnly);
+        out.put("destructiveHint", destructive);
+        out.put("idempotentHint", readOnly);
+        out.put("openWorldHint", true);
         return out;
     }
     private static Map<String, String> buildToolActions() {
@@ -225,7 +259,7 @@ public class McpController {
             case "es_automation": return "Watcher, ingest pipelines and stored scripts.";
             case "es_rest": return "Raw Elasticsearch REST passthrough; write methods need write permission.";
             case "es_adhoc_rebuild": return "Managed adhoc rebuild lifecycle: probe source, start, status, abort, confirm switch, job list, retry, throttle and events.";
-            case "es_xmigrate": return "Cross-cluster migration lifecycle: connect check, resolve preview, preflight, start, progress, job list, fetch source config, count reconcile, conflict samples, dest index list, resume, abort, job cleanup, adaptive structure sync (proactive compat matrix plus target-error pruning, dry-run plan with planDigest and alias sync), target capability probe (vendor/version/plugins/nodes), capability comparison risk matrix, structure diff verification and running-job throttle.";
+            case "es_xmigrate": return "Cross-cluster migration lifecycle: connect check, resolve preview, preflight, start, progress, job list, fetch source config, count reconcile, conflict samples, dest index list, resume, abort, job cleanup, adaptive structure sync (proactive compat matrix plus target-error pruning, dry-run plan with planDigest and alias sync), target capability probe (vendor/version/plugins/nodes), capability comparison risk matrix, structure diff verification, data equivalence verification (counts, sample hash, optional aggregation) and running-job throttle.";
             default: return "Grouped Elasticsearch tool.";
         }
     }
@@ -1395,11 +1429,12 @@ public class McpController {
                         promptArg("index", "Index or alias that failed.", false),
                         promptArg("symptom", "Error message, status code or observed behavior.", true))));
         out.add(prompt("cross_cloud_structure_sync", "Cross-cloud structure sync",
-                "Cross-cloud index structure sync workflow: probe both clusters, compare capabilities, plan with dry-run, validate, execute, then verify with structure diff.",
+                "Cross-cloud index structure sync workflow: probe both clusters, compare capabilities, plan with dry-run, validate, execute, then verify with structure diff and data equivalence.",
                 Arrays.asList(
                         promptArg("srcConnId", "Source connection profile id.", true),
                         promptArg("destConnId", "Target connection id; use host for the control cluster.", true),
-                        promptArg("sourceIndex", "Source index name.", false))));
+                        promptArg("sourceIndex", "Source index name.", false),
+                        promptArg("destIndex", "Target index name; defaults to sourceIndex.", false))));
         return out;
     }
 
@@ -1515,9 +1550,9 @@ public class McpController {
             text = "Plan and verify a migration from `" + source + "` to `" + target + "`.\n\n"
                     + "1. Compare mappings with `es_get_mapping` and run `es_reindex_preview` for incompatible fields.\n"
                     + "2. Check target settings (`es_get_settings`, `es_index_settings_defaults`) and disk/alias state.\n"
-                    + "3. 结构兼容：跨集群（尤其跨厂商，如生产阿里云 ES → UAT 腾讯云 ES）先用 es_xmigrate 的 probe_capabilities 探测源/目标厂商、版本与插件；再用 sync_structure 且 dryRun=true 预览兼容剔除计划——planned 为兼容矩阵预剔除（如阿里云 apack 私有设置、目标缺失插件的分析组件、节点属性路由），reactive 为建索引报错兜底剔除，advice 为分片数/副本/ILM 建议；确认计划后以 dryRun=false 执行（需 MRTR 二次确认），需别名随迁时加 syncAliases=true。\n"
+                    + "3. 结构兼容：跨集群（尤其跨厂商，如生产阿里云 ES → UAT 腾讯云 ES）先用 es_xmigrate 的 probe_capabilities 探测源/目标厂商、版本与插件；再用 sync_structure 且 dryRun=true 预览兼容剔除计划——planned 为兼容矩阵预剔除（如阿里云 apack 私有设置、目标缺失插件的分析组件、节点属性路由），reactive 为建索引报错兜底剔除，advice 为分片数/副本/ILM 建议；确认计划后以 dryRun=false 执行（需 MRTR 二次确认），执行时携带 dryRun 预览返回的 planDigest（expectPlanDigest）防源结构漂移，需别名随迁时加 syncAliases=true。\n"
                     + "4. Execute with `es_reindex` for same-cluster moves, or cross-cluster via `es_xmigrate` (`action=preflight`, then `start`, then poll `status`); same-cluster reindex progress comes from `es_task_detail`.\n"
-                    + "5. Verify document counts with `es_count`, sampled content with `es_search`, and alias cutover with `es_alias`.\n"
+                    + "5. Verify equivalence with `es_xmigrate` `action=verify_equivalence` (jobId form after a migration job, or srcConnId+sourceIndex+destConnId+destIndex form): it compares document counts, hashes a sorted-_doc id sample and an optional terms aggregation (aggField), and returns verdict EQUIVALENT/DIVERGENT/INCONCLUSIVE; switch aliases with `es_alias` only after EQUIVALENT.\n"
                     + "6. State the cutover order, validation gates and rollback. Do not delete the source until verification passes.\n\n"
                     + "Extra constraints: " + (notes.isEmpty() ? "(none provided)" : notes);
         } else if ("review_cluster_capacity".equals(name)) {
@@ -1547,17 +1582,20 @@ public class McpController {
             String srcConnId = promptArgValue(args, "srcConnId", true);
             String destConnId = promptArgValue(args, "destConnId", true);
             String sourceIndex = promptArgValue(args, "sourceIndex", false);
-            description = "Cross-cloud index structure sync workflow: probe both clusters, compare capabilities, "
-                    + "plan with dry-run, validate, execute, then verify with structure diff.";
+            String destIndex = promptArgValue(args, "destIndex", false);
+            description = "Cross-cloud index structure sync workflow: probe both clusters, compare capabilities, plan with dry-run, "
+                    + "validate, execute, then verify with structure diff and data equivalence.";
             text = "Cross-cloud index structure sync from `" + srcConnId + "` to `" + destConnId + "`"
-                    + (sourceIndex.isEmpty() ? "" : " for index `" + sourceIndex + "`") + ".\n\n"
+                    + (sourceIndex.isEmpty() ? "" : " for index `" + sourceIndex
+                    + (destIndex.isEmpty() ? "" : "` → `" + destIndex) + "`") + ".\n\n"
                     + "1. probe_capabilities on source (srcConnId) and target (destConnId) to capture version/vendor/plugins.\n"
                     + "2. compare_capabilities {srcConnId, destConnId} for the risk matrix (vendor change, missing plugins, version gap).\n"
                     + "3. sync_structure {dryRun:true} to preview removals/downgrades and the adapted create body with planDigest.\n"
                     + "4. Optionally es_indices:config_validate on the planned body.\n"
                     + "5. sync_structure {dryRun:false, expectPlanDigest} to execute (requires write permission and confirmation).\n"
                     + "6. migrate_index with destCreateMode NONE when structure is already synced; monitor with jobs/status; reconcile counts.\n"
-                    + "7. diff_structure to verify the target matches the plan (expectedRemovals vs unexpected).";
+                    + "7. diff_structure to verify the target matches the plan (expectedRemovals vs unexpected).\n"
+                    + "8. verify_equivalence {srcConnId, sourceIndex, destConnId, destIndex, sampleSize, aggField?} for the final data check (counts + sample hash + optional aggregation, verdict must be EQUIVALENT).";
         } else {
             throw new IllegalArgumentException("Unknown prompt: " + name);
         }
@@ -2550,6 +2588,37 @@ public class McpController {
                 diffOut.put("destConnId", diffDestEcho);
                 break;
             }
+            case "es_xmigrate_verify_equivalence": {
+                /* 数据等价校验（只读）：jobId 形态沿用作业登记的源/目标，或 srcConnId+sourceIndex
+                   形态显式指定；服务层按 count 对比、_doc 序 id 样本双侧 mget 后 canonical 摘要
+                   逐 id 对比、可选 terms 聚合对比，产出 verdict EQUIVALENT/DIVERGENT/INCONCLUSIVE。 */
+                requireXmigrateService();
+                String verifyJobId = optionalString(args, "jobId");
+                String verifySrcConnId = optionalString(args, "srcConnId");
+                if ((verifyJobId == null || verifyJobId.isEmpty())
+                        && (verifySrcConnId == null || verifySrcConnId.isEmpty())) {
+                    throw new IllegalArgumentException("jobId 与 srcConnId 必须二选一");
+                }
+                String sampleFieldsRaw = optionalString(args, "sampleFields");
+                List<String> sampleFieldsList = new ArrayList<>();
+                if (sampleFieldsRaw != null && !sampleFieldsRaw.isEmpty()) {
+                    for (String part : sampleFieldsRaw.split(",")) {
+                        String field = part.trim();
+                        if (!field.isEmpty()) sampleFieldsList.add(field);
+                    }
+                }
+                data = crossClusterMigrateService.verifyEquivalence(
+                        verifyJobId,
+                        verifySrcConnId,
+                        optionalString(args, "sourceIndex"),
+                        optionalString(args, "destConnId"),
+                        optionalString(args, "destIndex"),
+                        optionalInteger(args, "sampleSize"),
+                        sampleFieldsList,
+                        optionalString(args, "aggField"),
+                        optionalInteger(args, "aggSize"));
+                break;
+            }
             case "es_xmigrate_throttle": {
                 /* 运行中调速（写）：与 abort 同门（创建者本人或 ADMIN）；rps ≥ -1（-1=不限速），
                    非法值在此与服务层双重明确报错。 */
@@ -3042,6 +3111,20 @@ public class McpController {
         }
     }
 
+    /** 可选整数（样本数/聚合桶数等）；字符串数字也接受，非法值如实抛错不静默清空。 */
+    private Integer optionalInteger(Map<?, ?> args, String key) {
+        Object value = args.get(key);
+        if (value == null) return null;
+        if (value instanceof Number) return ((Number) value).intValue();
+        String text = String.valueOf(value).trim();
+        if (text.isEmpty()) return null;
+        try {
+            return Integer.parseInt(text);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(key + " 需为整数，实际: " + value);
+        }
+    }
+
     private String requiredString(Map<?, ?> args, String key) {
         Object value = args.get(key);
         if (value == null || String.valueOf(value).trim().isEmpty()) {
@@ -3353,12 +3436,27 @@ public class McpController {
                 "waitForCompletion", "include", "exclude", "format", "level", "metric", "verbose"}) {
             properties.putIfAbsent(field, string("string", field + " (action-specific)"));
         }
-        /* es_xmigrate 组的 sync_structure 专用参数：dry-run 只读预览与别名随迁开关 */
+        /* es_xmigrate 组的专用参数：sync_structure 的 dry-run/别名随迁/分析器回退/计划摘要校验参数，
+           verify_equivalence 的样本与聚合参数，throttle 的速率参数 */
         if ("es_xmigrate".equals(name)) {
             properties.put("dryRun", string("boolean",
                     "sync_structure: true 时只产出兼容剔除计划（planned/advice），不向目标集群发 PUT"));
             properties.put("syncAliases", string("boolean",
                     "sync_structure: true 时建索引成功后按源别名逐个随迁（filter/routing 元数据原样）"));
+            properties.put("downgradedAnalyzerFallback", string("string",
+                    "sync_structure: 降级字段的回退分析器；缺省回退 standard 分析器（normalizer 属性总是剔除）"));
+            properties.put("expectPlanDigest", string("string",
+                    "sync_structure: dryRun 预览返回的 planDigest；仅 dryRun=false 执行时合法，防预览后源结构漂移"));
+            properties.put("srcConnId", string("string", "跨集群 action 的源连接档案 id（start/resume/fetch_config/reconcile/verify_equivalence 等）"));
+            properties.put("destConnId", string("string", "目标侧连接 id（host=宿主集群；缺省按 action 各自默认）"));
+            properties.put("sourceIndex", string("string", "源索引名（旧集群侧）"));
+            properties.put("destIndex", string("string", "目标索引名（缺省多与 sourceIndex 同名）"));
+            properties.put("jobId", string("string", "迁移作业 id（status/resume/abort/conflicts/throttle/verify_equivalence）"));
+            properties.put("sampleSize", string("number", "verify_equivalence: _doc 序取样条数，钳制 10-500（缺省 100）"));
+            properties.put("sampleFields", string("string", "verify_equivalence: 参与摘要对比的字段，逗号分隔"));
+            properties.put("aggField", string("string", "verify_equivalence: 可选 terms 聚合对比字段"));
+            properties.put("aggSize", string("number", "verify_equivalence: 聚合桶数，钳制 1-50（缺省 10）"));
+            properties.put("rps", string("string", "throttle: 每秒文档数，-1 表示不限速"));
         }
         Map<String, Object> schema = new LinkedHashMap<>();
         schema.put("type", "object");
@@ -3369,19 +3467,7 @@ public class McpController {
         tool.put("description", groupDescription(name) + " Actions: " + String.join(", ", actions)
                 + ". Pass action plus that action's arguments.");
         tool.put("inputSchema", schema);
-        boolean write = false;
-        for (String action : actions) {
-            String legacy = GROUP_ACTIONS.get(name).get(action);
-            if (WRITE_TOOLS.contains(legacy) || DESTRUCTIVE_TOOLS.contains(legacy) || "es_rest".equals(legacy)) {
-                write = true;
-                break;
-            }
-        }
-        Map<String, Object> annotations = new LinkedHashMap<>();
-        annotations.put("readOnlyHint", !write);
-        annotations.put("destructiveHint", write);
-        annotations.put("openWorldHint", false);
-        tool.put("annotations", annotations);
+        tool.put("annotations", TOOL_ANNOTATIONS.get(name));
         Map<String, Object> ui = new LinkedHashMap<>();
         ui.put("resourceUri", MCP_APP_URI);
         tool.put("_meta", Collections.singletonMap("ui", ui));

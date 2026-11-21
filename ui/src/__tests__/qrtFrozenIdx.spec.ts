@@ -59,9 +59,10 @@ describe('QRT 冻结序号列（一百六十七批）', () => {
     expect(tds.length).toBe(4); // # + _id/name/age
     expect(tds[0].classList.contains('qrt-idx')).toBe(true);
     expect(tds[0].textContent?.trim()).toBe('1');
-    expect(tds[1].getAttribute('title')).toBe('a');          // _id
-    expect(tds[2].getAttribute('title')).toBe('banana');     // name
-    expect(tds[3].getAttribute('title')).toBe('2');          // age
+    /* 单元格提示已迁 v-tip 指令（DOM 无 title 属性）——「各格提示即本格 raw 值」
+       改源码锚：td 的 v-tip 绑 cellMeta 的 full（raw 全文装配） */
+    expect(readFileSync(join(__dirname, '../components/QueryResultTable.vue'), 'utf-8'))
+      .toContain('v-tip="cell === null || cell === undefined ? \'\' : (cellMeta[ri]?.[ci]?.full || \'\')"');
   });
 
   it('序号跟随排序后的行序（升序重排后仍为 1,2,3）', async () => {

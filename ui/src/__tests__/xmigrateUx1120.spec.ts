@@ -22,6 +22,8 @@ import XmigrateView from '../views/XmigrateView.vue';
 
 const xbJobs = vi.fn();
 const xbDestIndices = vi.fn();
+const xbDeleteJob = vi.fn();
+const askConfirmFn = vi.fn();
 
 vi.mock('../api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../api')>();
@@ -38,10 +40,15 @@ vi.mock('../api', async (importOriginal) => {
         ...actual.api.xb,
         jobs: (...a: any[]) => xbJobs(...a),
         destIndices: (...a: any[]) => xbDestIndices(...a),
+        deleteJob: (...a: any[]) => xbDeleteJob(...a),
       },
     },
   };
 });
+/* 速率历史持久化用例需要：行删除链确认窗自动放行 */
+vi.mock('../composables/confirm', () => ({
+  askConfirm: (...a: any[]) => askConfirmFn(...a),
+}));
 
 async function settle(n = 12) {
   for (let i = 0; i < n; i++) { await nextTick(); await Promise.resolve(); }
@@ -87,6 +94,9 @@ beforeEach(() => {
   sessionStorage.clear();
   xbJobs.mockReset().mockResolvedValue([]);
   xbDestIndices.mockReset().mockResolvedValue([]);
+  xbDeleteJob.mockReset().mockResolvedValue(undefined);
+  askConfirmFn.mockReset().mockResolvedValue(true);
+  (Element.prototype as any).scrollIntoView = vi.fn();
 });
 
 /* ═══ ① pctOf 已处理口径（setupState 直调） ═══ */
@@ -119,8 +129,9 @@ describe('1120 ②③：progressMeta 跳过段与 DONE 目标对账段', () => {
     const meta = host.querySelector('.xm-p-meta')!;
     expect(meta.textContent).toContain('25');
     expect(meta.textContent).toContain('跳过');
-    const skipEl = meta.querySelector('[title*="幂等"]')!;
-    expect(skipEl, 'tip 挂段上（create 语义跳过非失败）').toBeTruthy();
+    /* MetaStrip tip 通道随全站 v-tip 迁移不再落原生 title 属性——有 tip 的段挂 .help 类（锚随迁更新） */
+    const skipEl = meta.querySelector('.ms-i.help')!;
+    expect(skipEl, 'tip 挂段上（create 语义跳过非失败，help 档类在场）').toBeTruthy();
     app.unmount();
 
     xbJobs.mockResolvedValue([baseJob({ conflicts: 0 })]);
@@ -183,6 +194,62 @@ describe('1120 ④：速率曲线（SparkLine 接线，DONE 保留最后曲线�
     expect(buf.length).toBe(1);
     expect(buf[0]).toMatchObject({ m: 1 });
     expect(typeof buf[0].t).toBe('number');
+    app.unmount();
+  });
+});
+
+/* ═══ ④b 速率历史持久化（xm-rate-hist-v1：载入补水 / 采样落盘 / 删除清键 / 键数 cap 50） ═══ */
+describe('1120 ④b：速率历史持久化（localStorage xm-rate-hist-v1）', () => {
+  it('载入补水：预置历史两点 + 首拍值与尾点相同（不推新点）→ SparkLine 首拍即出线', async () => {
+    localStorage.setItem('xm-rate-hist-v1', JSON.stringify({
+      'j-1120': [{ t: Date.now() - 60000, m: 100 }, { t: Date.now() - 30000, m: 200 }],
+    }));
+    xbJobs.mockResolvedValueOnce([baseJob({ status: 'RUNNING', migrated: 200 })]);
+    const { app, host } = await mountXm();
+    const spark = host.querySelector('.xm-p-spark');
+    expect(spark, '载入历史两点 → 首拍即绘（无需等第二拍采样）').toBeTruthy();
+    expect(spark!.querySelector('polyline')!.getAttribute('points')).toBeTruthy();
+    app.unmount();
+  });
+
+  it('采样落盘：两拍值变化后 xm-rate-hist-v1 含该 job 两点序列', async () => {
+    xbJobs.mockResolvedValueOnce([baseJob({ status: 'RUNNING', migrated: 100 })]);
+    const { app, host } = await mountXm();
+    expect(JSON.parse(localStorage.getItem('xm-rate-hist-v1')!), '首拍落盘').toEqual({
+      'j-1120': [expect.objectContaining({ m: 100 })],
+    });
+    xbJobs.mockResolvedValueOnce([baseJob({ status: 'RUNNING', migrated: 300 })]);
+    (host.querySelector('button[aria-label="刷新任务列表"]') as HTMLButtonElement).click();
+    await settle(6);
+    const stored = JSON.parse(localStorage.getItem('xm-rate-hist-v1')!) as Record<string, { t: number; m: number }[]>;
+    expect(stored['j-1120'].map(p => p.m), '第二拍新点追加落盘').toEqual([100, 300]);
+    app.unmount();
+  });
+
+  it('行删除同步清键：确认删除后 xm-rate-hist-v1 不再含该 job', async () => {
+    xbJobs.mockResolvedValue([baseJob({ status: 'DONE', migrated: 100 })]);
+    const { app, host } = await mountXm();
+    expect(JSON.parse(localStorage.getItem('xm-rate-hist-v1')!)['j-1120']).toBeTruthy();
+    (host.querySelector('button[aria-label="删除记录"]') as HTMLButtonElement).click();
+    await settle(6);
+    expect(xbDeleteJob).toHaveBeenCalledWith('j-1120', undefined);
+    const stored = JSON.parse(localStorage.getItem('xm-rate-hist-v1')!) as Record<string, unknown>;
+    expect(stored['j-1120'], '删除记录后速率历史键同步清除').toBeUndefined();
+    app.unmount();
+  });
+
+  it('键数 cap 50：超限按最后采样时间淘汰最旧（新采样拍落盘时收敛）', async () => {
+    const seed: Record<string, { t: number; m: number }[]> = {};
+    for (let i = 0; i < 51; i++) seed['old-' + i] = [{ t: 1000 + i, m: i }];
+    localStorage.setItem('xm-rate-hist-v1', JSON.stringify(seed));
+    xbJobs.mockResolvedValueOnce([baseJob({ status: 'RUNNING', migrated: 42 })]);
+    const { app } = await mountXm();
+    const stored = JSON.parse(localStorage.getItem('xm-rate-hist-v1')!) as Record<string, unknown>;
+    const keys = Object.keys(stored);
+    expect(keys.length, '51 旧键 + 1 新键 → 收敛 50').toBe(50);
+    expect(stored['old-0'], '最后采样时间最早的键被淘汰').toBeUndefined();
+    expect(stored['old-1'], '次旧键同样淘汰（52→50）').toBeUndefined();
+    expect(stored['j-1120'], '新采样键在场').toBeTruthy();
     app.unmount();
   });
 });

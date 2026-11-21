@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createApp, h, ref } from 'vue';
 import ClauseNode from '../builder/ClauseNode.vue';
 import { TREE_BUS } from '../builder/treeBus';
+import { vTip } from '../../directives/vTip';
 import type { LeafNode } from '../../utils/queryAst';
 
 /* 控件升级随迁：向量值 JSON 位 JsonArea 化（内嵌 Monaco）——happy-dom 挂不起真 Monaco
@@ -38,9 +39,17 @@ function mount(node: LeafNode, types: Record<string, string> = { status: 'keywor
       defineRuntime: () => false,
     });
   }
+  app.directive('tip', vTip); /* 类型徽标/黄点等提示已迁 v-tip 指令，注册后经浮层读取 */
   app.mount(host);
   return { host, cur };
 }
+
+/* 类型徽标/黄点/运行时字段钮的提示已迁 v-tip 指令（DOM 无 title 属性）——
+   挂具注册指令后用 focusin 通道读单例浮层 #vt-tip 文本（合成事件不受元素可聚焦性影响） */
+const tipOf = (el: HTMLElement): string => {
+  el.dispatchEvent(new Event('focusin', { bubbles: false }));
+  return document.getElementById('vt-tip')?.textContent ?? '';
+};
 
 /* 1124：智能换算子只在「从候选弹层明确选中字段」时发生；输入半截不再换算子。
  测试用 helper：输入 → 等候选 → 点选目标项（等价真人从下拉选中）。 */
@@ -152,7 +161,7 @@ describe('ClauseNode', () => {
     const { host } = mount(mk(), { status: 'keyword' });
     const b = host.querySelector('.cn-fty') as HTMLElement;
     expect(b.textContent).toBe('keyword');
-    expect(b.title, 'tooltip 必须教育 keyword→term 精确匹配').toContain('term');
+    expect(tipOf(b), 'tooltip 必须教育 keyword→term 精确匹配').toContain('term');
     const { host: h2 } = mount(mk({ field: 'ghost' }), {});
     expect(h2.querySelector('.cn-fty'), 'types 无此字段时不渲染徽标').toBeNull();
   });
@@ -204,8 +213,8 @@ describe('ClauseNode', () => {
     const { host } = mount(mkRange('status'), { status: 'keyword' });
     const w = host.querySelector('.cn-rwarn') as HTMLElement;
     expect(w, 'keyword + range 必须显示黄点').not.toBeNull();
-    expect(w.title).toContain('字典序');
-    expect(w.title).toContain("'100' < '20'");
+    expect(tipOf(w)).toContain('字典序');
+    expect(tipOf(w)).toContain("'100' < '20'");
     const h2 = mount(mkRange('status'), { status: 'wildcard' });
     expect(h2.host.querySelector('.cn-rwarn'), 'wildcard 同为字典序类型').not.toBeNull();
     const h3 = mount(mkRange('createTime'), { createTime: 'date' });
@@ -222,9 +231,9 @@ describe('ClauseNode', () => {
     const { host } = mount(mk({ op: 'term', field: 'createTime', value: 123 }), { createTime: 'date' });
     const w = host.querySelector('.cn-owarn') as HTMLElement;
     expect(w, 'date + term 错配必须显示黄点').not.toBeNull();
-    expect(w.title).toContain('date 字段建议');
-    expect(w.title).toContain('range');
-    expect(w.title).toContain('可能无结果');
+    expect(tipOf(w)).toContain('date 字段建议');
+    expect(tipOf(w)).toContain('range');
+    expect(tipOf(w)).toContain('可能无结果');
     /* 五百二十五批随迁：span 升级 button（一键改推荐算子），语义由 aria-label 承载 */
     expect(w.getAttribute('aria-label')).toBe('改用推荐算子');
     const h2 = mount(mk({ op: 'range', field: 'createTime', value: { gte: 1 } }), { createTime: 'date' });
@@ -242,7 +251,7 @@ describe('ClauseNode', () => {
     const w = host.querySelector('button.cn-owarn') as HTMLButtonElement;
     expect(w, '黄点必须是 button（可点）').not.toBeNull();
     expect(w.getAttribute('aria-label')).toBe('改用推荐算子');
-    expect(w.title, '完整说明保留在 title').toContain('date 字段建议');
+    expect(tipOf(w), '完整说明保留在 v-tip 浮层').toContain('date 字段建议');
     w.click();
     await new Promise(r => setTimeout(r));
     expect(cur.value.op, '点击必须切到 date 推荐首算子 range（exists 兜底除外）').toBe('range');
@@ -253,10 +262,10 @@ describe('ClauseNode', () => {
   it('wildcard 类型徽标有专属词条 tooltip；prefix/wildcard 值开头 * ? 黄点提示（prefix-wildcard 语义）', () => {
     const { host } = mount(mk({ op: 'wildcard', value: '*x' }), { status: 'wildcard' });
     const b = host.querySelector('.cn-fty') as HTMLElement;
-    expect(b.title, 'wildcard 类型词条必须教育通配符用法').toContain('通配');
+    expect(tipOf(b), 'wildcard 类型词条必须教育通配符用法').toContain('通配');
     const w = host.querySelector('.cn-owarn') as HTMLElement;
     expect(w, '开头 * 必须黄点').not.toBeNull();
-    expect(w.title).toContain('全表扫描');
+    expect(tipOf(w)).toContain('全表扫描');
     const h2 = mount(mk({ op: 'wildcard', value: 'x*' }), { status: 'wildcard' });
     expect(h2.host.querySelector('.cn-owarn'), '结尾 * 是合法通配不警示').toBeNull();
     const h3 = mount(mk({ op: 'prefix', value: '?x' }), { status: 'keyword' });

@@ -272,7 +272,7 @@ esquerystudio:
     token: change-me
 ```
 
-`GET /mcp` 服务卡同时返回 `protocolVersion`、`capabilities`、`instructions`、`tools`、`resources`、`resourceTemplates` 与 `prompts`，客户端可先发现再初始化。使用 API key 时还会返回 `role`、`connections`、`permissions` 与 `connectionPermissions`，Agent 可在首次连接时就读取自己的真实读写范围；`recommendedTools`（服务 token 为 17 个 action 组，API key 只列其 `allowedTools` 命中的组）与对应的 `maxRecommendedTools` 给出客户端工具面；客户端只加载 17 个组工具，不再逐个加载 166 个 action。`recentCalls` 返回该 key 的最近 100 条预览；独立审计端点 `GET /internal/es/index/mcp/keys/calls` 返回按时间保留的完整调用记录（默认 30 天，最低 7 天），含 `requestId`、调用方 IP、UA、HTTP、耗时与状态。浏览器桥/本地 Node 的 `server/discover` 也返回进程内 `recentCalls`（transport/origin 或 pid/host；无网络 IP），三种模式字段形状一致。
+`GET /mcp` 服务卡同时返回 `protocolVersion`、`capabilities`、`instructions`、`tools`、`resources`、`resourceTemplates` 与 `prompts`，客户端可先发现再初始化。使用 API key 时还会返回 `role`、`connections`、`permissions` 与 `connectionPermissions`，Agent 可在首次连接时就读取自己的真实读写范围；`recommendedTools`（服务 token 为 17 个 action 组，API key 只列其 `allowedTools` 命中的组）与对应的 `maxRecommendedTools` 给出客户端工具面；客户端只加载 17 个组工具，不再逐个加载 167 个 action。`recentCalls` 返回该 key 的最近 100 条预览；独立审计端点 `GET /internal/es/index/mcp/keys/calls` 返回按时间保留的完整调用记录（默认 30 天，最低 7 天），含 `requestId`、调用方 IP、UA、HTTP、耗时与状态。浏览器桥/本地 Node 的 `server/discover` 也返回进程内 `recentCalls`（transport/origin 或 pid/host；无网络 IP），三种模式字段形状一致。
 
 ### 传输方式
 
@@ -355,14 +355,14 @@ MCP 端点同时受 `esquerystudio.elasticsearch.web-enabled` 约束（默认 `t
 
 ### 工具包与客户端上限
 
-客户端工具面是 **17 个 action 型工具**（`es_search`、`es_indices`、`es_cluster`、`es_xmigrate` 等），共 166 个 action；调用形态唯一——`tools/call` 的 name 必须是组名之一且必填 `action`，组外的旧细粒度名一律按未知工具拒绝。签发 key 的白名单用「组:action」限定名控制每组实际暴露的 action；控制台提供四档工具包：
+客户端工具面是 **17 个 action 型工具**（`es_search`、`es_indices`、`es_cluster`、`es_xmigrate` 等），共 167 个 action；调用形态唯一——`tools/call` 的 name 必须是组名之一且必填 `action`，组外的旧细粒度名一律按未知工具拒绝。签发 key 的白名单用「组:action」限定名控制每组实际暴露的 action；控制台提供四档工具包：
 
 | 工具包 | 内容 | 适用 |
 |---|---|---|
 | 核心查询 | 连接、搜索、SQL、Mapping、集群健康等 32 个只读 action | 默认，日常问答与分析 |
 | 核心 + 写入 | 核心包 + 文档写入 / 索引运维 action | 需要改数据的可信 Agent |
 | 只读全量 | 全部只读 action | 分析型 Agent |
-| 全量 | 166 个 action（客户端仍只看到 17 个组） | 脚本 / 一次性运维 |
+| 全量 | 167 个 action（客户端仍只看到 17 个组） | 脚本 / 一次性运维 |
 
 已选超过 80 个时面板会提示；key 列表对超限 key 提供「精简」按钮，打开编辑并预选核心包，保存后才真正收窄权限，不会静默改 key。工具包只改变 `allowedTools`，不改变连接的 read/write 边界。
 
@@ -403,7 +403,7 @@ curl -s http://localhost:5601/mcp \
 
 ### 客户端接入向导与 CLI
 
-客户端配置默认使用 **精简工具面**（`/mcp?surface=compact` 或请求头 `X-MCP-Surface: compact`）：保留全部 17 个 action 组（166 个 action 仍按 key 白名单执行），只把 resources / prompts 列表置空，避免 CodeBuddy / WorkBuddy 被 10 个资源 + 6 个提示词铺满面板；切换「完整工具面」即恢复 17 组 + 10 资源 + 6 提示词。精简面只影响 discovery，不改变 key 已签发的工具权限。
+客户端配置默认使用 **精简工具面**（`/mcp?surface=compact` 或请求头 `X-MCP-Surface: compact`）：保留全部 17 个 action 组（167 个 action 仍按 key 白名单执行），只把 resources / prompts 列表置空，避免 CodeBuddy / WorkBuddy 被 10 个资源 + 6 个提示词铺满面板；切换「完整工具面」即恢复 17 组 + 10 资源 + 6 提示词。精简面只影响 discovery，不改变 key 已签发的工具权限。
 
 面板独立的「客户端接入」页以可搜索矩阵预置 Claude Code、Cursor、CodeBuddy Code CLI、ZCode、TRAE、VS Code、Windsurf、Codex、DeepSeek Harness、OpenCode、Pi、Cherry Studio、Qoder、WorkBuddy、Antigravity、通用 HTTP、stdio 桥、本地 Node、浏览器页面内桥等类型；选中后显示对应配置文件位置与提示，可复制或下载配置，HTTP/stdio 会自动填入当前试跑 key。
 
@@ -487,7 +487,7 @@ ESQ_ES_URL=http://localhost:9200 ESQ_ES_USERNAME=elastic ESQ_ES_PASSWORD=*** \
 }
 ```
 
-- 17 个 action 型工具（166 个 action）+ 9 个只读资源 + 1 个 MCP App + 6 个引导提示词与服务端/浏览器同族；`es_connections` 的 `action=list` 用于选择连接，其余工具可带 `connection`；`es_rest` 的 `action=call` 可透传任意 REST，非 GET/HEAD 需要 `--allow-write`；本地 stdio 内置真实编排内核（写 action 均需 `--allow-write`）：托管重建 `prepare`/`start`/`abort`/`confirm_switch`/`events` 走本地 scroll+bulk 搬运 + 断点台账 + 别名切换保序（台账 `~/.esquerystudio/local-mcp/jobs.json`，进程重启后未完作业标 INTERRUPTED）；跨集群迁移 `start`/`status`/`jobs`/`resume`/`abort`/`throttle`（运行中调速，批粒度生效）全本地、`conflicts` 返回本地冲突样本环、`reconcile` 双侧 `_count` 对账；结构同步族 `probe_capabilities`（版本/厂商/插件/节点规模探测）、`compare_capabilities`（双侧能力差异矩阵与风险清单）、`sync_structure`（双层兼容剔除，`dryRun=true` 无需 `--allow-write` 预览计划、`dryRun=false` 需写开关与 MRTR 确认）、`diff_structure`（跨集群 settings/mapping 结构 diff，计划内剔除与计划外差异分列）本地直连实现；`connect_check` / `resolve_preview` / `dest_indices` / `delete_jobs` 操作本地连接档案与本地作业台账，`es_connections action=probe` 直连探活；`es_cluster` 的 `monitor_metrics` / `monitor_history`（依赖服务端采集落库）与 `es_indices` 的 `config_validate` / `config_drift`、`es_cluster` 的 `ops_audit` / `insight_impact` / `ring_usage` 依赖服务端控制台的规则面/审计台账/采集存储（浏览器桥有本机等价物），本地 stdio 诚实报错并提示改用服务端模式或浏览器桥。
+- 17 个 action 型工具（167 个 action）+ 9 个只读资源 + 1 个 MCP App + 6 个引导提示词与服务端/浏览器同族；`es_connections` 的 `action=list` 用于选择连接，其余工具可带 `connection`；`es_rest` 的 `action=call` 可透传任意 REST，非 GET/HEAD 需要 `--allow-write`；本地 stdio 内置真实编排内核（写 action 均需 `--allow-write`）：托管重建 `prepare`/`start`/`abort`/`confirm_switch`/`events` 走本地 scroll+bulk 搬运 + 断点台账 + 别名切换保序（台账 `~/.esquerystudio/local-mcp/jobs.json`，进程重启后未完作业标 INTERRUPTED）；跨集群迁移 `start`/`status`/`jobs`/`resume`/`abort`/`throttle`（运行中调速，批粒度生效）全本地、`conflicts` 返回本地冲突样本环、`reconcile` 双侧 `_count` 对账；结构同步族 `probe_capabilities`（版本/厂商/插件/节点规模探测）、`compare_capabilities`（双侧能力差异矩阵与风险清单）、`sync_structure`（双层兼容剔除，`dryRun=true` 无需 `--allow-write` 预览计划、`dryRun=false` 需写开关与 MRTR 确认）、`diff_structure`（跨集群 settings/mapping 结构 diff，计划内剔除与计划外差异分列）、`verify_equivalence`（迁移后数据等价验证：双侧 count + `_doc` 序样本摘要 + 可选聚合对比，`jobId` 形态复用本地台账）本地直连实现；`connect_check` / `resolve_preview` / `dest_indices` / `delete_jobs` 操作本地连接档案与本地作业台账，`es_connections action=probe` 直连探活；`es_cluster` 的 `monitor_metrics` / `monitor_history`（依赖服务端采集落库）与 `es_indices` 的 `config_validate` / `config_drift`、`es_cluster` 的 `ops_audit` / `insight_impact` / `ring_usage` 依赖服务端控制台的规则面/审计台账/采集存储（浏览器桥有本机等价物），本地 stdio 诚实报错并提示改用服务端模式或浏览器桥。
 - 默认只读；需要写入时显式加 `--allow-write`（或 `ESQ_MCP_ALLOW_WRITE=true`）。
 - 配置和 ES 凭据只在本机进程内，不经过控制台服务端；本地文件权限请自行按最小权限保护。
 - Node 18+（使用内置 `fetch`），无第三方依赖。
@@ -531,9 +531,9 @@ const response = await window.ESQueryStudioMCP.handle({
 
 ## 工具
 
-![MCP 工具目录：客户端 17 个 action 型工具共 166 个 action，按组展开与试跑，附资源与提示词](screenshots/mcp-tool-catalog.png)
+![MCP 工具目录：客户端 17 个 action 型工具共 167 个 action，按组展开与试跑，附资源与提示词](screenshots/mcp-tool-catalog.png)
 
-客户端唯一可见的工具面是 **17 个 action 组工具、共 166 个 action**。调用形态唯一：`tools/call` 的 `name` 必须是下表组名之一，`arguments.action` 必填且取值限定在该组的枚举内；组外的名字（含旧版细粒度名）一律返回未知工具错误。分组按 key 的 `allowedTools` 只暴露被授权的 action，不会把未授权动作列出来。
+客户端唯一可见的工具面是 **17 个 action 组工具、共 167 个 action**。调用形态唯一：`tools/call` 的 `name` 必须是下表组名之一，`arguments.action` 必填且取值限定在该组的枚举内；组外的名字（含旧版细粒度名）一律返回未知工具错误。分组按 key 的 `allowedTools` 只暴露被授权的 action，不会把未授权动作列出来。
 
 | 工具（组） | action | 说明 | 关键参数 |
 |---|---|---|---|
@@ -553,13 +553,13 @@ const response = await window.ESQueryStudioMCP.handle({
 | `es_automation` | `watchers`, `watch_put`, `watch_delete`, `watch_execute`, `ingest_list`, `ingest_put`, `ingest_delete`, `scripts`, `script_put`, `script_delete` | Watcher、ingest pipeline 与已存脚本 | `watch_put`: `id`+`body` · `ingest_put`: `id`+`body` · `script_put`: `id`+`script` |
 | `es_rest` | `call` | 原始 REST 透传；写方法需 write 权限 | `call`: `method`+`path`+`body?` |
 | `es_adhoc_rebuild` | `prepare`, `start`, `status`, `abort`, `confirm_switch`, `jobs`, `retry`, `delete_jobs`, `throttle`, `events` | 托管重建作业生命周期（含事件时间线） | `prepare`: `index` · `start`: `index`+`strategy` · `status`/`abort`/`confirm_switch`/`retry`/`throttle`/`events`: `jobId` |
-| `es_xmigrate` | `preflight`, `start`, `status`, `jobs`, `fetch_config`, `resume`, `abort`, `reconcile`, `conflicts`, `connect_check`, `resolve_preview`, `dest_indices`, `delete_jobs`, `sync_structure`, `probe_capabilities`, `compare_capabilities`, `diff_structure`, `throttle` | 跨集群迁移生命周期（含连通自检、目标清单、作业清理、双层兼容剔除结构同步、能力探测/对比与结构 diff 验证） | `preflight`: `sourceIndex`+`destIndex` · `start`: `srcConnId`+`sourceIndex`+`destIndex` · `reconcile`: `srcConnId`+`sourceIndex`+`destConnId`+`destIndex` · `connect_check`/`resolve_preview`: `srcConnId` · `conflicts`/`delete_jobs`(单条): `jobId` · `delete_jobs`(批量): `olderThanDays` · `sync_structure`: `srcConnId`+`sourceIndex`+`destIndex?`+`dryRun?`+`syncAliases?`+`destConnId?`（目标连接，缺省宿主集群）+`expectPlanDigest?`（仅 `dryRun=false`，防源结构漂移）（`dryRun=true` 只读预览剔除计划，不占写权限、不进 MRTR；返回 v3 报告：`planned` 兼容矩阵预剔除（含厂商私有设置 vendor-private 规则）/`reactive` 建索引报错兜底剔除/`aliases` 随迁清单/`advice` 分片·副本·存储·插件安装建议/`body` 适配后将在目标创建索引的 create body（settings+mappings+aliases）/`planDigest` 计划摘要） · `probe_capabilities`: `connection`+`index?`（版本/发行版/厂商推断(阿里云·腾讯云·AWS·Elastic·自建)/插件清单/节点规模） · `compare_capabilities`: `srcConnId`+`destConnId`（+`sourceIndex?`/`destIndex?`；返回双侧探测快照与差异矩阵：版本差/厂商切换/插件差集/节点规模与分级风险清单） · `diff_structure`: `srcConnId`+`sourceIndex`+`destConnId?`+`destIndex?`（缺省与源同名；跨集群 settings/mapping 结构 diff：计划内剔除与计划外差异分列，`compatible` 汇总裁决） · `throttle`: `jobId`+`rps`（运行中调速，`-1`=不限速、`0` 拒绝，下一批生效，需写权限） |
+| `es_xmigrate` | `preflight`, `start`, `status`, `jobs`, `fetch_config`, `resume`, `abort`, `reconcile`, `conflicts`, `connect_check`, `resolve_preview`, `dest_indices`, `delete_jobs`, `sync_structure`, `probe_capabilities`, `compare_capabilities`, `diff_structure`, `verify_equivalence`, `throttle` | 跨集群迁移生命周期（含连通自检、目标清单、作业清理、双层兼容剔除结构同步、能力探测/对比、结构 diff 与数据等价验证） | `preflight`: `sourceIndex`+`destIndex` · `start`: `srcConnId`+`sourceIndex`+`destIndex` · `reconcile`: `srcConnId`+`sourceIndex`+`destConnId`+`destIndex` · `connect_check`/`resolve_preview`: `srcConnId` · `conflicts`/`delete_jobs`(单条): `jobId` · `delete_jobs`(批量): `olderThanDays` · `sync_structure`: `srcConnId`+`sourceIndex`+`destIndex?`+`dryRun?`+`syncAliases?`+`downgradedAnalyzerFallback?`（降级字段的回退分析器，缺省 standard，normalizer 属性总是剔除）+`destConnId?`（目标连接，缺省宿主集群）+`expectPlanDigest?`（仅 `dryRun=false`，防源结构漂移）（`dryRun=true` 只读预览剔除计划，不占写权限、不进 MRTR；返回 v3 报告：`planned` 兼容矩阵预剔除（含厂商私有设置 vendor-private 规则）/`reactive` 建索引报错兜底剔除/`aliases` 随迁清单/`advice` 分片·副本·存储·插件安装建议/`body` 适配后将在目标创建索引的 create body（settings+mappings+aliases）/`planDigest` 计划摘要） · `probe_capabilities`: `connection`+`index?`（版本/发行版/厂商推断(阿里云·腾讯云·AWS·Elastic·自建)/插件清单/节点规模） · `compare_capabilities`: `srcConnId`+`destConnId`（+`sourceIndex?`/`destIndex?`；返回双侧探测快照与差异矩阵：版本差/厂商切换/插件差集/节点规模与分级风险清单） · `diff_structure`: `srcConnId`+`sourceIndex`+`destConnId?`+`destIndex?`（缺省与源同名；跨集群 settings/mapping 结构 diff：计划内剔除与计划外差异分列，`compatible` 汇总裁决） · `verify_equivalence`: `jobId`（复用作业登记的源/目标）或 `srcConnId`+`sourceIndex`+`destConnId?`+`destIndex?`（+`sampleSize?`（缺省 100，钳制 10..500）/`sampleFields?`（逗号分隔，参与摘要对比的字段，支持点号路径）/`aggField?`/`aggSize?`（缺省 10，钳制 1..50）；只读数据等价验证：双侧 `_count` 对比 + `_doc` 序 id 样本 mget 后按 canonical SHA-256 前 16 hex 摘要逐 id 对比 + 可选 terms 聚合对比，返回 `verdict` EQUIVALENT/DIVERGENT/INCONCLUSIVE；count/样本/聚合一侧取数失败如实判 INCONCLUSIVE 不冒充比对过；差异清单回显各 ≤20 条带截断标记） · `throttle`: `jobId`+`rps`（运行中调速，`-1`=不限速、`0` 拒绝，下一批生效，需写权限） |
 
 服务端模式每个 action 还接受可选 `connection` 参数（`host` 或 key 被授权的连接 id）；未传时使用 key 连接集合的第一个。浏览器模式忽略该参数，使用当前连接档案。
 
 数据流类 action 需要 ES 7.9+（组件模板 7.8+、Transform 7.5+）；老版本返回真实 ES 错误，不伪造成功。`es_indices` 的 `clone` / `shrink` / `split` 源索引必须已设为只读（`index.blocks.write=true`），目标索引名不能已存在；MCP 只透传 ES 的真实响应。
 
-`tools/list` 的每个组工具同时携带 MCP annotations：`readOnlyHint` 区分读/写（组内含写 action 或 `es_rest` 时为 `false`），`destructiveHint` 标记删除/覆盖类 action（如删索引、删文档、删快照、restore、bulk、原始 REST），`openWorldHint=false`。面板工具目录会对破坏性 action 显示红色「破坏性」标记，并支持按分类、搜索和权限类型（只读 / 写 / 破坏性）筛选。
+`tools/list` 的每个组工具同时携带 MCP annotations，三端（服务端 / 浏览器 / 本地 Node）输出同一张静态表：`readOnlyHint=true` 仅限组内全部 action 均为零写 action 的组（`es_connections`、`es_search`、`es_sql`），`destructiveHint=true` 仅限组内含删除/覆盖类 action（即破坏性清单：删索引、删文档、删快照、restore、bulk、原始 REST、迁移 start/abort 等）的组，`idempotentHint` 与 `readOnlyHint` 同值（读组可安全重复调用），`openWorldHint=true` 全组（工具操作外部 Elasticsearch 集群这一开放世界）。annotations 按组静态声明，不随 key 白名单或写开关裁剪变化；面板工具目录会对破坏性 action 显示红色「破坏性」标记，并支持按分类、搜索和权限类型（只读 / 写 / 破坏性）筛选。
 
 `tools/call` 同时返回 `content[0].text`（兼容只读文本客户端）与 `structuredContent`（对象直接透传；数组/标量包在 `result` 下），客户端可直接读取结构化结果。
 
@@ -587,10 +587,10 @@ const response = await window.ESQueryStudioMCP.handle({
 |---|---|---|
 | `diagnose_slow_query` | `connection`（必填）、`index?`、`query?` | 用 profile、分片耗时和线程池证据定位慢查询 |
 | `design_index_mapping` | `index`（必填）、`sample?`、`access?` | 从样例与访问模式产出 mapping/settings 方案并用真集群校验 |
-| `migrate_index` | `source`、`target`（必填）、`notes?` | reindex / 跨集群迁移、校验与别名切换 |
+| `migrate_index` | `source`、`target`（必填）、`notes?` | reindex / 跨集群迁移、跨厂商结构兼容剔除（`sync_structure` dryRun 预览→`expectPlanDigest` 执行）、`verify_equivalence` 数据等价验证与别名切换 |
 | `review_cluster_capacity` | `connection`（必填）、`window?` | 分片、磁盘、JVM、热线程风险排序 |
 | `triage_failed_search` | `connection`、`symptom`（必填）、`index?` | 失败搜索的分配、分片与熔断取证 |
-| `cross_cloud_structure_sync` | `srcConnId`、`destConnId`（必填）、`sourceIndex?` | 跨云结构同步工作流：双侧探测→能力对比→dry-run 计划→校验→执行→迁移→结构 diff 验证 |
+| `cross_cloud_structure_sync` | `srcConnId`、`destConnId`（必填）、`sourceIndex?`、`destIndex?`（缺省与 sourceIndex 同名） | 跨云结构同步工作流：双侧探测→能力对比→dry-run 计划→校验→执行→迁移→结构 diff→`verify_equivalence` 数据终验 |
 
 `prompts/get` 返回可直接交给模型的 `messages[0].content.text`，其中引用真实组名与 action；客户端可在 UI 里让用户先填参数再执行。面板的「协议自检」会真实往返 `initialize` / `tools/list` / `resources/list` / `prompts/list` 并显示协议版本、耗时与数量。
 
@@ -649,7 +649,7 @@ const response = await window.ESQueryStudioMCP.handle({
 # 服务端 MCP 单测与装配守卫（含 key 角色/配额/撤销）
 ./mvnw -pl modules/console -Dconsole.build.skip=true -Dtest=McpControllerTest,McpKeyManagementTest,McpWiringTest test
 
-# 服务端 / 纯前端 / 文档工具契约对齐（17 组 / 166 action，带负控）
+# 服务端 / 纯前端 / 文档工具契约对齐（17 组 / 167 action，带负控）
 node scripts/check-mcp-parity.mjs
 node scripts/check-mcp-parity.mjs --negative-control
 
@@ -668,7 +668,7 @@ cd ui && npx vitest run src/__tests__/browserMcp.spec.ts
 cd ui && npm run build:extension
 ```
 
-服务端 UI 的 **Dev Tools → MCP** 面板包含 01–05 五个工作台标签（接入总览 / 工具目录 / 客户端 / 密钥 / 调用审计）：接入总览用一张矩阵对齐三种接入面的端点、17 个 action 组与 166 个 action 目录（支持复制工具 JSON 与完整协议清单）、9 个只读资源、1 个 MCP App 与 6 个引导提示词，并支持 schema 驱动的工具试跑（必填/类型/描述/枚举字段表单、对象与数组 JSON 校验、JSON 高级模式、成功/失败与耗时响应面板；凭证仅驻留页面内存；试跑固定以「组 + action」调真实端点）、服务端 key 直连 `/mcp` 试跑、最近调用留档（方法/工具/IP/UA/requestId/耗时）与真实 `initialize` / `server/discover` / `tools/list` / `resources/list` / `resources/templates/list` / `prompts/list` / `completion/complete` 协议自检、资源/提示词填参试跑；客户端页以可搜索的客户端矩阵提供 Claude Code、Cursor、CodeBuddy、ZCode、TRAE、VS Code、Windsurf、Codex、DeepSeek Harness、OpenCode、Pi、Cherry Studio、Qoder、WorkBuddy、Antigravity、通用 HTTP、stdio/本地 Node 的配置复制、下载与 CLI 安装命令，并标注 DBX 是 MCP Server（非客户端）的边界；可勾选「通过本地 Node 直连」把当前客户端配置切到 stdio 桥；密钥页实时签发/编辑/轮换/撤销 key、按连接勾选写权限，提供只读分析 / QA-UAT 可写 / 批量写入快捷预设，并查看频率、日/月配额用量、近 7 天账本、近 14 天请求趋势、工具详情/最近调用（含调用方 IP/UA/耗时）、管理记录与即将耗尽的 key；支持按当前筛选结果导出 CSV 用量账本（UTF-8 BOM，含连接级写权限、工具计数、近 7/14 天合计、每日计数与管理记录），并可按日展开导出日账（date / key / owner / role / count）。密钥页以「台账 + Key Inspector」双栏展示，右侧检查器按「概览 / 范围 / 调用 / 记录」四个 tab 切换（概览含动作/工具组/连接/可写连接统计与 14 天请求，范围含 17 组工具网格与逐连接权限，调用含工具计数与最近调用，记录含管理记录），每把 key 可直接复制前缀（用于日志检索）、查看用量与详情；`复制 key`/`接入配置` 会从服务端加密保存的完整值直接取回；旧版本 key 未保存完整值时才明确询问轮换（旧 key 立即失效）；`更多` 聚合编辑/轮换/撤销/精简；签发与轮换会打开一次性明文弹窗，自动聚焦「复制 key」，支持全选、下载 `.env` 和可粘贴客户端配置，Esc/遮罩不会误关；所有复制在 HTTP 非安全上下文走 copy 事件回退，失败时全选并提示 Ctrl+C。客户端接入页内置「连不上？先核对三件事」排障（context-path、`Unexpected token '<'`、`MCP_KEY_REVOKED`），并给出 WorkBuddy `type: "http"` 的 `~/.workbuddy/mcp.json` 示例。纯前端/演示站只在同一面板展示真实边界，不伪造可用的 HTTP key。
+服务端 UI 的 **Dev Tools → MCP** 面板包含 01–05 五个工作台标签（接入总览 / 工具目录 / 客户端 / 密钥 / 调用审计）：接入总览用一张矩阵对齐三种接入面的端点、17 个 action 组与 167 个 action 目录（支持复制工具 JSON 与完整协议清单）、9 个只读资源、1 个 MCP App 与 6 个引导提示词，并支持 schema 驱动的工具试跑（必填/类型/描述/枚举字段表单、对象与数组 JSON 校验、JSON 高级模式、成功/失败与耗时响应面板；凭证仅驻留页面内存；试跑固定以「组 + action」调真实端点）、服务端 key 直连 `/mcp` 试跑、最近调用留档（方法/工具/IP/UA/requestId/耗时）与真实 `initialize` / `server/discover` / `tools/list` / `resources/list` / `resources/templates/list` / `prompts/list` / `completion/complete` 协议自检、资源/提示词填参试跑；客户端页以可搜索的客户端矩阵提供 Claude Code、Cursor、CodeBuddy、ZCode、TRAE、VS Code、Windsurf、Codex、DeepSeek Harness、OpenCode、Pi、Cherry Studio、Qoder、WorkBuddy、Antigravity、通用 HTTP、stdio/本地 Node 的配置复制、下载与 CLI 安装命令，并标注 DBX 是 MCP Server（非客户端）的边界；可勾选「通过本地 Node 直连」把当前客户端配置切到 stdio 桥；密钥页实时签发/编辑/轮换/撤销 key、按连接勾选写权限，提供只读分析 / QA-UAT 可写 / 批量写入快捷预设，并查看频率、日/月配额用量、近 7 天账本、近 14 天请求趋势、工具详情/最近调用（含调用方 IP/UA/耗时）、管理记录与即将耗尽的 key；支持按当前筛选结果导出 CSV 用量账本（UTF-8 BOM，含连接级写权限、工具计数、近 7/14 天合计、每日计数与管理记录），并可按日展开导出日账（date / key / owner / role / count）。密钥页以「台账 + Key Inspector」双栏展示，右侧检查器按「概览 / 范围 / 调用 / 记录」四个 tab 切换（概览含动作/工具组/连接/可写连接统计与 14 天请求，范围含 17 组工具网格与逐连接权限，调用含工具计数与最近调用，记录含管理记录），每把 key 可直接复制前缀（用于日志检索）、查看用量与详情；`复制 key`/`接入配置` 会从服务端加密保存的完整值直接取回；旧版本 key 未保存完整值时才明确询问轮换（旧 key 立即失效）；`更多` 聚合编辑/轮换/撤销/精简；签发与轮换会打开一次性明文弹窗，自动聚焦「复制 key」，支持全选、下载 `.env` 和可粘贴客户端配置，Esc/遮罩不会误关；所有复制在 HTTP 非安全上下文走 copy 事件回退，失败时全选并提示 Ctrl+C。客户端接入页内置「连不上？先核对三件事」排障（context-path、`Unexpected token '<'`、`MCP_KEY_REVOKED`），并给出 WorkBuddy `type: "http"` 的 `~/.workbuddy/mcp.json` 示例。纯前端/演示站只在同一面板展示真实边界，不伪造可用的 HTTP key。
 
 ![MCP 密钥用量：近 7 天账本、日/月进度、管理记录与工具详情](screenshots/mcp-key-usage.png)
 

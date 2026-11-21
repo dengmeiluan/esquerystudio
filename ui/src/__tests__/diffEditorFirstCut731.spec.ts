@@ -183,13 +183,15 @@ describe('731 G100 头计数只计真实增删行（eq 不计入「变更」）'
 });
 
 describe('731 G101 MetaStrip 三段中文 tip（铁律 F；G55/G60/G74/G79/G87 同族）', () => {
-  it('version/seq_no/pt 三段 title=版本号/乐观锁序号/主分片任期 + help 档', async () => {
+  it('version/seq_no/pt 三段提示=版本号/乐观锁序号/主分片任期 + help 档', async () => {
     const host = await mountDf({ id: 'doc1' });
     const items = Array.from(host.querySelectorAll('.ms-i'));
     expect(items.length, 'dfMetaItems 三段').toBe(3);
-    expect(items[0].getAttribute('title')).toBe('版本号');
-    expect(items[1].getAttribute('title')).toBe('乐观锁序号');
-    expect(items[2].getAttribute('title')).toBe('主分片任期');
+    /* 段提示已迁 v-tip 指令（DOM 无 title 属性）——tip 文案改源码锚（items prop 传 tip，MetaStrip 内部 v-tip 承接） */
+    const v = readFileSync(join(__dirname, '../views/DiffEditorView.vue'), 'utf-8');
+    expect(v).toContain("tip: '版本号'");
+    expect(v).toContain("tip: '乐观锁序号'");
+    expect(v).toContain("tip: '主分片任期'");
     items.forEach(i => expect(i.classList.contains('help'), 'tip 悬停通道 help 档').toBe(true));
   });
 });

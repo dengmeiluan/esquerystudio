@@ -1,14 +1,14 @@
 <template>
   <div class="ja" :class="{ fill }">
     <div class="ja-bar">
-      <span class="ja-dot" :class="'ja-' + validity" :title="validity === 'ok' ? 'JSON 合法' : validity === 'bad' ? 'JSON 非法' : '空'" />
+      <span class="ja-dot" :class="'ja-' + validity" v-tip="validity === 'ok' ? 'JSON 合法' : validity === 'bad' ? 'JSON 非法' : '空'" />
       <span v-if="validity === 'bad'" class="ja-err">{{ errMsg }}</span>
       <span style="flex:1" />
       <!-- W2：readonly 态格式化/压缩（编辑动作）隐藏、复制保留——缺省分支零改动，
  既有消费方（不传 readonly）渲染逐字节不变 -->
-      <button v-if="!readonly" class="ja-btn" title="格式化（2 空格缩进）" @click="fmt"><WrapText :size="11" /> 格式化</button>
-      <button v-if="!readonly" class="ja-btn" title="压缩为单行" @click="minify"><FoldVertical :size="11" /> 压缩</button>
-      <button class="ja-btn" title="复制全文" @click="copy"><Copy :size="11" /> 复制</button>
+      <button v-if="!readonly" class="ja-btn" v-tip="'格式化（2 空格缩进）'" @click="fmt"><WrapText :size="11" /> 格式化</button>
+      <button v-if="!readonly" class="ja-btn" v-tip="'压缩为单行'" @click="minify"><FoldVertical :size="11" /> 压缩</button>
+      <button class="ja-btn" v-tip="'复制全文'" @click="copy"><Copy :size="11" /> 复制</button>
     </div>
     <!-- submit = MonacoEditor 既有 Ctrl+Enter（es-execute action）透传。
  纯新增 emit：不监听的既有消费方行为零变化（Ctrl+Enter 此前在 JsonArea 内即

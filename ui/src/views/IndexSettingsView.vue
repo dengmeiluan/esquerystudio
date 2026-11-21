@@ -29,17 +29,17 @@
         <button
           v-else-if="canOps" class="btn primary sm" @click="save"
           :disabled="saving || !diffCount || saveBlocked || analyzing"
-          :title="saveBlocked ? '含需重建/非法项，见右侧分析' : ''"
+          v-tip="saveBlocked ? '含需重建/非法项，见右侧分析' : ''"
         >
           <Save :size="12" /> {{ saveBtnText }}
         </button>
-        <button aria-label="刷新设置" class="btn sm ghost" @click="loadSettings" :disabled="!index || loading" title="刷新设置">
+        <button aria-label="刷新设置" class="btn sm ghost" @click="loadSettings" :disabled="!index || loading" v-tip="'刷新设置'">
           <RefreshCw :size="12" :class="{ spinning: loading }" />
         </button>
         <!-- 原始请求/响应快查弹窗（RawIo 第六波，558b 先例同形态；
  路径子串 '/cluster/index-settings'=本页 GET 读取 + PUT /update 热更同前缀，
  IndexOptimizerView 同串跨页互见：各取各自最近一条） -->
-        <button aria-label="查看原始 IO（索引设置读写）" class="btn sm ghost" data-test="raw-io" title="最近一次索引 settings 读取/热更请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo">
+        <button aria-label="查看原始 IO（索引设置读写）" class="btn sm ghost" data-test="raw-io" v-tip="'最近一次索引 settings 读取/热更请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo">
           <Terminal :size="12" /> 原始 IO
         </button>
       </div>
@@ -126,8 +126,8 @@
             <div v-for="(r, i) in customRows" :key="i" class="is-custom-row">
               <SettingsKeyInput v-model="r.key" class="is-input" />
               <!-- 值输入悬停 :title=目录中文释义（SETTINGS_CATALOG 单源，normKey 去前缀口径） -->
-              <input v-model="r.value" class="is-input mono" :title="customHint(r.key)" placeholder="值（留空 = 清除）" />
-              <button aria-label="移除" class="btn sm ghost" title="移除" @click="removeCustomRow(i)"><X :size="12" /></button>
+              <input v-model="r.value" class="is-input mono" v-tip="customHint(r.key)" placeholder="值（留空 = 清除）" />
+              <button aria-label="移除" class="btn sm ghost" v-tip="'移除'" @click="removeCustomRow(i)"><X :size="12" /></button>
             </div>
           </div>
 
@@ -140,9 +140,9 @@
               <div v-for="d in diffList" :key="d.key" class="is-diff-item">
                 <div class="is-diff-row">
                   <span class="is-diff-k"><DotKey :k="d.key" /></span>
-                  <span class="mono is-diff-old" :title="'原值'">{{ d.old === '' || d.old == null ? '（未设置）' : d.old }}</span>
+                  <span class="mono is-diff-old" v-tip="'原值'">{{ d.old === '' || d.old == null ? '（未设置）' : d.old }}</span>
                   <ArrowRight :size="11" style="color:var(--tx2)" />
-                  <span class="mono is-diff-new" :title="'新值'">{{ d.new === '' ? '（清除）' : d.new }}</span>
+                  <span class="mono is-diff-new" v-tip="'新值'">{{ d.new === '' ? '（清除）' : d.new }}</span>
                   <!-- 裸 .pill n is-kind 徽标收口 StatusPill（kind→tone 语义映射：
  DYNAMIC→g/STATIC→y/其余→r，k-* 手写文字色档随改用退役，色归 tone 单源；
  is-kind 锚类保留——pillSingleTrack MERGED 看守） -->
@@ -176,12 +176,12 @@
  is-raw-filter 锚随 input-class 保留在 input 上；data-test=is-raw-kw 点名锚） -->
             <template v-if="showRaw">
               <SearchFilterBar v-model="rawFilter" data-test="is-raw-kw" class="is-raw-kw-wrap" input-class="is-raw-filter" placeholder="过滤键或值（如 refresh）" />
-              <button class="btn sm ghost" title="复制完整 settings（不受过滤影响）" @click="copyRawSettings"><Copy :size="11" /> 复制全部</button>
+              <button class="btn sm ghost" v-tip="'复制完整 settings（不受过滤影响）'" @click="copyRawSettings"><Copy :size="11" /> 复制全部</button>
             </template>
           </div>
           <!-- W-C 批：完整 settings 走 highlightJson 范式（转义安全 v-html）；
  点击全选——复制被浏览器策略拦时 Ctrl+C 零门槛兜底 -->
-          <pre v-if="showRaw" ref="rawPreEl" class="mono json-view is-raw-pre" role="button" tabindex="0" title="点击全选，Ctrl+C 复制" @click="selectAllRaw" @keydown.enter.prevent="selectAllRaw" @keydown.space.prevent="selectAllRaw" v-html="filteredRawHtml"></pre>
+          <pre v-if="showRaw" ref="rawPreEl" class="mono json-view is-raw-pre" role="button" tabindex="0" v-tip="'点击全选，Ctrl+C 复制'" @click="selectAllRaw" @keydown.enter.prevent="selectAllRaw" @keydown.space.prevent="selectAllRaw" v-html="filteredRawHtml"></pre>
         </div>
       </div>
 

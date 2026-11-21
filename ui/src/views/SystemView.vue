@@ -9,7 +9,7 @@
 <span style="flex:1"></span>
       <!-- G259：原始 IO 快查（777 G255/755 G200 同构）——本页查询执行通道
  （POST /system-query）请求/响应原文直达；inspect 读通道语义并入 title 自述 -->
-      <button class="btn sm ghost" title="最近一次系统索引查询（system-query）请求/响应原文（复制/curl 回放）" @click="openRawIo">
+      <button class="btn sm ghost" v-tip="'最近一次系统索引查询（system-query）请求/响应原文（复制/curl 回放）'" @click="openRawIo">
         <Terminal :size="11" /> 原始 IO
       </button>
       <button class="btn sm" @click="loadInspect" :disabled="loading"><RefreshCw :size="12" :class="{ spinning: loading }" /> 刷新</button>
@@ -62,7 +62,7 @@
         <button class="btn primary sm" :disabled="running" @click="run"><Loader2 v-if="running" :size="12" class="spinning" /><Play v-else :size="12" /> {{ running ? '执行中…' : '执行' }} <span class="kbd">Ctrl⏎</span></button>
         <button class="btn sm" @click="reset">重置</button>
         <!-- 查询编辑器高度「高」钮（ubq.scriptH 三档循环同款形态） -->
-        <button class="btn ghost xs" data-test="sys-dsl-h" :title="'查询编辑器高度档：' + sysEdH" @click="cycleSysEdH">高</button>
+        <button class="btn ghost xs" data-test="sys-dsl-h" v-tip="'查询编辑器高度档：' + sysEdH" @click="cycleSysEdH">高</button>
         <span v-if="resp" class="mono" style="margin-left:auto;font-size: var(--fs-xs);color:var(--tx2)">
           <b style="color:var(--tx0)">{{ fmtNum(resp.total) }}</b> 条 ·
           <!-- 裸 took ms → TookBadge 四档语义徽标（阈值单一出处 utils/format.ts） -->

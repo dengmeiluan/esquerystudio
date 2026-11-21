@@ -4,7 +4,7 @@
   <nav class="lab-nav" aria-label="相关性实验室导航">
     <button
       type="button" class="lab-nav-btn lab-home"
-      title="返回查询工作台（六 lab 的入口与出口）"
+      v-tip="'返回查询工作台（六 lab 的入口与出口）'"
       @click="router.push('/search')"
     >
       <SearchCheck :size="12" /> 查询工作台
@@ -14,7 +14,7 @@
       v-for="l in RELEVANCE_LABS" :key="l.path"
       type="button" class="lab-nav-btn" :class="{ on: l.path === current }"
       :disabled="l.path === current"
-      :title="l.path === current ? `当前：${l.name}` : `前往${l.name}`"
+      v-tip="l.path === current ? `当前：${l.name}` : `前往${l.name}`"
       :aria-current="l.path === current ? 'page' : undefined"
       @click="l.path !== current && router.push(l.path)"
     >

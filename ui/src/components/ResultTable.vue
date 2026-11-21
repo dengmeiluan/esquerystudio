@@ -62,7 +62,7 @@
         <template v-if="searchOpen && !searchable">
           <HitNav v-model="searchKw" :count="searchMatches.length" :current="searchCur"
                   placeholder="结果内查找…" @next="searchNext" @prev="searchPrev" @keydown.esc.stop="closeSearch" />
-          <span v-if="renderTruncated" class="rt-search-note mono" :title="`结果已截断渲染——查找仅覆盖已渲染的前 ${renderHits.length} 行`">≈ 前 {{ renderHits.length }} 行</span>
+          <span v-if="renderTruncated" class="rt-search-note mono" v-tip="`结果已截断渲染——查找仅覆盖已渲染的前 ${renderHits.length} 行`">≈ 前 {{ renderHits.length }} 行</span>
         </template>
       </template>
       <template #bar-right>
@@ -71,29 +71,29 @@
  弹层向下展开会盖住表格列头（bottom-end 形态） -->
         <n-popover v-if="pending.size" trigger="click" placement="top-end" :show="pendOpen" @update:show="pendOpen = $event">
           <template #trigger>
-            <button class="pend-chip" :class="{ committing }" title="待提交更改——点开预览/提交/撤销">
+            <button class="pend-chip" :class="{ committing }" v-tip="'待提交更改——点开预览/提交/撤销'">
               <Pencil :size="11" />
               <span class="pend-chip-n mono">{{ pendingCount }}</span>
               <ChevronDown :size="11" />
             </button>
           </template>
           <div class="pend-pop">
-            <div class="pend-pop-hd"><Pencil :size="12" /> 待提交更改 <b class="pend-pop-n mono">{{ pendingCount }}</b><span class="pend-pop-id mono" :title="pendItems[0]?.id || ''">{{ pendItems[0]?.id || '' }}</span></div>
+            <div class="pend-pop-hd"><Pencil :size="12" /> 待提交更改 <b class="pend-pop-n mono">{{ pendingCount }}</b><span class="pend-pop-id mono" v-tip="pendItems[0]?.id || ''">{{ pendItems[0]?.id || '' }}</span></div>
             <div v-if="committing" class="pend-pop-prog mono">{{ commitProgress }}</div>
             <template v-else>
               <div class="pend-pop-list">
                 <!-- 方案 A：逐条变更明细（行 id × 字段：旧值→新值，单条撤销）——
  最多展示 3 条，超出折叠「… 共 N 处」；数据源 pending(Map<id,Map<field,{old,new}>>) -->
                 <div v-for="it in pendItems" :key="it.id + ':' + it.field" class="pend-pop-item">
-                  <span class="pend-pop-fld mono" :title="it.id + ' × ' + it.field">{{ it.field }}</span>
+                  <span class="pend-pop-fld mono" v-tip="it.id + ' × ' + it.field">{{ it.field }}</span>
                   <span class="pend-pop-vals mono"><s>{{ jstr(it.oldVal) }}</s><span class="pend-pop-arr">→</span>{{ jstr(it.newVal) }}</span>
-                  <button class="pend-pop-undo" title="撤销此格更改" @click="revertOne(it.id, it.field)">撤销</button>
+                  <button class="pend-pop-undo" v-tip="'撤销此格更改'" @click="revertOne(it.id, it.field)">撤销</button>
                 </div>
                 <div v-if="pendingCount > pendItems.length" class="pend-pop-more">… 共 {{ pendingCount }} 处，双击下一单元格继续追加</div>
               </div>
               <div class="pend-pop-foot">
                 <button class="btn sm ghost" @click="previewOpen = true; pendOpen = false"><Search :size="12" /> 预览</button>
-                <button class="btn sm ghost" aria-label="复制 bulk NDJSON（审计/复现/重放）" title="复制 bulk NDJSON（审计/复现/重放）" @click="copyBulkNdjson"><ClipboardList :size="12" /></button>
+                <button class="btn sm ghost" aria-label="复制 bulk NDJSON（审计/复现/重放）" v-tip="'复制 bulk NDJSON（审计/复现/重放）'" @click="copyBulkNdjson"><ClipboardList :size="12" /></button>
                 <span class="pend-pop-sp"></span>
                 <button class="btn sm ghost" @click="revertAll()"><RotateCcw :size="12" /> 全部撤销</button>
                 <button class="btn sm primary" :disabled="committing" @click="pendOpen = false; commitPending()"><Send :size="11" /> 提交全部</button>
@@ -104,7 +104,7 @@
         <!-- 一键提交迷你钮（chip 旁直达，免去点开气泡的两击；
  表格聚焦时 Ctrl+S / Ctrl+Enter 同效） -->
         <button v-if="pending.size" class="pend-mini-commit" :disabled="committing"
-                title="提交全部待提交更改（表格聚焦时 Ctrl+S / Ctrl+Enter 同效）"
+                v-tip="'提交全部待提交更改（表格聚焦时 Ctrl+S / Ctrl+Enter 同效）'"
                 @click="commitPending()">
           <Send :size="11" /> 提交
         </button>
@@ -113,7 +113,7 @@
  格式清单从主界面彻底移除（用户裂开点：菜单不该常驻出现）。
  ⚠ aria-label 必须给：窄档（容器 ≤1180px）会把可见文字 .rt-exp-btn-t 隐藏只留图标，
  没有 aria-label 就成了**无名称按钮**（读屏只念「按钮」，键盘用户也无从得知这是导出）。 -->
-        <button class="btn sm ghost rt-exp-btn" :aria-label="`导出为 ${expFmt.toUpperCase()}（${selected.size ? '选中 ' + selected.size + ' 行' : '当前页'}）`" :title="`导出${selected.size ? `选中 ${selected.size} 行` : '当前页'}为 ${expFmt.toUpperCase()}（右键单元格可切换默认格式）`" :disabled="!hits.length" @click="exportRows(expFmt)">
+        <button class="btn sm ghost rt-exp-btn" :aria-label="`导出为 ${expFmt.toUpperCase()}（${selected.size ? '选中 ' + selected.size + ' 行' : '当前页'}）`" v-tip="`导出${selected.size ? `选中 ${selected.size} 行` : '当前页'}为 ${expFmt.toUpperCase()}（右键单元格可切换默认格式）`" :disabled="!hits.length" @click="exportRows(expFmt)">
           <FileDown :size="13" />
           <span class="rt-exp-btn-t">导出</span>
         </button>
@@ -124,7 +124,7 @@
  当前档 ✓，比连点循环可预期；列宽重置=低频破坏性弱操作，菜单底项+分隔线隔离） -->
         <span class="menu-wrap">
           <button aria-label="视图设置" class="btn sm ghost rt-tool-btn" :class="{ on: viewMenuOpen }"
-            aria-haspopup="menu" :aria-expanded="viewMenuOpen" title="视图：行高、列宽"
+            aria-haspopup="menu" :aria-expanded="viewMenuOpen" v-tip="'视图：行高、列宽'"
             @click.stop="toggleViewMenu($event)">
             <SlidersHorizontal :size="13" /><span class="rt-tool-t">视图 ⋯</span>
           </button>
@@ -137,26 +137,26 @@
             <button class="rt-mi" :class="{ on: rowH === 'cozy' }" role="menuitemradio" :aria-checked="rowH === 'cozy'"
               @click="setRowH('cozy'); closeMenus()">宽松</button>
             <div class="rt-m-sep" role="separator"></div>
-            <button :aria-label="'重置全部列宽'" class="rt-mi" role="menuitem" title="重置全部列宽（拖拽过的列回原始宽）"
+            <button :aria-label="'重置全部列宽'" class="rt-mi" role="menuitem" v-tip="'重置全部列宽（拖拽过的列回原始宽）'"
               :disabled="!Object.keys(colWidths).length" @click="resetColWidths(); closeMenus()">
               ⤺ 重置全部列宽
             </button>
             <!-- 1143：表格级视图开关归位——聚合行/转置/语义格式化作用于整张表，
  不属于「某一列」的列头菜单；与行高/列宽同属「视图」心智一处可达（QRT 同构）。 -->
             <div class="rt-m-sep" role="separator"></div>
-            <button :aria-label="'表格快照 PNG'" class="rt-mi" role="menuitem" title="表格快照 PNG（当前页，含工具行与表头）"
+            <button :aria-label="'表格快照 PNG'" class="rt-mi" role="menuitem" v-tip="'表格快照 PNG（当前页，含工具行与表头）'"
               :disabled="!hits.length" @click="snapshotPng(); closeMenus()">
               <Camera :size="12" /> 快照 PNG（当前页）
             </button>
             <div class="rt-m-sep" role="separator"></div>
             <div class="rt-m-t">表格视图</div>
             <button class="rt-mi" role="menuitemcheckbox" :aria-checked="aggOn"
-              :aria-label="aggOn ? '聚合行：开' : '聚合行：关'" title="底部聚合行（数值列 Σ/avg；勾选行时只算所见集）"
+              :aria-label="aggOn ? '聚合行：开' : '聚合行：关'" v-tip="'底部聚合行（数值列 Σ/avg；勾选行时只算所见集）'"
               @click="toggleAggRow(); closeMenus()">{{ aggOn ? '✓ ' : '' }}聚合行</button>
             <button class="rt-mi" role="menuitemcheckbox" :aria-checked="transpose" :aria-label="transpose ? '转置视图：开' : '转置视图：关'"
-              title="转置视图（字段为行、文档为列）" @click="toggleTranspose(); closeMenus()">{{ transpose ? '✓ ' : '' }}转置视图</button>
+              v-tip="'转置视图（字段为行、文档为列）'" @click="toggleTranspose(); closeMenus()">{{ transpose ? '✓ ' : '' }}转置视图</button>
             <button class="rt-mi" role="menuitemcheckbox" :aria-checked="semPref" :aria-label="semPref ? '语义格式化：开' : '语义格式化：关'"
-              title="语义格式化（bytes/时长/百分比只改显示；复制与导出恒原始值）"
+              v-tip="'语义格式化（bytes/时长/百分比只改显示；复制与导出恒原始值）'"
               @click="semPref = !semPref; closeMenus()">{{ semPref ? '✓ ' : '' }}语义格式化</button>
           </div>
         </span>
@@ -172,7 +172,7 @@
         <template v-if="focusable !== false">
           <span class="rt-bar-div" role="separator" />
           <button class="btn sm ghost rt-tool-btn" :aria-label="focused ? '还原结果表' : '放大结果表'"
-            :title="focused ? '还原（Esc 也可退出）' : '放大结果表（整表铺满全屏，工具行随行可达）'"
+            v-tip="focused ? '还原（Esc 也可退出）' : '放大结果表（整表铺满全屏，工具行随行可达）'"
             @click="focused = !focused">
             <Minimize2 v-if="focused" :size="13" />
             <Maximize2 v-else :size="13" />
@@ -180,7 +180,7 @@
         </template>
         <template v-if="selected.size">
           <span class="rt-bar-div" role="separator" />
-          <button class="btn sm ghost" @click="invertSel" title="反选当前视图行">反选</button>
+          <button class="btn sm ghost" @click="invertSel" v-tip="'反选当前视图行'">反选</button>
         </template>
       </template>
     </TableShell>
@@ -204,12 +204,12 @@
         <thead>
           <tr>
             <th class="rt-chk">
-              <n-checkbox size="small" :checked="allChecked" :indeterminate="selected.size > 0 && !allChecked" @update:checked="toggleAll" aria-label="全选当前视图行" title="全选/取消全选（当前视图全部行）" />
+              <n-checkbox size="small" :checked="allChecked" :indeterminate="selected.size > 0 && !allChecked" @update:checked="toggleAll" aria-label="全选当前视图行" v-tip="'全选/取消全选（当前视图全部行）'" />
             </th>
             <th class="rt-idx">#</th>
             <th v-for="c in visibleCols" :key="c" class="rt-th" :class="{ 'rt-th-on': chainHas(c), 'rt-col-frozen': isFrozenCol(c), 'rt-col-flash': flashCol === c,
               'rt-drop-before': colDragOver === c && colDragPlace === 'before' && colDragCol !== c,
-              'rt-drop-after': colDragOver === c && colDragPlace === 'after' && colDragCol !== c }" :data-col="c" :style="frozenStyle(c)" :title="thTitle(c)"
+              'rt-drop-after': colDragOver === c && colDragPlace === 'after' && colDragCol !== c }" :data-col="c" :style="frozenStyle(c)" v-tip="thTitle(c)"
               :aria-sort="chainCount > 0 && dispChain[0].f === c ? (dispChain[0].d === 'asc' ? 'ascending' : 'descending') : undefined" @click="sortBy(c, undefined, $event.shiftKey)"
               @dragover="onDragOver($event, c)" @drop="onDrop($event, c)"
               @contextmenu.prevent="openColMenu($event, c)"
@@ -220,7 +220,7 @@
  列宽始终留给列名本身；类型全称仍在 th title 里。 -->
               <span class="rt-th-in">
                 <span class="rt-th-name" :class="{ 'rt-drag-src': colDragCol === c }" draggable="true"
-                  :title="isFrozenCol(c) ? '冻结列不可拖动（先取消冻结再移动）' : '拖动重排此列'"
+                  v-tip="isFrozenCol(c) ? '冻结列不可拖动（先取消冻结再移动）' : '拖动重排此列'"
                   @dragstart="onDragStart($event, c)" @dragend="onDragEnd">
                   <span class="rt-th-label">{{ c }}</span>
                   <span v-if="props.fieldTypes?.[c]" class="rt-th-type" :class="typeCls(props.fieldTypes[c])">{{ props.fieldTypes[c] }}</span>
@@ -233,12 +233,12 @@
               <!-- P0-4：列头筛选漏斗（QRT 同款；激活实色高亮；stop 防触发排序）；
  激活并集口径 funnelOn（等值∪区间∪包含，QRT 552 同构收尾——
  此前只认等值勾选，区间/包含档生效漏斗不亮是暗状态可见性缺口） -->
-              <button class="rt-funnel" :class="{ on: funnelOn(c) }" :aria-label="'筛选 ' + c + ' 列'" title="筛选此列"
+              <button class="rt-funnel" :class="{ on: funnelOn(c) }" :aria-label="'筛选 ' + c + ' 列'" v-tip="'筛选此列'"
                 @click.stop="openFilter($event, c)" @keydown.stop>
 <Filter :size="10" />
 </button>
               <!-- v3.0.0：拖拽柄键盘可达——聚焦后 ←/→ 微调列宽（±32px/击），Enter=自适应 -->
-              <span class="rt-rs" role="slider" tabindex="0" :aria-label="'调整 ' + c + ' 列宽（←/→ 微调，Enter 自适应）'" title="拖拽调整列宽；双击自适应内容" @click.stop @dblclick="fitCol(c)" @mousedown="startResize($event, c)"
+              <span class="rt-rs" role="slider" tabindex="0" :aria-label="'调整 ' + c + ' 列宽（←/→ 微调，Enter 自适应）'" v-tip="'拖拽调整列宽；双击自适应内容'" @click.stop @dblclick="fitCol(c)" @mousedown="startResize($event, c)"
                 @keydown.left.prevent.stop="nudgeColWidth(c, -32)" @keydown.right.prevent.stop="nudgeColWidth(c, 32)" @keydown.enter.prevent.stop="fitCol(c)"></span>
             </th>
             <th class="rt-act">操作</th>
@@ -275,7 +275,7 @@
               }"
               :data-ri="ri"
               :data-col="c"
-              :title="cellTitle(hit, c)"
+              v-tip="cellTitle(hit, c)"
               @dblclick="startEdit(hit, c)"
               @mousedown="onCellDown($event)"
               @mousedown.left="onRegionStart($event, ri, ci)"
@@ -309,7 +309,7 @@
                 <span class="rt-val" :class="cellCls(displayVal(hit, c))" v-else-if="epochText(displayVal(hit, c))">{{ epochText(displayVal(hit, c)) }}</span>
                 <!-- W7：长 JSON 对象折叠预览 chip——首键短预览+{…}N 键；点击开既有单元格详情弹窗
  （不引入第二套展开态）；title 恒 raw 全串（铁律） -->
-                <button v-else-if="objChip(displayVal(hit, c))" class="rt-json-chip" :title="cellTitle(hit, c)"
+                <button v-else-if="objChip(displayVal(hit, c))" class="rt-json-chip" v-tip="cellTitle(hit, c)"
                         :aria-label="'查看 ' + c + ' 完整值（对象 ' + (objChip(displayVal(hit, c))?.n ?? 0) + ' 键）'"
                         @click.stop="cellDetail = { hit, col: c }">
                   <span class="rt-json-chip-p mono">{{ objChip(displayVal(hit, c))?.label }}</span>
@@ -330,15 +330,15 @@
                    词频取证/删除），正对用户反复说的「太多功能平铺」。按项目右键约定收成
                    一级 2 个高频 +「更多 ⋯」：查看、展开留在行内（点开文档/就地看整行是最高频），
                    其余 5 个进菜单；动作本体、emit、守卫条件逐字不变。 -->
-              <button aria-label="查看文档" class="btn sm ghost" title="查看文档" @click="emit('open-doc', hit)"><Eye :size="12" /></button>
+              <button aria-label="查看文档" class="btn sm ghost" v-tip="'查看文档'" @click="emit('open-doc', hit)"><Eye :size="12" /></button>
               <!-- W7：行内展开详情钮（ChevronRight/Down）——free 多行展开，Esc 全收（E=焦点行同款） -->
               <button class="btn sm ghost rt-row-expand" :aria-label="expandedRows.has(rowKey(hit, ri)) ? '收起此行详情' : '展开此行详情'"
-                :title="expandedRows.has(rowKey(hit, ri)) ? '收起此行详情（Esc 全部收起）' : '展开此行详情（焦点行按 E）'"
+                v-tip="expandedRows.has(rowKey(hit, ri)) ? '收起此行详情（Esc 全部收起）' : '展开此行详情（焦点行按 E）'"
                 @click="toggleRowExpand(rowKey(hit, ri))">
                 <ChevronDown v-if="expandedRows.has(rowKey(hit, ri))" :size="12" />
                 <ChevronRight v-else :size="12" />
               </button>
-              <button class="btn sm ghost rt-row-more" aria-label="此行更多操作" title="此行更多操作（编辑 / 复制 JSON / 解释得分 / 词频取证 / 删除）"
+              <button class="btn sm ghost rt-row-more" aria-label="此行更多操作" v-tip="'此行更多操作（编辑 / 复制 JSON / 解释得分 / 词频取证 / 删除）'"
                 aria-haspopup="menu" @click.stop="openActMenu($event, hit, ri)"><MoreHorizontal :size="12" /></button>
               <!-- W7：消费方行级行动注入位——无注入零占位 -->
               <slot name="row-actions" :hit="hit" :ri="ri" />
@@ -386,13 +386,13 @@
         <thead>
           <tr>
             <th class="rt-t-field">字段</th>
-            <th v-for="h in transposeHits" :key="h._id" class="mono rt-t-hid" :title="h._id">{{ trunc(h._id, 20) }}</th>
+            <th v-for="h in transposeHits" :key="h._id" class="mono rt-t-hid" v-tip="h._id">{{ trunc(h._id, 20) }}</th>
           </tr>
         </thead>
         <tbody>
           <tr><td class="rt-t-key mono">_id</td><td v-for="h in transposeHits" :key="'i' + h._id" class="mono rt-t-val">{{ h._id }}</td></tr>
           <tr v-for="c in allCols" :key="c">
-            <td class="rt-t-key mono" :title="c">{{ c }}</td>
+            <td class="rt-t-key mono" v-tip="c">{{ c }}</td>
             <td v-for="h in transposeHits" :key="c + h._id" class="mono rt-t-val">{{ cellText(getSourceVal(h, c)) }}</td>
           </tr>
         </tbody>
@@ -413,7 +413,7 @@
     <!-- 长列表回顶——滚过一屏出现悬浮钮，点击丝滑归位（2000 行渲染下
  滚到底再滚回是最频繁的痛点操作）；：随壳合并 TableBacktop，class 透传 DOM 不变；
  移入 rt-wrap-shell 定位壳（rt-wrap 之后兄弟），锚滚动视口底沿不再盖壳外状态栏 -->
-    <TableBacktop v-if="showTop" class="rt-backtop" aria-label="回到顶部" title="回到顶部" @top="backToTop" />
+    <TableBacktop v-if="showTop" class="rt-backtop" aria-label="回到顶部" v-tip="'回到顶部'" @top="backToTop" />
     </div>
 
     <!-- 内建 alt 视图体（viewSeg 非表格档）——AltHitsViews 单源三档（565 共享件，
@@ -449,11 +449,11 @@
  且只对表格视图有意义，形态/类名零触碰=可发现性语义与 rtRowNav 行为锁保留） -->
       <Tip v-if="tblFocus && hits.length" long text="表格已获焦：↑↓ 切换行、Home/End 跳首末行、Enter 打开文档、Ctrl+C 复制行 JSON、Ctrl+F 结果内查找、Delete/Backspace 删除勾选行（有确认）、Esc 清勾选/清框选"><span class="rt-kbd-hint mono">↑↓ Home/End · Enter ⌫ · Ctrl+F</span></Tip>
       <div style="flex:1"></div>
-      <n-checkbox class="rt-transpose" size="small" :checked="transpose" title="转置视图：字段为行、文档为列" @update:checked="toggleTranspose">转置</n-checkbox>
+      <n-checkbox class="rt-transpose" size="small" :checked="transpose" v-tip="'转置视图：字段为行、文档为列'" @update:checked="toggleTranspose">转置</n-checkbox>
       <!-- P1-3：转置行数档位（前 N 条文档做横向列）——W3c 原生 select 升档 NSelect（tiny 对齐工具行 22px 密度） -->
       <n-select v-if="transpose" class="rt-t-n mono" size="tiny" :value="transposeN" :options="transposeNOpts"
-        title="转置显示的文档行数" @update:value="(v: number) => setTransposeN(v)" />
-      <n-checkbox class="rt-transpose" size="small" v-model:checked="autoTranspose" title="单条结果自动进入转置视图">单行自动</n-checkbox>
+        v-tip="'转置显示的文档行数'" @update:value="(v: number) => setTransposeN(v)" />
+      <n-checkbox class="rt-transpose" size="small" v-model:checked="autoTranspose" v-tip="'单条结果自动进入转置视图'">单行自动</n-checkbox>
     </div>
 
     <!-- 选中浮动栏 -->
@@ -499,7 +499,7 @@
             <span class="pv-old mono">{{ cellText(ch.oldVal) }}</span>
             <ArrowRight :size="12" style="color:var(--tx2);flex-shrink:0" />
             <span class="pv-new mono">{{ cellText(ch.newVal) }}</span>
-            <button aria-label="撤销此项" class="btn sm ghost" title="撤销此项" @click="revertOne(id, field)"><X :size="11" /></button>
+            <button aria-label="撤销此项" class="btn sm ghost" v-tip="'撤销此项'" @click="revertOne(id, field)"><X :size="11" /></button>
           </div>
         </div>
       </div>
@@ -556,9 +556,9 @@
         <div v-if="rdwRow" class="rt-rdw-body">
           <div class="rt-rdw-meta mono">第 {{ rdwRow.ri + 1 }} 行 · {{ visibleCols.length }} 列</div>
           <div v-for="c in visibleCols" :key="c" class="rt-rdw-row">
-            <span class="rt-rdw-k mono" :title="c">{{ c }}</span>
-            <span class="rt-rdw-v mono" :title="rdwRow ? rtCellFullText(displayVal(rdwRow.hit, c)) : ''">{{ rdwRow ? cellText(displayVal(rdwRow.hit, c)) : '' }}</span>
-            <button class="btn ghost xs" :aria-label="'复制 ' + c" title="复制该格全文" @click="copyDrawerCell(rdwRow.hit, c)"><Copy :size="11" /></button>
+            <span class="rt-rdw-k mono" v-tip="c">{{ c }}</span>
+            <span class="rt-rdw-v mono" v-tip="rdwRow ? rtCellFullText(displayVal(rdwRow.hit, c)) : ''">{{ rdwRow ? cellText(displayVal(rdwRow.hit, c)) : '' }}</span>
+            <button class="btn ghost xs" :aria-label="'复制 ' + c" v-tip="'复制该格全文'" @click="copyDrawerCell(rdwRow.hit, c)"><Copy :size="11" /></button>
           </div>
         </div>
         <template #footer>

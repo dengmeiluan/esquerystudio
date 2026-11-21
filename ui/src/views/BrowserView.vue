@@ -9,7 +9,7 @@
  _found 元数据与 _source 业务字段分轨切换（768 G240/Mapping 「原始 JSON」同构，
  不引完整 RawIoModal 三件套：本卡数据源单一 _doc GET 无多端点切换诉求） -->
           <button class="btn ghost xs" :aria-pressed="rawView ? 'true' : 'false'" aria-label="查看原始响应"
-            title="查看 GET /_doc 完整响应（含 _index/_id/_version/_found 元数据）" @click="rawView = !rawView">
+            v-tip="'查看 GET /_doc 完整响应（含 _index/_id/_version/_found 元数据）'" @click="rawView = !rawView">
             <FileJson :size="11" />
           </button>
           <button class="btn ghost xs" aria-label="关闭文档详情" @click="linkedDoc = null">✕</button>
@@ -48,7 +48,7 @@
       <!-- w72:跨页闭环 — 浏览中直接跳索引工作区；钮恒在场（无选中 disabled 不消失，
  选中态切换不挪动后续钮位=位置恒定） -->
       <button :disabled="!store.pickedIdx" class="btn ghost sm" @click="goHub(store.pickedIdx)"
-        title="在索引工作区打开当前选中索引（一站式文档/查询/配置）">
+        v-tip="'在索引工作区打开当前选中索引（一站式文档/查询/配置）'">
         <LayoutGrid :size="12" /> 工作区:{{ store.pickedIdx.slice(0, 20) }}
       </button>
       <!-- 新建索引一等入口（名称校验 + 分片/副本 + 别名 + 高级 JSON） -->
@@ -64,16 +64,16 @@
       <span class="menu-wrap">
         <button class="btn ghost sm" :class="{ on: bwExpOpen }" :disabled="!filtered.length"
           aria-label="导出" aria-haspopup="menu" :aria-expanded="bwExpOpen"
-          title="导出索引列表（CSV 下载 / Markdown 复制）" @click.stop="bwExpOpen = !bwExpOpen">
+          v-tip="'导出索引列表（CSV 下载 / Markdown 复制）'" @click.stop="bwExpOpen = !bwExpOpen">
           <FileDown :size="12" /> 导出 ▾
         </button>
         <div v-if="bwExpOpen" class="bw-menu" role="menu" aria-label="导出索引列表">
           <button class="bw-mi" role="menuitem" aria-label="导出索引列表 CSV"
-            title="导出索引列表 CSV（跟随过滤）" @click="exportCsv(); closeBwExp()">
+            v-tip="'导出索引列表 CSV（跟随过滤）'" @click="exportCsv(); closeBwExp()">
             <span class="bw-mi-f">CSV</span> 索引列表下载
           </button>
           <button class="bw-mi" role="menuitem" aria-label="复制索引列表 Markdown"
-            title="复制索引列表为 Markdown（群聊/工单直贴）" @click="exportMd(); closeBwExp()">
+            v-tip="'复制索引列表为 Markdown（群聊/工单直贴）'" @click="exportMd(); closeBwExp()">
             <span class="bw-mi-f">MD</span> 索引列表 Markdown
           </button>
         </div>
@@ -105,20 +105,20 @@
         <!-- 健康色点改用 MetaStrip dot 形态单源（.bw-hdot.lg 私造圆点退役）——
  胞内仍是纯色点无文字（DOM 逐字保形），title 兜底随段级 tip 承接 -->
         <template #cell-健康="{ value }"><MetaStrip :items="[{ dot: healthColor(value), tip: String(value ?? '') }]" /></template>
-        <template #cell-索引="{ value }"><span class="bw-name mono" title="打开索引工作区（文档/查询/配置/分片/运维一站式）" tabindex="0" role="button" @keydown.enter.prevent="goHub(value)" @keydown.space.prevent="goHub(value)" @click="goHub(value)"><MarkText :text="value" :kw="String(kw || '')" /></span></template>
+        <template #cell-索引="{ value }"><span class="bw-name mono" v-tip="'打开索引工作区（文档/查询/配置/分片/运维一站式）'" tabindex="0" role="button" @keydown.enter.prevent="goHub(value)" @keydown.space.prevent="goHub(value)" @click="goHub(value)"><MarkText :text="value" :kw="String(kw || '')" /></span></template>
         <template #cell-状态="{ value }"><!-- ：改用 StatusPill（indexStatusZh 中文主显+en 英文小字档组件化，原本地小字类同步更新退役，en 小字形态归组件 .sp-en 单源，qrtRowsSwap529 锚同步改锁） --><StatusPill :tone="value === 'open' ? 'g' : 'n'" :label="indexStatusZh(value) || (value || '')" :en="indexStatusZh(value) ? value : undefined" /></template>
-        <template #cell-创建时间="{ value }"><span class="mono dim" :title="value">{{ fmtDate(value) }}</span></template>
+        <template #cell-创建时间="{ value }"><span class="mono dim" v-tip="value">{{ fmtDate(value) }}</span></template>
         <!-- #cell-存储 槽退役——「槽内 bytes 单源」随内核 semRawCols
  显式非语义类型抑制守卫落地平移为表级 sem-on + 存储:bytes 显式标注消费
  （带单位字节串 '1.2mb' 由内核 bytes 档直出「1.2 MB」，title/导出/复制恒 raw；
  文档数经 BW_SEM_RAW_COLS 抑制按值推断，见该常量注） -->
         <template #cell-操作="{ row }">
           <div class="bw-acts" @click.stop>
-            <button aria-label="索引工作区（文档/查询/配置/分片/运维）" class="btn sm" title="索引工作区（文档/查询/配置/分片/运维）" @click="goHub(row[1])"><Boxes :size="11" /></button>
+            <button aria-label="索引工作区（文档/查询/配置/分片/运维）" class="btn sm" v-tip="'索引工作区（文档/查询/配置/分片/运维）'" @click="goHub(row[1])"><Boxes :size="11" /></button>
             <n-popover trigger="click" placement="left" :show="rowMore === row[1]" @update:show="(v: boolean) => (rowMore = v ? String(row[1]) : '')">
               <template #trigger>
                 <button :aria-label="'更多操作：' + row[1]" aria-haspopup="menu" class="btn sm ghost bw-more-trig"
-                  title="更多：DSL 查询 / Mapping / 段合并 / 删除" @click.stop>
+                  v-tip="'更多：DSL 查询 / Mapping / 段合并 / 删除'" @click.stop>
                   <Ellipsis :size="11" /><span class="bw-more-lb">更多</span>
                 </button>
               </template>
@@ -134,7 +134,7 @@
         <!-- 「复制行信息」随行右键菜单退役改走 QRT 行尾注入位（hover 与行复制钮同排）：
  单行事实串模板逐字保真（browserExportMd 源码锁） -->
         <template #row-actions="{ row }">
-          <button class="btn ghost xs" aria-label="复制行信息" title="复制行信息" @click.stop="copyRowInfo(row)"><ClipboardCopy :size="11" /></button>
+          <button class="btn ghost xs" aria-label="复制行信息" v-tip="'复制行信息'" @click.stop="copyRowInfo(row)"><ClipboardCopy :size="11" /></button>
         </template>
       </QueryResultTable>
       <!-- 加载/过滤无结果/集群无索引 三态分开，不留空白不误导。

@@ -18,12 +18,12 @@
           最大 <b>{{ fmtV(stats.max) }}</b> · 均值 <b>{{ fmtV(stats.avg) }}</b>
         </span>
         <!-- 展开钮（LiveChartCard ld-expand 同语言）：全卡放大，能力与顶部卡统一 -->
-        <button type="button" class="hc-expand" :aria-label="expanded ? '还原' : '展开'" :title="expanded ? '还原' : '展开'" @click.stop="$emit('expand')">
+        <button type="button" class="hc-expand" :aria-label="expanded ? '还原' : '展开'" v-tip="expanded ? '还原' : '展开'" @click.stop="$emit('expand')">
           <Minimize2 v-if="expanded" :size="12" />
           <Maximize2 v-else :size="12" />
         </button>
       </span>
-      <b v-if="hasVisible" class="hc-cur" :style="{ color: colorOf(visibleSeries[0]?.name || '') }" title="当前值（可见序列聚合最新点）">{{ fmtV(stats.cur) }}</b>
+      <b v-if="hasVisible" class="hc-cur" :style="{ color: colorOf(visibleSeries[0]?.name || '') }" v-tip="'当前值（可见序列聚合最新点）'">{{ fmtV(stats.cur) }}</b>
     </div>
     <div v-if="note" class="hc-note">{{ note }}</div>
 
@@ -122,7 +122,7 @@
       <!-- 峰值标注：chip 内直接给出该序列全窗最大值——窄刺峰（1-2 桶宽）鼠标难以
        精确停驻，最高点读数不必再追逐十字线（峰值口径与卡头 stats.max 单序列同源） -->
       <button v-for="s in series" :key="'lg' + s.name" type="button" class="hc-chip" :class="{ off: hidden.has(s.name) }"
-        :aria-pressed="!hidden.has(s.name)" :title="(hidden.has(s.name) ? '点击显示 ' : '点击隐藏 ') + s.name + '（峰 ' + peakOf(s.name) + '）'"
+        :aria-pressed="!hidden.has(s.name)" v-tip="(hidden.has(s.name) ? '点击显示 ' : '点击隐藏 ') + s.name + '（峰 ' + peakOf(s.name) + '）'"
         @click="toggleVisible(s.name)"
         @mouseenter="hotName = s.name" @mouseleave="hotName = null"
         @focus="hotName = s.name" @blur="hotName = null">

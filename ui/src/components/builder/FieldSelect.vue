@@ -11,10 +11,10 @@
     <!-- 987 未知字段护栏：mapping 在场时手输不在 mapping 的字段给黄点提示（ClauseNode
      .cn-owarn 同语言）。零降级：无 mapping（fields 空）不提示——自由手输是既有合法路径 -->
     <i v-if="unknownField" class="fs-unk" role="img" aria-label="字段不在 mapping"
-       title="字段不在当前索引 mapping：可能是嵌套路径、别名或脚本字段；若非刻意请核对拼写或切换索引" />
+       v-tip="'字段不在当前索引 mapping：可能是嵌套路径、别名或脚本字段；若非刻意请核对拼写或切换索引'" />
     <!-- 1069 续：运行时字段缺 script（排序/高亮/聚合等字段位）——点击展开该字段的 type/script 编辑 -->
     <button v-if="runtimeNoScript" type="button" class="fs-nos"
-      :title="`运行时字段「${modelValue}」尚无 script，查询期不会产出值——点击编辑 type/script`"
+      v-tip="`运行时字段「${modelValue}」尚无 script，查询期不会产出值——点击编辑 type/script`"
       @mousedown.prevent @click.stop="editRuntime">无 script</button>
     <!-- 弹层 teleport 到 body + fixed 定位——构建器面板（.dq-tree）带 overflow-y:auto，
  absolute 弹层会被面板边界裁剪。骨架（↑↓/Enter/Home/End 键盘导航、IME isComposing 守卫、
@@ -48,7 +48,7 @@
               <i v-if="r.hit!.fuzzy" class="fs-fuzzy">近似</i>
               <!-- 1045：中文业务词扩展命中（主体/公告/研报/债券/舆情 → 真实字段词根）。
                    只在行尾留一个字标，权重低于字段名；完整说明走 title 与 footer 计数。 -->
-              <i v-if="r.hit!.alias" class="fs-alias" title="按业务词扩展匹配到的真实字段（非新建字段）">词</i>
+              <i v-if="r.hit!.alias" class="fs-alias" v-tip="'按业务词扩展匹配到的真实字段（非新建字段）'">词</i>
             </div>
           </template>
           <div :style="{ height: Math.max(0, (rows.length - winStart - winRows.length) * ROW_H) + 'px' }" aria-hidden="true"></div>

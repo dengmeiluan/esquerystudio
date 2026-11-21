@@ -68,6 +68,24 @@ function mockEs() {
         scrollSessions.set(sid, page + 1);
         return send({ _scroll_id: sid, hits: { hits: page === 1 ? [doc('3')] : [] } });
       }
+      /* verify_equivalence 取数面（POST）：目标侧 xmigrate-dest 的 _count 补 3（与源
+         research 一致 → EQUIVALENT 路径）、_doc 序取样只回 id、terms 聚合回 t 桶、
+         mget 按 ids 回带 _source 的完整 docs（双侧同文档 → 摘要一致）。 */
+      if (req.method === 'POST' && req.url.startsWith('/xmigrate-dest/_count')) return send({ count: 3 });
+      if (req.method === 'POST' && body.includes('"_doc"') && req.url.startsWith('/research/_search')) {
+        return send({ hits: { hits: [{ _id: '1' }, { _id: '2' }] } });
+      }
+      if (req.method === 'POST' && body.includes('"aggs"')
+        && (req.url.startsWith('/research/_search') || req.url.startsWith('/xmigrate-dest/_search'))) {
+        return send({ aggregations: { t: { buckets: [{ key: 'a', doc_count: 2 }, { key: 'b', doc_count: 1 }] } } });
+      }
+      if (req.method === 'POST' && body.includes('"ids"')
+        && (req.url.startsWith('/research/_mget') || req.url.startsWith('/xmigrate-dest/_mget'))) {
+        return send({ docs: [
+          { _id: '1', found: true, _source: doc('1')._source },
+          { _id: '2', found: true, _source: doc('2')._source },
+        ] });
+      }
       if (req.url.startsWith('/_bulk')) {
         const ops = body.split('\n')
           .filter((line) => { const t = line.trim(); return t.startsWith('{"index"') || t.startsWith('{"create"'); }).length;
@@ -304,6 +322,13 @@ function runLocal(configPath, extra = [], env = {}) {
       /* 参数边界负例：dryRun=true 时携带 expectPlanDigest 必须明确拒绝（预览不存在漂移校验）。 */
       call(90, 'es_xmigrate', 'sync_structure',
         { srcConnId: 'qa', sourceIndex: 'sync-src', destIndex: 'sync-plan', dryRun: true, expectPlanDigest: 'deadbeefdeadbeef' }),
+      /* 数据等价验证（只读，无 --allow-write 也放行）：srcConnId 形态 EQUIVALENT 路径、
+         目标缺失 INCONCLUSIVE 路径、migrate_index 引导词含 verify_equivalence。 */
+      call(91, 'es_xmigrate', 'verify_equivalence',
+        { srcConnId: 'qa', sourceIndex: 'research', destConnId: 'host', destIndex: 'xmigrate-dest', sampleSize: 20 }),
+      call(92, 'es_xmigrate', 'verify_equivalence',
+        { srcConnId: 'qa', sourceIndex: 'research', destConnId: 'host', destIndex: 'no-such-dest' }),
+      { jsonrpc: '2.0', id: 93, method: 'prompts/get', params: { name: 'migrate_index', arguments: { source: 'qa:research', target: 'host:xmigrate-dest' } } },
     ];
     if (extra.includes('--allow-write')) {
       requests.push(
@@ -460,6 +485,12 @@ try {
   const readTools = listedTools.map((t) => t.name);
   assert.equal(listedTools.length, 17, 'client-facing tool surface must be 17 action groups');
   assert.equal(listedTools.find((t) => t.name === 'es_rest').annotations.readOnlyHint, false);
+  /* 组级 annotations 静态表（三端同表）：读组 readOnlyHint=true，含破坏性 action 的组
+     destructiveHint=true；idempotentHint 同 readOnlyHint，openWorldHint=true 全组。 */
+  assert.equal(listedTools.find((t) => t.name === 'es_search').annotations.readOnlyHint, true);
+  assert.equal(listedTools.find((t) => t.name === 'es_xmigrate').annotations.destructiveHint, true);
+  assert.equal(listedTools.find((t) => t.name === 'es_xmigrate').annotations.openWorldHint, true);
+  assert.equal(listedTools.find((t) => t.name === 'es_analysis').annotations.destructiveHint, false);
   assert.ok(readTools.includes('es_connections'));
   assert.ok(readTools.includes('es_search') && readTools.includes('es_indices'), 'read groups stay visible');
   const readDocs = listedTools.find((t) => t.name === 'es_documents');
@@ -469,15 +500,15 @@ try {
   const readIndices = listedTools.find((t) => t.name === 'es_indices');
   assert.ok(readIndices.inputSchema.properties.action.enum.includes('list'));
   assert.ok(!readIndices.inputSchema.properties.action.enum.includes('create'));
-  /* 编排两组的只读面：写 action 全部隐藏，新读 action 可见（adhoc 4 个、xmigrate 12 个）。 */
+  /* 编排两组的只读面：写 action 全部隐藏，新读 action 可见（adhoc 4 个、xmigrate 13 个）。 */
   const readAdhocActions = listedTools.find((t) => t.name === 'es_adhoc_rebuild')
     .inputSchema.properties.action.enum;
   assert.deepEqual([...readAdhocActions].sort(), ['events', 'jobs', 'prepare', 'status'],
     'es_adhoc_rebuild without --allow-write keeps only read actions');
   const readXmigrateActions = listedTools.find((t) => t.name === 'es_xmigrate')
     .inputSchema.properties.action.enum;
-  assert.equal(readXmigrateActions.length, 12, 'es_xmigrate without --allow-write keeps 12 read actions');
-  for (const action of ['connect_check', 'resolve_preview', 'dest_indices', 'preflight', 'fetch_config', 'reconcile', 'conflicts', 'probe_capabilities', 'compare_capabilities', 'diff_structure']) {
+  assert.equal(readXmigrateActions.length, 13, 'es_xmigrate without --allow-write keeps 13 read actions');
+  for (const action of ['connect_check', 'resolve_preview', 'dest_indices', 'preflight', 'fetch_config', 'reconcile', 'conflicts', 'probe_capabilities', 'compare_capabilities', 'diff_structure', 'verify_equivalence']) {
     assert.ok(readXmigrateActions.includes(action), `read xmigrate action ${action} must stay visible`);
   }
   assert.ok(!readXmigrateActions.includes('start') && !readXmigrateActions.includes('delete_jobs') && !readXmigrateActions.includes('throttle'));
@@ -601,6 +632,37 @@ try {
   assert.equal(digestOnDryRun?.isError, true, 'expectPlanDigest with dryRun=true must be rejected');
   assert.ok(digestOnDryRun?.content?.[0]?.text.includes('expectPlanDigest only valid with dryRun=false'));
 
+  /* verify_equivalence（只读，无 --allow-write 放行）：双侧 count 一致 + 样本摘要一致 →
+     EQUIVALENT；REST 契约形态 source/dest/countsMatch/sample/aggregation/verdict。 */
+  const verified = toolResult(readOnly, 91);
+  assert.equal(verified.verdict, 'EQUIVALENT');
+  assert.equal(verified.countsMatch, true);
+  assert.deepEqual(verified.source, { index: 'research', count: 3 });
+  assert.deepEqual(verified.dest, { index: 'xmigrate-dest', count: 3, destConnId: 'host' });
+  /* requested 回显钳后请求值（与服务端/浏览器同口径），实际取样受源 count 与 mock 页面约束：
+     requested=20（请求 sampleSize）、checked=2（mock 样本页只回 2 个 id）、matched=2 */
+  assert.equal(verified.sample.requested, 20);
+  assert.equal(verified.sample.checked, 2);
+  assert.equal(verified.sample.matched, 2);
+  assert.deepEqual(verified.sample.missingInDest, []);
+  assert.deepEqual(verified.sample.mismatched, []);
+  assert.equal(verified.sample.missingTruncated, false);
+  assert.equal(verified.sample.mismatchTruncated, false);
+  assert.equal(verified.aggregation, null, 'no aggField means aggregation stays null');
+  assert.deepEqual(verified.warnings, []);
+  /* 目标索引缺失：count 读取失败如实 null，verdict INCONCLUSIVE 不冒充对比过。 */
+  const inconclusive = toolResult(readOnly, 92);
+  assert.equal(inconclusive.verdict, 'INCONCLUSIVE');
+  assert.equal(inconclusive.dest.count, null);
+  assert.equal(inconclusive.countsMatch, null);
+  assert.equal(inconclusive.sample.checked, 0);
+  assert.ok(inconclusive.warnings.some((w) => w.includes('目标索引不存在或不可读')));
+  /* migrate_index 引导词第⑤步已升级为 verify_equivalence（三端逐字同文案）。 */
+  const migratePrompt = readOnly.find((r) => r.id === 93).result.messages[0].content.text;
+  for (const token of ['verify_equivalence', 'EQUIVALENT/DIVERGENT/INCONCLUSIVE', 'sorted-_doc id sample']) {
+    assert.ok(migratePrompt.includes(token), `migrate_index prompt must mention ${token}`);
+  }
+
   /* compare_capabilities 同厂商（qa→host，同一 mock）：无版本差、无厂商切换、无插件差集；
      sync-src 5 片 > 目标 1 数据节点 ×3 → 唯一风险 shard_oversize（medium）。 */
   const comparedSame = toolResult(readOnly, 85);
@@ -686,10 +748,11 @@ try {
   assert.equal(diffMissing?.isError, true, 'diff_structure with a missing dest index must fail');
   assert.ok(diffMissing?.content?.[0]?.text.includes('目标索引不存在或不可读，无法 diff'));
 
-  /* cross_cloud_structure_sync 引导词：7 步工作流逐字提供（含 planDigest/expectPlanDigest 闭环）。 */
+  /* cross_cloud_structure_sync 引导词：8 步工作流逐字提供（含 planDigest/expectPlanDigest
+     闭环与 verify_equivalence 数据终验）。 */
   const crossCloudPrompt = readOnly.find((r) => r.id === 88).result.messages[0].content.text;
   for (const step of ['probe_capabilities', 'compare_capabilities', 'dryRun:true', 'expectPlanDigest',
-    'destCreateMode NONE', 'diff_structure', 'expectedRemovals vs unexpected']) {
+    'destCreateMode NONE', 'diff_structure', 'expectedRemovals vs unexpected', 'verify_equivalence']) {
     assert.ok(crossCloudPrompt.includes(step), `cross_cloud_structure_sync prompt must mention ${step}`);
   }
 
@@ -733,8 +796,8 @@ try {
   assert.ok(writableAdhocActions.includes('events'), 'new adhoc events action must be visible');
   const writableXmigrateActions = writableGroups.find((t) => t.name === 'es_xmigrate')
     .inputSchema.properties.action.enum;
-  assert.equal(writableXmigrateActions.length, 18, 'es_xmigrate must expose 18 actions');
-  for (const action of ['connect_check', 'resolve_preview', 'dest_indices', 'delete_jobs', 'sync_structure', 'probe_capabilities', 'compare_capabilities', 'diff_structure', 'throttle']) {
+  assert.equal(writableXmigrateActions.length, 19, 'es_xmigrate must expose 19 actions');
+  for (const action of ['connect_check', 'resolve_preview', 'dest_indices', 'delete_jobs', 'sync_structure', 'probe_capabilities', 'compare_capabilities', 'diff_structure', 'verify_equivalence', 'throttle']) {
     assert.ok(writableXmigrateActions.includes(action), `new xmigrate action ${action} must be visible`);
   }
   const docsActions = writableGroups.find((t) => t.name === 'es_documents').inputSchema.properties.action.enum;
@@ -885,6 +948,31 @@ try {
     assert.equal(conflicts.sampleCap, 1000);
     assert.ok(conflicts.note.includes('环形收集'));
 
+    /* verify_equivalence jobId 形态：复用作业登记的 srcConnId/sourceIndex/destIndex
+       （qa/research → xmigrate-dest），聚合对比同桶同计数 → match=true、verdict EQUIVALENT。 */
+    session.send(call(151, 'es_xmigrate', 'verify_equivalence', { jobId: xStarted.jobId, sampleSize: 50 }));
+    const jobVerified = await resultOf(session, 151);
+    assert.equal(jobVerified.verdict, 'EQUIVALENT');
+    assert.deepEqual(jobVerified.source, { index: 'research', count: 3 });
+    assert.deepEqual(jobVerified.dest.index, 'xmigrate-dest');
+    assert.equal(jobVerified.dest.count, 3);
+    assert.equal(jobVerified.sample.matched, 2);
+    session.send(call(152, 'es_xmigrate', 'verify_equivalence', { jobId: xStarted.jobId, aggField: 'title', aggSize: 5 }));
+    const jobAggregated = await resultOf(session, 152);
+    assert.equal(jobAggregated.aggregation.field, 'title');
+    assert.equal(jobAggregated.aggregation.requestedSize, 5);
+    assert.equal(jobAggregated.aggregation.match, true);
+    assert.deepEqual(jobAggregated.aggregation.sourceBuckets, [{ key: 'a', count: 2 }, { key: 'b', count: 1 }]);
+    assert.deepEqual(jobAggregated.aggregation.onlyInSource, []);
+    assert.deepEqual(jobAggregated.aggregation.onlyInDest, []);
+    assert.deepEqual(jobAggregated.aggregation.countDiffs, []);
+    assert.equal(jobAggregated.verdict, 'EQUIVALENT');
+    /* jobId 与 srcConnId 都不给：必须明确报错（二选一）。 */
+    session.send(call(153, 'es_xmigrate', 'verify_equivalence', {}));
+    const noRef = await session.resp(153);
+    assert.equal(noRef.result?.isError, true, 'verify_equivalence without jobId/srcConnId must fail');
+    assert.ok(noRef.result?.content?.[0]?.text.includes('jobId 与 srcConnId 必须二选一'));
+
     /* MRTR digest 缺陷正控：elicitation 回传键（inputResponses/requestState）嵌进
        arguments 重发时，剥离必须发生在 digest 验签之前——此前该形态恒 -32602。 */
     const elicitationMeta = { _meta: { 'io.modelcontextprotocol/clientCapabilities': { elicitation: {} } } };
@@ -1019,7 +1107,7 @@ try {
     staleSession.child.kill();
   }
 
-  console.log('[local-mcp] OK — stdio handshake, 3 connections, single-track group + action calls (per-tool names rejected), read tools, write opt-in, resources/prompts (6 incl. cross_cloud_structure_sync), data streams/index topology, direct ES HTTP, index lifecycle, batch data ops, cluster/snapshot/ILM/scripts/diagnostics, local scroll+bulk rebuild & cross-cluster migration orchestration (10 adhoc + 18 xmigrate actions incl. token-boundary vendor inference, planned/reactive two-layer structure sync v3 with dryRun preview + planDigest/body + expectPlanDigest drift gate, compare_capabilities risk matrix, diff_structure expected-vs-unexpected reconciliation, in-flight throttle, MRTR confirm embedded in arguments, ledger + alias switch + interrupted-on-restart)');
+  console.log('[local-mcp] OK — stdio handshake, 3 connections, single-track group + action calls (per-tool names rejected), read tools, write opt-in, resources/prompts (6 incl. cross_cloud_structure_sync), data streams/index topology, direct ES HTTP, index lifecycle, batch data ops, cluster/snapshot/ILM/scripts/diagnostics, local scroll+bulk rebuild & cross-cluster migration orchestration (10 adhoc + 19 xmigrate actions incl. token-boundary vendor inference, planned/reactive two-layer structure sync v3 with dryRun preview + planDigest/body + expectPlanDigest drift gate, compare_capabilities risk matrix, diff_structure expected-vs-unexpected reconciliation, verify_equivalence data check (jobId + srcConnId forms, aggregation, INCONCLUSIVE path), group annotations, in-flight throttle, MRTR confirm embedded in arguments, ledger + alias switch + interrupted-on-restart)');
 } finally {
   awsServer.close();
   server.close();

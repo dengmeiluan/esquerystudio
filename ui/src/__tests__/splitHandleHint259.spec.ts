@@ -19,8 +19,8 @@ describe('分割线重置提示可视化（259 批）', () => {
     expect(sh).toContain("@dblclick=\"emit('reset')\"");
     expect(sh).toContain("event.key === 'r' || event.key === 'R'");
   });
-  it('WorkbenchLayout 预设钮 title 不回退', () => {
-    expect(wl).toContain('title="等分布局"');
-    expect(wl).toContain('title="恢复默认布局"');
+  it('WorkbenchLayout 预设钮提示不回退（v-tip 绑定）', () => {
+    expect(wl).toContain('v-tip="\'等分布局\'"');
+    expect(wl).toContain('v-tip="\'恢复默认布局\'"');
   });
 });

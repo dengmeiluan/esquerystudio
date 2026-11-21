@@ -25,7 +25,7 @@
         <span>text 字段清单（{{ fields.length }} 个 · 点「一键验证」：拉真实样本填入 + 按 field/analyzer/search_analyzer 三链路并排）</span>
         <!-- 清单限高档位（usePref al.fieldsH，默认 280=原 CSS 写死值；
  数百 text 字段时 280px 只见一角，三档循环，al.toksH 同语言） -->
-        <button class="btn ghost xs" data-al-flds-h :title="'字段清单高度档：' + alFieldsH + 'px'" @click="cycleFieldsH">高</button>
+        <button class="btn ghost xs" data-al-flds-h v-tip="'字段清单高度档：' + alFieldsH + 'px'" @click="cycleFieldsH">高</button>
       </div>
       <div class="al-fields" :style="{ maxHeight: alFieldsH + 'px' }">
         <div v-for="f in fields" :key="f.path" class="al-field">
@@ -80,10 +80,10 @@
       <!-- W2 批：结果区可调三件（usePref 跨会话记忆）——token 密度二档 / 结果区高度档 / lane 比例两档
  两档降为预设（点按回比例并清连续宽度），双栏日常调宽走 SplitHandle 拖拽 -->
       <span class="al-adj">
-        <button class="btn ghost xs" data-al-dense :class="{ on: alDense }" :aria-pressed="alDense" title="token 紧凑密度（小字号）" @click="alDense = !alDense">紧凑</button>
-        <button class="btn ghost xs" data-al-toks-h :title="'分词结果区高度档：' + alToksH + 'px'" @click="cycleToksH">高</button>
-        <button class="btn ghost xs" data-al-split="half" :class="{ on: lanesClass === 'split-half' }" :aria-pressed="lanesClass === 'split-half'" title="对比列五五分（预设）" @click="presetLaneSplit('half')">五五</button>
-        <button class="btn ghost xs" data-al-split="4060" :class="{ on: lanesClass === 'split-4060' }" :aria-pressed="lanesClass === 'split-4060'" title="对比列四六分（预设）" @click="presetLaneSplit('4060')">四六</button>
+        <button class="btn ghost xs" data-al-dense :class="{ on: alDense }" :aria-pressed="alDense" v-tip="'token 紧凑密度（小字号）'" @click="alDense = !alDense">紧凑</button>
+        <button class="btn ghost xs" data-al-toks-h v-tip="'分词结果区高度档：' + alToksH + 'px'" @click="cycleToksH">高</button>
+        <button class="btn ghost xs" data-al-split="half" :class="{ on: lanesClass === 'split-half' }" :aria-pressed="lanesClass === 'split-half'" v-tip="'对比列五五分（预设）'" @click="presetLaneSplit('half')">五五</button>
+        <button class="btn ghost xs" data-al-split="4060" :class="{ on: lanesClass === 'split-4060' }" :aria-pressed="lanesClass === 'split-4060'" v-tip="'对比列四六分（预设）'" @click="presetLaneSplit('4060')">四六</button>
       </span>
     </div>
 
@@ -153,7 +153,7 @@
             <!-- 1340：单个 token 右键——分词调试时最常干的事是「把这一个词拿走」
      （比对词表 / 贴进 term 查询 / 报给同事），此前只能整列导出 TSV 再手工挑。 -->
             <span v-for="(t, ti) in l.tokens" :key="ti" class="al-tok" :class="tokTier(t.type)" tabindex="0"
-                  :title="`pos=${t.position} · offsets=${t.start_offset}-${t.end_offset} · type=${t.type}`"
+                  v-tip="`pos=${t.position} · offsets=${t.start_offset}-${t.end_offset} · type=${t.type}`"
                   @contextmenu.prevent.stop="openTokMenu($event, l, t)" @keydown="onTokMenuKey($event, l, t)">
               {{ t.token }}
             </span>
@@ -163,8 +163,8 @@
           <MetaStrip v-if="l.tokens.length" class="al-lane-meta"
             :items="[{ value: l.tokens.length, label: 'tokens', tip: '分词结果条数' }]">
             <!-- lane 结果复制（TSV=token+type 贴文档；JSON=全量 meta） -->
-            <button class="btn ghost xs" style="margin-left:auto" @click="copyLaneTsv(l)" title="复制 token（TSV：token → type）">TSV</button>
-            <button class="btn ghost xs" @click="copyLaneJson(l)" title="复制全量 meta JSON">JSON</button>
+            <button class="btn ghost xs" style="margin-left:auto" @click="copyLaneTsv(l)" v-tip="'复制 token（TSV：token → type）'">TSV</button>
+            <button class="btn ghost xs" @click="copyLaneJson(l)" v-tip="'复制全量 meta JSON'">JSON</button>
           </MetaStrip>
         </div>
       </div>

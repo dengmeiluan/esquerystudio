@@ -6,7 +6,7 @@
 <!-- 页头挂只读当前索引 chip（AnalysisSettingsView 范式；SQL 补全/示例 FROM
  静默消费 store.pickedIdx 却无可视锚，此处补齐；空索引时组件自身不渲染） -->
 <CurrentIdxChip />
-<button class="btn ghost sm" data-test="open-hist" @click="histOpen = true" title="查询历史"><History :size="12" /> 历史</button>
+<button class="btn ghost sm" data-test="open-hist" @click="histOpen = true" v-tip="'查询历史'"><History :size="12" /> 历史</button>
 <button class="btn ghost sm" @click="loadSample">
   <BookOpen :size="12" /> 加载示例
 </button>
@@ -57,7 +57,7 @@
               <button v-if="qr.running.value" class="btn ghost xs" @click="qr.cancel()"><X :size="11" /> 取消</button>
               <!-- G240：试跑原始响应恒驻入口（Mapping 「原始 JSON」轻形态同构；
  IndexHub P1 形态=失败态也可回看；未试跑无响应=disabled 非 v-if 消失） -->
-              <button class="btn ghost xs" aria-label="查看试跑原始响应" title="最近一次试跑的原始响应（成功/不可用/失败现场均可回看）" :disabled="!lastRaw" @click="rawOpen = true"><FileJson :size="11" /></button>
+              <button class="btn ghost xs" aria-label="查看试跑原始响应" v-tip="'最近一次试跑的原始响应（成功/不可用/失败现场均可回看）'" :disabled="!lastRaw" @click="rawOpen = true"><FileJson :size="11" /></button>
             </div>
           </div>
           <!-- P0-3：划线通道挂点 + 体检提示条（banner 双通道； br-card 壳退役后
@@ -66,7 +66,7 @@
           <MonacoEditor ref="brSqlMonaco" v-model="sql" language="sql" height="100%" @execute="doAll" />
           <div v-if="brSqlLint.length" class="lint-bar br-sql-lint lint-bar-warn" role="status">
             <span v-for="(f, i) in brSqlLint" :key="i">· <button type="button" class="br-lint-ln"
-              :title="'定位到第 ' + f.line + ' 行'" @click="locateBrLine(f.line)">第 {{ f.line }} 行</button>：{{ f.message }} — {{ f.suggestion }}</span>
+              v-tip="'定位到第 ' + f.line + ' 行'" @click="locateBrLine(f.line)">第 {{ f.line }} 行</button>：{{ f.message }} — {{ f.suggestion }}</span>
           </div>
           <!-- G239：结果条补 role=status（试跑后动态出现，SR 自动播报；lint-bar 族同款） -->
           <div v-if="sqlResult" role="status" class="br-result" :class="{ err: sqlResult.err }">
@@ -75,7 +75,7 @@
               <!-- 1111：与 SQL 控制台同一套「错误定位到手」——锚点 chip/上一版标记 -->
               <template v-if="sqlResult.err">
                 <button v-if="brErrPos && !brResultStale" type="button" class="br-err-loc mono" data-test="br-err-locate"
-                        :title="'ES 报错位置：第 ' + brErrPos.line + ' 行第 ' + brErrPos.column + ' 列——点击定位到该处'"
+                        v-tip="'ES 报错位置：第 ' + brErrPos.line + ' 行第 ' + brErrPos.column + ' 列——点击定位到该处'"
                         @click="locateBrErr">定位 {{ brErrPos.line }}:{{ brErrPos.column }}</button>
                 <span v-if="brResultStale" class="br-err-stale" data-test="br-err-stale">错误来自上一版 SQL</span>
               </template>
@@ -83,7 +83,7 @@
             <div v-if="brFnFix && brFnFix.suggestions.length && !brResultStale" class="br-fnfix" role="group" aria-label="相近函数建议">
               <span class="br-fnfix-t">函数 [{{ brFnFix.fn }}] 不存在——相近函数：</span>
               <button v-for="s in brFnFix.suggestions" :key="s.name" type="button" class="btn sm" data-test="br-fn-fix"
-                      :title="'替换 SQL 中的 ' + brFnFix.fn + ' 为 ' + s.name"
+                      v-tip="'替换 SQL 中的 ' + brFnFix.fn + ' 为 ' + s.name"
                       @click="applyBrFnFix(s.name)">{{ s.name }}</button>
             </div>
           </div>
@@ -98,9 +98,9 @@
           <div v-if="sqlResult && !sqlResult.err && previewRows.length" class="br-preview">
             <div class="br-preview-hd">
               <span class="br-preview-note">仅预览前 {{ previewRows.length }} 行（共 {{ lastRows.length }} 行）——复制按钮取全量</span>
-              <button class="btn ghost xs" :disabled="!lastRows.length" @click="copyPreviewMatrix('tsv')" title="复制全部行（TSV：列名作表头）">复制全部（TSV）</button>
-              <button class="btn ghost xs" :disabled="!lastRows.length" @click="copyPreviewMatrix('md')" title="复制全部行（Markdown 表，群聊/工单直贴）">Markdown</button>
-              <button class="btn ghost xs" :disabled="!lastRows.length" @click="copyPreviewMatrix('json')" title="复制全部行（JSON 数组，逐行对象）">JSON</button>
+              <button class="btn ghost xs" :disabled="!lastRows.length" @click="copyPreviewMatrix('tsv')" v-tip="'复制全部行（TSV：列名作表头）'">复制全部（TSV）</button>
+              <button class="btn ghost xs" :disabled="!lastRows.length" @click="copyPreviewMatrix('md')" v-tip="'复制全部行（Markdown 表，群聊/工单直贴）'">Markdown</button>
+              <button class="btn ghost xs" :disabled="!lastRows.length" @click="copyPreviewMatrix('json')" v-tip="'复制全部行（JSON 数组，逐行对象）'">JSON</button>
             </div>
             <QueryResultTable :cols="lastCols" :rows="previewRows" sortable
               storage-key="sqlbridge:preview" max-height="240px" />

@@ -9,7 +9,7 @@ const v = readFileSync(join(__dirname, '../views/DiagView.vue'), 'utf-8');
 
 describe('Diag explain 复制收尾（360 批）', () => {
   it('复制钮绑定+六字段组装+诚实口径', () => {
-    expect(v).toMatch(/@click="copyAllocMd" title="复制分片诊断 Markdown"/);
+    expect(v).toMatch(/@click="copyAllocMd" v-tip="'复制分片诊断 Markdown'"/);
     expect(v).toContain('## Shard 分配诊断');
     expect(v).toContain('- current_state: ${a.current_state || \'-\'}');
     expect(v).toContain('allocate_explanation');

@@ -5,7 +5,7 @@
         <RefreshCw :size="12" :class="{ spinning: loadingKeys }" /> 刷新
       </button><!-- 原始 IO 快查入口——
  漂移检测 drift?indexKey= 请求/响应原文直达；无记录不开空弹窗（toast 引导） -->
-      <button class="btn ghost sm" title="最近一次漂移检测（drift?indexKey=）请求/响应原文（复制/curl 回放）" @click="openRawIo">
+      <button class="btn ghost sm" v-tip="'最近一次漂移检测（drift?indexKey=）请求/响应原文（复制/curl 回放）'" @click="openRawIo">
         <Terminal :size="12" /> 原始 IO
       </button>
     </div>
@@ -60,8 +60,8 @@
           @contextmenu.prevent="openKeyMenu($event, k)"
          role="button" tabindex="0"
          @keydown="onKeyMenuKey($event, k)" data-row-nav @keydown.self="rowArrowNav">
-          <div class="cd-item-key" :title="k.indexKey"><MarkText :text="k.indexKey" :kw="kw" /></div>
-          <div class="cd-item-alias" :title="k.alias"><MarkText :text="k.alias" :kw="kw" /></div>
+          <div class="cd-item-key" v-tip="k.indexKey"><MarkText :text="k.indexKey" :kw="kw" /></div>
+          <div class="cd-item-alias" v-tip="k.alias"><MarkText :text="k.alias" :kw="kw" /></div>
           <!-- 清单角标改用 StatusPill 统一件（558b 回滚件解禁重做——525:210 逐字锁
  已同步更新；tone 走 cdVerdictPill 映射消费，文案逐字；.cd-verdict 外挂定位壳保留） -->
           <StatusPill v-if="verdicts[k.indexKey]" class="cd-verdict" :tone="cdVerdictPill(verdicts[k.indexKey])"
@@ -125,7 +125,7 @@
               <div v-if="!drift.settingsDiff.clean" class="cd-sd">
                 <div v-if="drift.settingsDiff.different.length" style="display:flex;justify-content:flex-end;margin-bottom:var(--sp-1)">
                   <!-- 一键复制修复 DSL（按代码侧值组装 PUT _settings body） -->
-                  <button class="btn sm ghost" @click="copyFixDsl" title="按代码侧值组装 PUT _settings 请求体">
+                  <button class="btn sm ghost" @click="copyFixDsl" v-tip="'按代码侧值组装 PUT _settings 请求体'">
                     <FileDown :size="11" /> 复制修复 DSL（{{ drift.settingsDiff.different.length }} 键）
                   </button>
                 </div>
@@ -142,7 +142,7 @@
                   <template #cell-代码值="{ value }"><span class="mono c-add">{{ value }}</span></template>
                   <template #cell-线上值="{ value }"><span class="mono c-del">{{ value }}</span></template>
                   <template #row-actions="{ row }">
-                    <button class="btn xs ghost" :aria-label="'复制差异：' + row[0]" title="复制差异（key/代码/线上三行）" @click="copyStr(`${row[0]}\n代码: ${row[1]}\n线上: ${row[2]}`, row[0])"><Copy :size="11" /></button>
+                    <button class="btn xs ghost" :aria-label="'复制差异：' + row[0]" v-tip="'复制差异（key/代码/线上三行）'" @click="copyStr(`${row[0]}\n代码: ${row[1]}\n线上: ${row[2]}`, row[0])"><Copy :size="11" /></button>
                   </template>
                 </QueryResultTable>
 

@@ -185,7 +185,7 @@ describe('G3-B1 XmigrateView：作业表四态互斥', () => {
     expect(host.querySelector('.qrt-tbl'), '首载成功必须出表').toBeTruthy();
     let resolve2: (v: any) => void = () => {};
     xbJobsFn.mockReturnValue(new Promise(r => { resolve2 = r; }));
-    const refreshBtn = host.querySelector<HTMLButtonElement>('.card-t .btn.ghost[title="刷新任务列表"]');
+    const refreshBtn = host.querySelector<HTMLButtonElement>('.card-t .btn.ghost[aria-label="刷新任务列表"]');
     expect(refreshBtn, '刷新按钮必须渲染').toBeTruthy();
     refreshBtn!.click();
     await settle(3);
@@ -201,7 +201,7 @@ describe('G3-B1 XmigrateView：作业表四态互斥', () => {
     const { app, host } = await mountView(XmigrateView);
     expect(host.querySelector('.qrt-tbl'), '首载成功必须出表').toBeTruthy();
     xbJobsFn.mockRejectedValue(new Error('connect refused'));
-    const refreshBtn = host.querySelector<HTMLButtonElement>('.card-t .btn.ghost[title="刷新任务列表"]');
+    const refreshBtn = host.querySelector<HTMLButtonElement>('.card-t .btn.ghost[aria-label="刷新任务列表"]');
     expect(refreshBtn, '刷新按钮必须渲染').toBeTruthy();
     refreshBtn!.click();
     await settle();

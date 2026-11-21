@@ -345,8 +345,9 @@ describe('五百五十四批 F：工具行勾选态单行纪律（工蚁1）', (
     await mountTbl(ResultTable, { hits: HITS, total: 3, index: 'w554r7' });
     const bar = () => host.querySelector('.rt-bar') as HTMLElement;
     const barR = () => host.querySelector('.rt-bar-r') as HTMLElement;
-    /* 缺省态：无反选钮；bar 顶层 item 基线 */
-    expect(barR().querySelector('button[title="反选当前视图行"]'), '缺省态无反选钮（DOM 零增）').toBeNull();
+    /* 缺省态：无反选钮；bar 顶层 item 基线（钮提示已迁 v-tip 指令，改按可见文本定位） */
+    const findInv = () => [...barR().querySelectorAll('button')].find(b => b.textContent?.trim() === '反选');
+    expect(findInv(), '缺省态无反选钮（DOM 零增）').toBeUndefined();
     const topCount = bar().children.length;
     const topClass = [...bar().children].map(c => (c as HTMLElement).className).join('|');
     /* 勾选一行 */
@@ -354,8 +355,8 @@ describe('五百五十四批 F：工具行勾选态单行纪律（工蚁1）', (
     await tick(6);
     expect(bar().children.length, '勾选后 bar 顶层 item 数零变（反选+分隔条不进顶层）').toBe(topCount);
     expect([...bar().children].map(c => (c as HTMLElement).className).join('|'), '顶层 item 清单零变（仅右簇内部增员）').toBe(topClass);
-    const inv = barR().querySelector('button[title="反选当前视图行"]') as HTMLButtonElement;
-    expect(inv, '反选钮在右簇内可达（title 不变）').toBeTruthy();
+    const inv = findInv() as HTMLButtonElement;
+    expect(inv, '反选钮在右簇内可达').toBeTruthy();
     expect((inv.closest('.rt-bar-r') as HTMLElement).className, '反选钮宿主=壳级纪律容器 .rt-bar-r').toContain('rt-bar-r');
     /* 反选功能不回退：勾 1 行 → 反选 → 1 行取消、另 2 行选中 */
     inv.click();

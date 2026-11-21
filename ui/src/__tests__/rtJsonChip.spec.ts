@@ -8,6 +8,12 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createApp, h, nextTick } from 'vue';
 import { createPinia } from 'pinia';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+/* chip 提示已迁 v-tip 指令（DOM 无 title 属性）——「预览截断、提示恒 raw 全串」改源码锚 */
+const RT_SRC = readFileSync(join(__dirname, '../components/ResultTable.vue'), 'utf8');
+const QRT_SRC = readFileSync(join(__dirname, '../components/QueryResultTable.vue'), 'utf8');
 
 vi.mock('../api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../api')>();
@@ -65,9 +71,9 @@ describe('RT 长 JSON 折叠预览 chip（W7）', () => {
     const chip = chips[0];
     expect(chip.textContent).toContain('longText:');
     expect(chip.textContent).toContain('{…}3 键');
-    /* 预览短、title 全 */
+    /* 预览短、提示全（v-tip 绑 cellTitle=raw 全串） */
     expect(chip.querySelector('.rt-json-chip-p')!.textContent!.length).toBeLessThan(40);
-    expect(chip.getAttribute('title')).toBe(JSON.stringify(obj));
+    expect(RT_SRC).toContain('class="rt-json-chip" v-tip="cellTitle(hit, c)"');
   });
 
   it('点击 chip=打开既有单元格详情弹窗（复用 detailOpen 通道）', async () => {
@@ -98,7 +104,7 @@ describe('QRT 长 JSON 折叠预览 chip（W7）', () => {
     expect(chips.length).toBe(1);
     expect(chips[0].textContent).toContain('longText:');
     expect(chips[0].textContent).toContain('{…}2 键');
-    expect(chips[0].getAttribute('title')).toBe(JSON.stringify(obj));
+    expect(QRT_SRC, 'QRT chip 提示恒 raw（v-tip 绑 cellMeta full）').toContain('class="rt-json-chip" v-tip="cellMeta[ri]?.[ci]?.full"');
     chips[0].dispatchEvent(new MouseEvent('click', { bubbles: true }));
     await tick();
     const modal = document.body.querySelector('.qrt-d-meta') as HTMLElement | null;

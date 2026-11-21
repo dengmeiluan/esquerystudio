@@ -227,13 +227,15 @@ describe('762 G224 wt-list 容器 aria（757 G210 族·随批可裁）', () => {
 });
 
 describe('762 G226 MetaStrip 三段补中文 tip（铁律 F·G55/G60/G74/G112 同族·随批可裁）', () => {
-  it('挂载实锚：队列/已执行/失败三段 title 在场（含 _watcher/stats 字段来源）', async () => {
+  it('挂载实锚：队列/已执行/失败三段提示在场（含 _watcher/stats 字段来源）', async () => {
     const host = await mountView();
-    const tips = Array.from(host.querySelectorAll('.wt-meta .ms-i')).map(el => el.getAttribute('title'));
-    expect(tips[3], '队列（当前）段 tip').toContain('队列');
-    expect(tips[3]).toContain('queue_size');
-    expect(tips[4], '已执行段 tip').toContain('执行');
-    expect(tips[5], '失败段 tip').toContain('total_failed');
+    const segs = Array.from(host.querySelectorAll('.wt-meta .ms-i'));
+    /* 段提示已迁 v-tip 指令（DOM 无 title 属性）——tip 释义由下方源码锁 it 承接，
+       此处锁段在场与 help 档（有 tip 无 to 的段挂 cursor:help） */
+    expect(segs[3].textContent).toContain('队列（当前）');
+    expect(segs[3].classList.contains('help'), '队列段有 tip 挂 help').toBe(true);
+    expect(segs[4].textContent).toContain('已执行');
+    expect(segs[5].textContent).toContain('失败');
   });
   it('源码锁：三段 tip 走 wtMeta items（含字段来源释义），状态段既有 tip 不动', () => {
     const m = src.match(/const wtMeta = computed[\s\S]*?\n\]\);/);

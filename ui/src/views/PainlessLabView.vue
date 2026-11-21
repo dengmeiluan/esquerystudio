@@ -9,7 +9,7 @@
 <button class="btn ghost sm" @click="loadStored" :disabled="storedLoading">
           <RefreshCw :size="12" :class="{ spinning: storedLoading }" /> 刷新
         </button>
-        <button class="btn ghost sm" title="查看当前身份在本页与当前连接下允许的操作（与后端拦截器判定同源）" @click="permOpen = true"><Shield :size="12" /> 我的权限</button>
+        <button class="btn ghost sm" v-tip="'查看当前身份在本页与当前连接下允许的操作（与后端拦截器判定同源）'" @click="permOpen = true"><Shield :size="12" /> 我的权限</button>
       </template>
     </PageHeader>
 
@@ -24,7 +24,7 @@
           <!-- W2 批：左栏宽度档（usePref painless.railW，默认 260=原 minmax 上限） -->
           <div class="pl-panel-tt">
             上下文
-            <button class="btn ghost xs" data-pl-rail-w :title="'左栏宽度档：' + plRailW + 'px'" @click="cycleRailW">宽</button>
+            <button class="btn ghost xs" data-pl-rail-w v-tip="'左栏宽度档：' + plRailW + 'px'" @click="cycleRailW">宽</button>
           </div>
           <!-- W3c：原生 select 升档 NSelect（档值/文案零变化，aria-label 保留） -->
           <n-select v-model:value="context" class="pl-sel" size="small" :options="CONTEXT_OPTS" aria-label="执行上下文" />
@@ -54,7 +54,7 @@
             <div v-for="s in storedList" :key="s.id" class="pl-stored" :class="{ active: selectedStored === s.id }"
               @click="pickStored(s)" role="button" tabindex="0" @keydown.enter.prevent="pickStored(s)" @keydown.space.prevent="pickStored(s)" @keydown="onStoredMenuKey($event, s)"
               @contextmenu.prevent.stop="openStoredMenu($event, s)">
-              <span class="pl-stored-id" :title="s.id">{{ s.id }}</span>
+              <span class="pl-stored-id" v-tip="s.id">{{ s.id }}</span>
               <span class="pl-stored-lang">{{ s.lang }}</span>
               <X v-if="canOps" :size="10" class="pl-stored-x" :aria-label="'删除脚本 ' + s.id" @click.stop="deleteStored(s.id)" />
             </div>
@@ -100,10 +100,10 @@
           <div class="pl-editor-hd">
             <span class="pl-editor-tt">执行结果</span>
             <!-- W2 批：结果区高度档（usePref painless.outH，默认 260=原写死值） -->
-            <button class="btn ghost xs" data-pl-out-h :title="'结果区高度档：' + plOutH + 'px'" @click="cycleOutH">高</button>
+            <button class="btn ghost xs" data-pl-out-h v-tip="'结果区高度档：' + plOutH + 'px'" @click="cycleOutH">高</button>
             <!-- 原始 IO 快查——本页最近一次脚本求值（painless/execute）请求/响应原文
  （ioRecorder 记录环；结果工具行钮，与复制/注入同列，BulkEditor xs 钮形先例） -->
-            <button class="btn ghost xs" data-test="raw-io" aria-label="查看原始 IO（脚本求值）" title="最近一次脚本求值请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo"><Terminal :size="11" /> 原始 IO</button>
+            <button class="btn ghost xs" data-test="raw-io" aria-label="查看原始 IO（脚本求值）" v-tip="'最近一次脚本求值请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo"><Terminal :size="11" /> 原始 IO</button>
             <!-- 结果区补复制出口（copyText 诚实口径，与全站复制钮同反馈语言）；
  显隐条件随错误态分离扩为 result || runErr（错误全文同样可复制/注入） -->
             <button class="btn ghost xs" v-if="result || runErr" @click="copyResult">

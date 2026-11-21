@@ -271,7 +271,7 @@ describe('defaultLeaf 记忆与面板增强', () => {
   it('条件行「复制」：深拷贝重派 id 后插到原节点之后（同 occur 分区）', async () => {
     const { host, tree } = mountTree({ query: { bool: { must: [{ term: { a: 1 } }, { term: { b: 2 } }] } } });
     const row0 = host.querySelectorAll('.cn')[0];
-    (row0.querySelector('button[title^="复制条件"]') as HTMLElement).click();
+    (row0.querySelector('button[aria-label="复制条件"]') as HTMLElement).click();
     await settle();
     const ser = serializeTree(tree.value);
     expect(ser.query).toEqual({ bool: { must: [{ term: { a: 1 } }, { term: { a: 1 } }, { term: { b: 2 } }] } });

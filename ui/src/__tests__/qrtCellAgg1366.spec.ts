@@ -78,9 +78,10 @@ describe('1366 SQL 结果表：Ctrl+点击聚合 + 页脚状态栏', () => {
     expect(foot, '页脚必须出现').not.toBeNull();
     expect(foot!.textContent, '10 + 32 = 42').toContain('42');
     /* 1413：min/max/count 收进 tooltip（三段并存时会把按钮挤出可视区），
-       可见文案改为「已选 N 格」；格数与完整统计仍可读（title）→ 意图不变 */
+       可见文案改为「已选 N 格」；格数与完整统计仍可读 → 意图不变。
+       提示已迁 v-tip 指令（DOM 无 title 属性），统计段绑定改源码锚 */
     expect(foot!.textContent, '计数为 2').toContain('已选 2 格');
-    expect(foot!.querySelector('.qrt-stat-seg')?.getAttribute('title') ?? '', 'tooltip 仍报 count').toContain('count 2');
+    expect(QRT_SRC).toContain('count ${fmtNum(aggCellStats.count)}');
     expect(host.querySelectorAll('td.qrt-agg-sel').length, '两格高亮').toBe(2);
   });
 
@@ -93,8 +94,8 @@ describe('1366 SQL 结果表：Ctrl+点击聚合 + 页脚状态栏', () => {
     const foot = host.querySelector('.qrt-status');
     expect(foot!.textContent).toContain('10');
     expect(foot!.textContent, '只剩 1 格').toContain('已选 1 格');
-    expect(foot!.querySelector('.qrt-stat-seg')?.getAttribute('title') ?? '', 'tooltip 仍报 count').toContain('count 1');
-    expect(host.querySelectorAll('td.qrt-agg-sel').length).toBe(1);
+    expect(QRT_SRC, 'tooltip 仍报 count（v-tip 绑定同源）').toContain('count ${fmtNum(aggCellStats.count)}');
+    expect(host.querySelectorAll('td.qrt-agg-sel').length, '一格高亮').toBe(1);
   });
 
   it('③ 普通点击不进聚合、也不再复制（1374 单击复制退役）', async () => {

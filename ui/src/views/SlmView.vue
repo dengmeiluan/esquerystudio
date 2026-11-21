@@ -12,7 +12,7 @@
         <!-- 全局统计 tile 墙退役后 inline 状态串再收 MetaStrip 统一件（值亮+标签暗+·分隔同构）：
  RUNNING→ok/其余→warn、成功快照恒 ok、失败>0 err 走组件 tone 档；清理耗时 ms 原值拆段 tip；
  类名保留 slm-meta——protectThreeState 以此类看守 stats 区在/不在，本页样式只留落位 -->
-        <MetaStrip v-if="available && status" class="slm-meta" :items="slmMeta" :title="'运行状态 ' + statusMode + ' · 总策略数 ' + fmtNum(policyCount) + ' · 成功快照 ' + fmtNum(statTotalTaken) + ' · 失败快照 ' + fmtNum(statTotalFailed) + ' · 保留执行 ' + statRetentionRuns + ' 次 · 保留清理耗时 ' + fmtMs(statRetentionDeletion) + '（' + statRetentionDeletion + ' ms）'" />
+        <MetaStrip v-if="available && status" class="slm-meta" :items="slmMeta" v-tip.long="'运行状态 ' + statusMode + ' · 总策略数 ' + fmtNum(policyCount) + ' · 成功快照 ' + fmtNum(statTotalTaken) + ' · 失败快照 ' + fmtNum(statTotalFailed) + ' · 保留执行 ' + statRetentionRuns + ' 次 · 保留清理耗时 ' + fmtMs(statRetentionDeletion) + '（' + statRetentionDeletion + ' ms）'" />
       </template>
       <template #actions>
         <div class="slm-hd-r">
@@ -22,7 +22,7 @@
           <AutoRefreshSelect v-if="slmAutoRefresh" v-model:ms="slmIntervalMs" :sizes="[10000, 30000, 60000]" label="自动刷新频率" />
           <!-- 原始请求/响应快查弹窗（RawIo 第六波，558b 先例同形态；
  路径子串 '/cluster/slm/'=本页 policies/execute/status 全通道） -->
-          <button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（SLM）" title="最近一次 SLM 策略/执行/状态请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo">
+          <button class="btn ghost sm" data-test="raw-io" aria-label="查看原始 IO（SLM）" v-tip="'最近一次 SLM 策略/执行/状态请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo">
             <Terminal :size="12" /> 原始 IO
           </button>
           <button class="btn ghost sm" @click="loadAll" :disabled="loading">

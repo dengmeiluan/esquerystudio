@@ -100,7 +100,7 @@ describe('996 script_fields 项级编辑', () => {
     await tick();
     expect(cur.value.scriptFields!.items.length).toBe(0);
     expect(serializeTree(cur.value).script_fields).toEqual({});
-    (host.querySelector('[title="移除 script_fields 键"]') as HTMLElement).click();
+    (host.querySelector('[aria-label="移除 script_fields 键"]') as HTMLElement).click();
     await tick();
     expect(cur.value.scriptFields).toBeNull();
     expect(serializeTree(cur.value)).toEqual({});
@@ -131,8 +131,8 @@ describe('996 runtime_mappings 项级编辑', () => {
     if (!t.ok) throw new Error('parse failed');
     const { host, cur } = mountPane(t.tree);
     await tick();
-    expect(host.querySelector('[title="移除 runtime_mappings 键"]'), '有内容默认展开').not.toBeNull();
-    (host.querySelector('[title="移除 runtime_mappings 键"]') as HTMLElement).click();
+    expect(host.querySelector('[aria-label="移除 runtime_mappings 键"]'), '有内容默认展开').not.toBeNull();
+    (host.querySelector('[aria-label="移除 runtime_mappings 键"]') as HTMLElement).click();
     await tick();
     expect(cur.value.runtimeMappings).toBeNull();
     expect(serializeTree(cur.value)).toEqual({});

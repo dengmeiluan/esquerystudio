@@ -18,7 +18,7 @@
  前四步，AWAIT_CONFIRM 的阻断横幅（渲染在 step 4）也将永远看不见。 -->
       <div v-for="(s, i) in STEPS" :key="i" class="step"
            :class="{ act: step === i, done: step > i, locked: isTerminal, retmon: canReturnToMonitor(i) }"
-           :title="canReturnToMonitor(i) ? '作业执行中——点此返回执行监控' : undefined"
+           v-tip="canReturnToMonitor(i) ? '作业执行中——点此返回执行监控' : undefined"
            :role="stepInteractive(i) ? 'button' : undefined"
            :tabindex="stepInteractive(i) ? 0 : -1"
            :aria-current="step === i ? 'step' : undefined"
@@ -39,7 +39,7 @@
  兼容：本条是裁决之后数据面的纯新增显示）。 -->
     <div v-if="showReattachHint" class="ar-reattach-hint" data-test="adhoc-reattach-hint" role="status">
       <span>检测到运行中的重建作业 <span class="mono">{{ runningAdhocJob?.jobId }}</span>，可在下方最近作业中点详情回监控</span>
-      <button class="btn ghost sm" data-test="adhoc-reattach-go" title="回到该作业的执行监控（与最近作业表「查看任务详情」同一链路）" @click="reattachToRunning"><Eye :size="12" /> 回到监控</button>
+      <button class="btn ghost sm" data-test="adhoc-reattach-go" v-tip="'回到该作业的执行监控（与最近作业表「查看任务详情」同一链路）'" @click="reattachToRunning"><Eye :size="12" /> 回到监控</button>
     </div>
 
     <!-- ① 选索引。结构序：索引名行上移到双 Tab 编辑器上方——先选索引再贴配置
@@ -59,7 +59,7 @@
           <Loader2 v-if="preparing" :size="13" class="spinning" /><Search v-else :size="13" /> 探测
         </button>
         <!-- 原始 IO 快查（评估分节）——最近一次探测/启动请求/响应原文 -->
-        <button class="btn ghost sm" aria-label="查看原始 IO（探测评估）" title="最近一次托管重建接口调用的请求/响应原文" @click="openRawIo">
+        <button class="btn ghost sm" aria-label="查看原始 IO（探测评估）" v-tip="'最近一次托管重建接口调用的请求/响应原文'" @click="openRawIo">
           <Terminal :size="13" />
         </button>
       </div>
@@ -75,11 +75,11 @@
 <!-- w69:双 Tab 输入模式 — 两条路径并排可见,不再是隐藏的折叠 -->
       <div class="ar-input-tabs">
         <button type="button" :class="{ on: inputMode === 'paste' }" @click="inputMode = 'paste'"
-          title="从业务应用复制的内容粘贴，自动解析 settings/mapping/字段清单">
+          v-tip="'从业务应用复制的内容粘贴，自动解析 settings/mapping/字段清单'">
 粘贴业务侧 JSON
 </button>
         <button type="button" :class="{ on: inputMode === 'manual' }" @click="inputMode = 'manual'"
-          title="自己写 settings/mapping，不需要业务侧 JSON">
+          v-tip="'自己写 settings/mapping，不需要业务侧 JSON'">
 手动输入 settings / mapping
 </button>
       </div>
@@ -94,10 +94,10 @@
  与 api EP 同前缀 /internal/es/index）——此前只有文案，业务同事找不到入口。
  浏览器模式没有宿主静态页，禁用入口而不是让用户点开 404。 -->
           <button type="button" class="btn ghost xs" :disabled="!canDesiredState"
-            :title="isBrowserMode ? '浏览器模式没有宿主期望配置静态页；请从服务端模式复制后粘贴' : (canDesiredState ? '' : '期望配置页需宿主或静态页授权——纯连接授权打开只会得到 403')" @click="openDesiredState"><ExternalLink :size="11" /> 打开期望配置页</button>
+            v-tip="isBrowserMode ? '浏览器模式没有宿主期望配置静态页；请从服务端模式复制后粘贴' : (canDesiredState ? '' : '期望配置页需宿主或静态页授权——纯连接授权打开只会得到 403')" @click="openDesiredState"><ExternalLink :size="11" /> 打开期望配置页</button>
           <!-- 四档高度循环钮（ConfigValidatorView data-cv-issues-h 同款范式）——
  title 实时回显当前档，点击切下一档末档回首档，usePref 落盘 -->
-          <button type="button" class="btn ghost xs" data-ar-paste-h :title="'粘贴区高度档：' + pasteH + '（点击循环）'" @click="cyclePasteH">高</button>
+          <button type="button" class="btn ghost xs" data-ar-paste-h v-tip="'粘贴区高度档：' + pasteH + '（点击循环）'" @click="cyclePasteH">高</button>
         </div>
         <MonacoEditor ref="pasteMcRef" v-model="pasteRaw" language="json" :height="pasteH" :dsl-assist="pasteAssist" @execute="applyPaste" /><!-- ：ref + @execute="applyPaste"（弹窗 JsonArea @submit 同语义先例——Ctrl+Enter 即解析；：height 定高字面升四档 :height="pasteH" 循环（默认档=原 min(60vh, 420px) 保底，见 PASTE_H_TIERS； min(200px,24vh)→视口弹性档、 W4 补 dsl-assist 的沿革不变）——不传 bodyKind（期望配置形态任意，挂 settings/mapping 档必误导）、不挂 lint；Ctrl+I 唤起补全经 pasteMcRef 宿主接线 -->
         <div class="ar-paste-act">
@@ -125,11 +125,11 @@
  （挂载初值/自动链零触——adhocManualWorkbench426/draftGovernance 口径） -->
           <button type="button" class="btn ghost xs" data-ar-pull-src aria-label="拉取源配置"
             :disabled="pullingSrc || !canPullSrc"
-            :title="canPullSrc ? '拉取源索引当前的 settings / mapping 覆盖下方两框（覆盖前需确认）' : '拉取源配置需索引、映射、搜索、配置校验或托管重建任一页读权限'" @click="pullSourceToManual">
+            v-tip="canPullSrc ? '拉取源索引当前的 settings / mapping 覆盖下方两框（覆盖前需确认）' : '拉取源配置需索引、映射、搜索、配置校验或托管重建任一页读权限'" @click="pullSourceToManual">
             <Download :size="11" /> 拉取源配置
           </button>
           <!-- P1：编辑框高度档循环钮（形态抄本页 paste 档钮；与审编卡头钮同一落盘键 adhoc.edH） -->
-          <button type="button" class="btn ghost xs" data-ar-ed-h :title="'编辑框高度档：' + edRows + ' 行（点击循环）'" @click="cycleEdRows">高</button>
+          <button type="button" class="btn ghost xs" data-ar-ed-h v-tip="'编辑框高度档：' + edRows + ' 行（点击循环）'" @click="cycleEdRows">高</button>
         </div>
         <!-- 手动模式对照双栏接可调工作台（411 同款语义收口） -->
         <!-- fill-viewport=false 摘视口 min-height 兜底——向导「目标物理索引名/校验」行动行不被推出首屏（DslQueryView 先例），编辑区高度交 pane 内容自撑。
@@ -178,12 +178,12 @@ mapping <span class="dim">字段映射</span>
 <span>物理索引</span>
             <span class="mono">{{ (prep.physicals || []).join(', ') }}
               <!-- 索引芯片（xm-idx-go 同款）——直达索引工作区 -->
-              <button v-for="ph in prep.physicals || []" :key="ph" class="ad-idx-go" :aria-label="'打开索引工作区：' + ph" title="打开索引工作区" @click="gotoIdx(ph)"><ExternalLink :size="11" /></button>
+              <button v-for="ph in prep.physicals || []" :key="ph" class="ad-idx-go" :aria-label="'打开索引工作区：' + ph" v-tip="'打开索引工作区'" @click="gotoIdx(ph)"><ExternalLink :size="11" /></button>
             </span>
 </div>
           <div class="p-row">
 <span>源（write）</span><span class="mono">{{ prep.sourcePhysical }}
-            <button class="ad-idx-go" :aria-label="'打开索引工作区：' + prep.sourcePhysical" title="打开索引工作区" @click="gotoIdx(prep.sourcePhysical)"><ExternalLink :size="11" /></button>
+            <button class="ad-idx-go" :aria-label="'打开索引工作区：' + prep.sourcePhysical" v-tip="'打开索引工作区'" @click="gotoIdx(prep.sourcePhysical)"><ExternalLink :size="11" /></button>
           </span>
 </div>
           <!-- 所属别名（源物理索引的成员别名，空则不渲染）：chip 可点——一键改用该别名作为重建入口并重新探测。
@@ -192,7 +192,7 @@ mapping <span class="dim">字段映射</span>
 <span>所属别名</span>
             <span class="ar-tf-chips">
               <button v-for="a in prep.memberAliases" :key="a" type="button" class="chip mono ar-tf-chip"
-                :title="'点击改用该别名作为重建入口（重新探测）：' + a"
+                v-tip="'点击改用该别名作为重建入口（重新探测）：' + a"
                 @click="useAliasAsInput(a)">{{ a }}</button>
             </span>
           </div>
@@ -207,7 +207,7 @@ mapping <span class="dim">字段映射</span>
             <span v-if="prep.timeFieldCandidates?.length" class="ar-tf-chips">
               <button v-for="c in prep.timeFieldCandidates" :key="c.field" type="button"
                 class="chip mono ar-tf-chip" :class="{ on: timeField === c.field }"
-                :title="'点击预选为追平时间字段：' + c.field + '(' + c.type + ')'"
+                v-tip="'点击预选为追平时间字段：' + c.field + '(' + c.type + ')'"
                 @click="timeField = c.field">{{ c.field }}({{ c.type }})</button>
             </span>
             <span v-else class="dim">无（INCREMENTAL 策略不可用）</span>
@@ -228,22 +228,22 @@ mapping <span class="dim">字段映射</span>
       <!-- 粘贴导入入口——手里一串原始 JSON 直接识别拆填，不再手动分拆两侧 -->
       <div class="card-t">
 新索引 settings / mapping（预填自源索引，可直接修改 —— 改分词/分片正是在这里）
-        <button class="btn ghost sm" style="margin-left:auto" title="粘贴 Mapping 页复制的原始 JSON / GET _mapping / _settings 响应，自动识别拆填" @click="openPasteImport">
+        <button class="btn ghost sm" style="margin-left:auto" v-tip="'粘贴 Mapping 页复制的原始 JSON / GET _mapping / _settings 响应，自动识别拆填'" @click="openPasteImport">
           <ClipboardPaste :size="12" /> 粘贴导入
         </button>
         <!-- 从集群复刻——跨集群结构直拉：选连接中心已存档案+源索引，服务端白名单精选
              settings（分片/副本/analysis/similarity）并还原插件组件名，从源头绕开
              手动拷贝 GET 原文的系统键/null 值/插件脱敏三类坑 -->
-        <button class="btn ghost sm" data-test="ar-clone-open" title="从连接中心的其它集群直接拉取指定索引的 settings/mapping，自动清理后拆填" @click="openCloneImport">
+        <button class="btn ghost sm" data-test="ar-clone-open" v-tip="'从连接中心的其它集群直接拉取指定索引的 settings/mapping，自动清理后拆填'" @click="openCloneImport">
           <FileDown :size="12" /> 从集群复刻
         </button>
         <!-- 审编卡头原始 IO 钮——校验走 /config-lab/validate（不在 /adhoc-rebuild/
  记录特征下），openRawIo 取数扩 config-lab 回退链；判空 notify 口径归其既有单源 -->
-        <button class="btn ghost sm" aria-label="查看原始 IO（审编校验）" title="最近一次校验（config-lab validate）或探测接口调用的请求/响应原文" @click="openRawIo">
+        <button class="btn ghost sm" aria-label="查看原始 IO（审编校验）" v-tip="'最近一次校验（config-lab validate）或探测接口调用的请求/响应原文'" @click="openRawIo">
           <Terminal :size="12" /> 原始 IO
         </button>
         <!-- P1：编辑框高度档循环钮（与手动模式 hd 钮同一落盘键 adhoc.edH） -->
-        <button type="button" class="btn ghost sm" data-ar-ed-h :title="'编辑框高度档：' + edRows + ' 行（点击循环）'" @click="cycleEdRows"><UnfoldVertical :size="12" /> 高度</button>
+        <button type="button" class="btn ghost sm" data-ar-ed-h v-tip="'编辑框高度档：' + edRows + ' 行（点击循环）'" @click="cycleEdRows"><UnfoldVertical :size="12" /> 高度</button>
       </div>
       <!-- stripDsl 预剔除结果常驻展示——toast 会消散，审编现场必须能随时看到「向导替你改了什么」 -->
       <div v-if="stripNote" class="strip-note">
@@ -277,7 +277,7 @@ mapping <span class="dim">字段映射</span>
         <label class="lbl">目标物理索引名</label>
         <input v-model.trim="destIndex" class="ipt grow mono" :placeholder="prep?.suggestedDest" @keydown.enter="destIndexEnter" />
         <!-- 行尾「用建议名」一键回填（destNameErr 链零触——回填建议名后红字照常即时复评） -->
-        <button v-if="prep?.suggestedDest" class="btn ghost xs" title="回填探测建议的目标索引名" @click="destIndex = prep.suggestedDest">用建议名</button>
+        <button v-if="prep?.suggestedDest" class="btn ghost xs" v-tip="'回填探测建议的目标索引名'" @click="destIndex = prep.suggestedDest">用建议名</button>
       </div>
       <!-- sem-rm 智能纠错：目标物理索引名即时红字——非法字符/大写（同 Xmigrate idxNameProblem 口径）；
  目标=源物理名（直连模式）＝「切换即删源本身」的核武级配错，必须在启动前看见 -->
@@ -313,13 +313,13 @@ mapping <span class="dim">字段映射</span>
           <code v-if="iss.fix" class="val-fixkey">{{ iss.fix.key }}<template v-if="iss.fix.action === 'ADD_SETTING' && iss.fix.value != null">={{ iss.fix.value }}</template></code>
           <button v-if="iss.fix && iss.fix.action === 'REMOVE_SETTING'" type="button"
                   class="btn ghost sm" style="flex-shrink:0" data-test="ar-fix-remove"
-                  :title="'从 settings 移除键 ' + iss.fix.key + '（确认后执行）'"
+                  v-tip="'从 settings 移除键 ' + iss.fix.key + '（确认后执行）'"
                   @click="applyFixRemoveSetting(iss)">
             <Trash2 :size="11" /> 一键移除
           </button>
           <button v-else-if="iss.fix && iss.fix.action === 'ADD_SETTING'" type="button"
                   class="btn ghost sm" style="flex-shrink:0" data-test="ar-fix-add"
-                  :title="'向 settings 补充键 ' + iss.fix.key + (iss.fix.value != null ? '=' + iss.fix.value : '') + '（确认后执行）'"
+                  v-tip="'向 settings 补充键 ' + iss.fix.key + (iss.fix.value != null ? '=' + iss.fix.value : '') + '（确认后执行）'"
                   @click="applyFixAddSetting(iss)">
             <Plus :size="11" /> 一键补充
           </button>
@@ -327,10 +327,10 @@ mapping <span class="dim">字段映射</span>
       </div>
 
       <div class="row">
-        <button v-if="canValidate" class="btn ghost" :disabled="validating || !canValidate" title="校验需配置校验页或托管重建写权限" @click="doValidateConfig(false)">
+        <button v-if="canValidate" class="btn ghost" :disabled="validating || !canValidate" v-tip="'校验需配置校验页或托管重建写权限'" @click="doValidateConfig(false)">
           <Loader2 v-if="validating" :size="13" class="spinning" /><ShieldCheck v-else :size="13" /> 仅校验
         </button>
-        <button v-if="canValidate" class="btn primary" :disabled="validating || !canValidate" title="校验需配置校验页或托管重建写权限" @click="doValidateConfig(true)">
+        <button v-if="canValidate" class="btn primary" :disabled="validating || !canValidate" v-tip="'校验需配置校验页或托管重建写权限'" @click="doValidateConfig(true)">
           <Loader2 v-if="validating" :size="13" class="spinning" /><ChevronRight v-else :size="13" /> {{ validating ? '校验中 ' + valSecs + 's' : '校验并继续：选择追平策略' }}
         </button>
       </div>
@@ -373,7 +373,7 @@ mapping <span class="dim">字段映射</span>
         <!-- 数字框 naive 化（NInputNumber）：number|null 经 bufferMsModel 桥接回草稿数值域；
              Enter=该步主钮（keydown 自内部 input 冒泡到组件根，native fallthrough 监听承接） -->
         <n-input-number v-model:value="bufferMsModel" :min="0" size="small" class="ar-num" data-test="ar-buffer-ms"
-                        title="增量追平轮之间的等待窗口：全量完成后按此间隔再扫增量，越大切换越晚但业务写入窗口越长"
+                        v-tip="'增量追平轮之间的等待窗口：全量完成后按此间隔再扫增量，越大切换越晚但业务写入窗口越长'"
                         @keydown.enter="strategyNextEnter" />
       </div>
       <!-- +1：INCREMENTAL 必选时间字段的常驻红字（对齐 needIndexForManual 形态：
@@ -398,17 +398,17 @@ mapping <span class="dim">字段映射</span>
           <label class="lbl">限流（docs/s）</label>
           <!-- 数字框 naive 化（NInputNumber）：number|null 经 tuningRpsModel 桥接回草稿串域（'-1'/'500' 可逆） -->
           <n-input-number v-model:value="tuningRpsModel" size="small" class="ar-num" placeholder="-1 不限"
-                          title="每秒批次数（requests_per_second）：大索引重建时限制写入速率保护集群，-1 或留空不限"
+                          v-tip="'每秒批次数（requests_per_second）：大索引重建时限制写入速率保护集群，-1 或留空不限'"
                           data-test="ar-tuning-rps" @keydown.enter="strategyNextEnter" />
           <label class="lbl">slices</label>
           <!-- 档位下拉改 NSelect（auto/自定义数字两档，data-test 锚保留；「自定义数字」
 		 条件子框逻辑不动——tuningSlicesMode computed 写路径接 NSelect v-model:value） -->
           <n-select v-model:value="tuningSlicesMode" :options="SLICES_MODE_OPTS" size="small" class="ar-tuning-sel"
                     data-test="ar-tuning-slices-mode"
-                    title="reindex 并行切片数：auto 由 ES 按分片数自动决定；自定义需 >=1 的整数" />
+                    v-tip="'reindex 并行切片数：auto 由 ES 按分片数自动决定；自定义需 >=1 的整数'" />
           <n-input-number v-if="tuningSlicesMode === 'custom'" v-model:value="tuningSlicesModel" size="small" class="ar-num"
                           placeholder=">=1" data-test="ar-tuning-slices-num"
-                          title="slices 并行切片数：>=1 的整数，或选 auto 交由 ES 决定" @keydown.enter="strategyNextEnter" />
+                          v-tip="'slices 并行切片数：>=1 的整数，或选 auto 交由 ES 决定'" @keydown.enter="strategyNextEnter" />
         </div>
         <div v-if="rpsErr" class="ar-paste-err" data-test="ar-tuning-rps-err">{{ rpsErr }}</div>
         <div v-if="slicesErr" class="ar-paste-err" data-test="ar-tuning-slices-err">{{ slicesErr }}</div>
@@ -513,7 +513,7 @@ mapping <span class="dim">字段映射</span>
     <div v-if="step === 3" class="ar-sec">
       <div class="card-t">执行预览
         <!-- 原始 IO 快查（执行分节）——与探测评估共用 /adhoc-rebuild/ 记录环特征 -->
-        <button class="btn ghost sm" style="margin-left:auto" aria-label="查看原始 IO（托管重建）" title="最近一次托管重建接口调用的请求/响应原文" @click="openRawIo">
+        <button class="btn ghost sm" style="margin-left:auto" aria-label="查看原始 IO（托管重建）" v-tip="'最近一次托管重建接口调用的请求/响应原文'" @click="openRawIo">
           <Terminal :size="12" />
         </button>
       </div>
@@ -573,12 +573,12 @@ mapping <span class="dim">字段映射</span>
  （/adhoc-rebuild/ 记录环）此前在 step4 无取数入口；中止钮在场时其 .right
  margin-left:auto 独占行尾推进，本钮不叠加 auto（防双 auto 平分剩余空间挤移中止钮），
  非 RUNNING（中止钮缺席）时本钮自持 margin-left:auto 补行尾位 -->
-        <button class="btn ghost sm" :style="(canOps && job?.status === 'RUNNING') ? '' : 'margin-left:auto'" aria-label="查看原始 IO（监控轮询）" title="最近一次托管重建接口调用的请求/响应原文（含监控轮询现场）" @click="openRawIo"><Terminal :size="12" /></button>
+        <button class="btn ghost sm" :style="(canOps && job?.status === 'RUNNING') ? '' : 'margin-left:auto'" aria-label="查看原始 IO（监控轮询）" v-tip="'最近一次托管重建接口调用的请求/响应原文（含监控轮询现场）'" @click="openRawIo"><Terminal :size="12" /></button>
         <!-- 中止钮 title 与下方确认窗（doAbort askConfirm）同一口径：保留目标索引与已迁移数据、
              可重跑续接。切换已确认（FINAL_CATCHUP/FINALIZE）后服务端硬拒中止，前端先禁用并说明，
              避免点进去吃报错 -->
         <button v-if="canMutateJob && job?.status === 'RUNNING'" class="btn ghost sm danger right"
-                :title="switchConfirmed ? '切换已确认，无法中止' : '中止 reindex task 并结束作业；目标索引与已迁移数据保留，可重跑续接'"
+                v-tip="switchConfirmed ? '切换已确认，无法中止' : '中止 reindex task 并结束作业；目标索引与已迁移数据保留，可重跑续接'"
                 :disabled="aborting || switchConfirmed" @click="doAbort"><CircleStop :size="12" /> 中止</button>
       </div>
       <!-- 轮询连续失败警示：监控数据可能已过期时必须明示（纯前端计数，成功即清零） -->
@@ -604,7 +604,7 @@ mapping <span class="dim">字段映射</span>
           <span>已阻断 {{ blockedSec }} 秒 —— 请尽快「确认切换」或「中止」</span>
           <span v-if="gateLeftMs != null" class="mono ar-gate-left" data-test="adhoc-gate-left"
                 :class="{ urgent: gateUrgent, expired: gateExpired }"
-                :title="'确认门截止时刻 ' + new Date(Number(job.gateDeadlineMs)).toLocaleTimeString('zh-CN', { hour12: false }) + '——30 分钟未确认将自动解除写阻断、不执行切换'">
+                v-tip="'确认门截止时刻 ' + new Date(Number(job.gateDeadlineMs)).toLocaleTimeString('zh-CN', { hour12: false }) + '——30 分钟未确认将自动解除写阻断、不执行切换'">
             {{ gateExpired ? '确认门已超时（等待自动收尾）' : '确认门剩余 ' + gateLeftText + (gateUrgent ? ' —— 请尽快决策' : '') }}
           </span>
           <button v-if="canMutateJob" class="btn primary sm" :disabled="confirming" @click="doConfirmSwitch">确认切换</button>
@@ -613,9 +613,9 @@ mapping <span class="dim">字段映射</span>
           <span v-else-if="!canMutateJob && jobOwner" class="dim" style="font-size: var(--fs-xs)">作业由 <b class="mono">{{ jobOwner }}</b> 创建：切换/中止仅创建者本人或 ADMIN 可操作；同连接成员可查看进度与报告</span>
         </div>
         <div class="probe">
-          <div class="p-row"><span>作业</span><span class="mono cpy" :title="'点击复制 jobId：' + job.jobId" tabindex="0" role="button" @keydown.enter.prevent="copyJobId(job.jobId)" @keydown.space.prevent="copyJobId(job.jobId)" @click="copyJobId(job.jobId)">{{ job.jobId }}</span></div>
+          <div class="p-row"><span>作业</span><span class="mono cpy" v-tip="'点击复制 jobId：' + job.jobId" tabindex="0" role="button" @keydown.enter.prevent="copyJobId(job.jobId)" @keydown.space.prevent="copyJobId(job.jobId)" @click="copyJobId(job.jobId)">{{ job.jobId }}</span></div>
           <div class="p-row">
-<span>{{ job.sourcePhysical }} → {{ job.destPhysical }}<!-- SUCCEEDED 后 dest 旁挂索引工作区芯片（step0 探测步同款）：重建完成的第一步就是去看新索引 --><button v-if="job.status === 'SUCCEEDED'" class="ad-idx-go" :aria-label="'打开索引工作区：' + job.destPhysical" title="打开索引工作区" data-test="adhoc-dest-goto" @click="gotoIdx(job.destPhysical)"><ExternalLink :size="11" /></button></span>
+<span>{{ job.sourcePhysical }} → {{ job.destPhysical }}<!-- SUCCEEDED 后 dest 旁挂索引工作区芯片（step0 探测步同款）：重建完成的第一步就是去看新索引 --><button v-if="job.status === 'SUCCEEDED'" class="ad-idx-go" :aria-label="'打开索引工作区：' + job.destPhysical" v-tip="'打开索引工作区'" data-test="adhoc-dest-goto" @click="gotoIdx(job.destPhysical)"><ExternalLink :size="11" /></button></span>
             <span class="dim">源 {{ job.sourceDocCount != null ? fmtNum(job.sourceDocCount) : '-' }} 条 / 目标 {{ job.destDocCount != null ? fmtNum(job.destDocCount) : '…' }} 条</span>
           </div>
           <div class="p-row" v-if="job.currentProgress">
@@ -660,7 +660,7 @@ mapping <span class="dim">字段映射</span>
           <div class="p-row" v-if="job.currentTaskId" data-test="adhoc-task-row">
             <span>reindex task</span>
             <span>
-              <button class="btn ghost xs mono" data-test="adhoc-task-link" title="在任务管理页查看该 reindex task（深链定位）" @click="gotoTask(String(job.currentTaskId))">{{ job.currentTaskId }}</button>
+              <button class="btn ghost xs mono" data-test="adhoc-task-link" v-tip="'在任务管理页查看该 reindex task（深链定位）'" @click="gotoTask(String(job.currentTaskId))">{{ job.currentTaskId }}</button>
             </span>
           </div>
           <!-- 动态调速：仅 reindex 执行段（全量/追平/终追，task 在场）可用，档位调 throttle 端点；
@@ -670,7 +670,7 @@ mapping <span class="dim">字段映射</span>
             <span class="ar-throttle">
               <n-select v-model:value="throttlePick" :options="THROTTLE_OPTS" size="small" class="ar-throttle-sel"
                         :disabled="!throttleStageOn" data-test="adhoc-throttle-pick"
-                        :title="throttleStageOn ? '调整当前 reindex task 的 requests_per_second（不限速=恢复全速）' : '仅全量/追平/终追阶段（有执行中的 reindex task）可调速'" />
+                        v-tip="throttleStageOn ? '调整当前 reindex task 的 requests_per_second（不限速=恢复全速）' : '仅全量/追平/终追阶段（有执行中的 reindex task）可调速'" />
               <button class="btn ghost sm" :disabled="!throttleStageOn || throttling" data-test="adhoc-throttle-apply" @click="doThrottle">调速</button>
               <span class="dim">当前 {{ job.requestsPerSecond != null ? job.requestsPerSecond + '/s' : '不限速' }}</span>
               <span v-if="!throttleStageOn" class="dim">非 reindex 执行段不可调速</span>
@@ -678,13 +678,13 @@ mapping <span class="dim">字段映射</span>
           </div>
           <!-- 后端 error 串常带整段 Java 栈：默认显示 friendlyApiError 友好化摘要（吃字符串），
            完整原文留 title + 点击复制——长栈不刷屏，取证不丢原文 -->
-          <div class="p-row" v-if="job.error"><span>错误</span><span class="err-txt" :title="job.error" data-test="adhoc-job-error" role="button" tabindex="0" @keydown.enter.prevent="copyJobErr" @keydown.space.prevent="copyJobErr" @click="copyJobErr">{{ friendlyApiError(job.error) }}</span></div>
+          <div class="p-row" v-if="job.error"><span>错误</span><span class="err-txt" v-tip="job.error" data-test="adhoc-job-error" role="button" tabindex="0" @keydown.enter.prevent="copyJobErr" @keydown.space.prevent="copyJobErr" @click="copyJobErr">{{ friendlyApiError(job.error) }}</span></div>
         </div>
         <!-- 宿主重启孤儿作业提示：FAILED 且 error 文案点名「重启」（作业在宿主内存，重启即失联，
         目标索引已建好但未切换）——给一条回路：回向导重新发起，目标名沿用即可续上已迁数据 -->
         <div v-if="orphanAfterRestart" class="ar-reattach-hint ar-orphan-hint" data-test="ar-orphan-hint" role="status">
           <span>宿主重启导致中断：目标索引已保留，可返回向导重新发起</span>
-          <button class="btn ghost sm" data-test="ar-orphan-back" title="清空当前向导现场回到选索引步重新发起" @click="reset">返回向导</button>
+          <button class="btn ghost sm" data-test="ar-orphan-back" v-tip="'清空当前向导现场回到选索引步重新发起'" @click="reset">返回向导</button>
         </div>
         <!-- 失败文档样本（后端 toMap failures，数组缺席不渲染）：每条 [type] reason（index/id 在场时附）。
         >=6 条默认折叠只显前 5 + 「展开全部 N 条」（后端封顶 10 条，防刷屏） -->
@@ -697,11 +697,11 @@ mapping <span class="dim">字段映射</span>
           <div class="ar-failures-act">
             <button type="button" class="btn ghost xs" data-test="ar-failure-copy-ids"
                     :disabled="!failedDocIds.length"
-                    :title="failedDocIds.length ? '复制全部失败文档 id（' + failedDocIds.length + ' 个，每行一个）' : '失败样本中没有文档 id（如 mapping 冲突在写入前被拒），无法复制'"
+                    v-tip="failedDocIds.length ? '复制全部失败文档 id（' + failedDocIds.length + ' 个，每行一个）' : '失败样本中没有文档 id（如 mapping 冲突在写入前被拒），无法复制'"
                     @click="copyFailedDocIds"><Copy :size="11" /> 复制全部失败 doc id</button>
             <button type="button" class="btn ghost xs" data-test="ar-failure-backfill"
                     :disabled="!!backfillGenBlockedReason"
-                    :title="backfillGenBlockedReason || '按作业时间字段生成失败窗口（启动~收尾）的回补 _reindex DSL 并复制（op_type=create 幂等）'"
+                    v-tip="backfillGenBlockedReason || '按作业时间字段生成失败窗口（启动~收尾）的回补 _reindex DSL 并复制（op_type=create 幂等）'"
                     @click="copyFailureBackfill"><Braces :size="11" /> 生成回补 query</button>
           </div>
         </div>
@@ -746,7 +746,7 @@ mapping <span class="dim">字段映射</span>
               <button v-for="f in EV_FILTERS" :key="f.v" type="button" class="chip ar-ev-fchip"
                       :class="{ on: evFilter === f.v }" :data-test="'ar-evt-filter-' + f.v"
                       :aria-pressed="evFilter === f.v ? 'true' : 'false'"
-                      :title="f.hint" @click="evFilter = f.v">{{ f.label }}</button>
+                      v-tip="f.hint" @click="evFilter = f.v">{{ f.label }}</button>
               <n-checkbox v-model:checked="evAutoScroll" size="small" class="ar-ev-autoscroll" data-test="ar-evt-autoscroll">
                 自动滚动到最新
               </n-checkbox>
@@ -773,7 +773,7 @@ mapping <span class="dim">字段映射</span>
         <div v-if="job.report" class="report">
           <div class="ed-label sec-t">收尾报告
             <!-- 回补 DSL 一键复制（RawIoModal copyReq 三行手法；直切策略人工回补高频） -->
-            <button v-if="job.report.suggestedBackfillDsl" class="btn ghost xs" title="复制建议回补 DSL" @click="copyBackfillDsl">
+            <button v-if="job.report.suggestedBackfillDsl" class="btn ghost xs" v-tip="'复制建议回补 DSL'" @click="copyBackfillDsl">
               <Copy :size="11" /> 复制回补 DSL
             </button>
           </div>
@@ -813,8 +813,8 @@ mapping <span class="dim">字段映射</span>
             </div>
             <div class="p-row" v-if="jobIsAliasMode">
               <span>别名指向</span>
-              <span v-if="verifyResult.error" class="err-txt" :title="verifyResult.error" data-test="adhoc-verify-alias-err">校验请求失败：{{ verifyResult.error }}</span>
-              <span v-else-if="verifyResult.alias?.error" class="warn-txt" :title="verifyResult.alias.error" data-test="adhoc-verify-alias-err">别名核对失败：{{ verifyResult.alias.error }}（文档数校验不受影响）</span>
+              <span v-if="verifyResult.error" class="err-txt" v-tip="verifyResult.error" data-test="adhoc-verify-alias-err">校验请求失败：{{ verifyResult.error }}</span>
+              <span v-else-if="verifyResult.alias?.error" class="warn-txt" v-tip="verifyResult.alias.error" data-test="adhoc-verify-alias-err">别名核对失败：{{ verifyResult.alias.error }}（文档数校验不受影响）</span>
               <span v-else-if="verifyResult.alias && verifyResult.alias.ok" style="display:flex;gap:var(--sp-2);align-items:center;flex-wrap:wrap">
                 <StatusPill tone="g" :label="verifyResult.alias.writeOk ? '别名已指向目标索引' : '别名已包含目标索引'" />
                 <span class="dim">成员：{{ (verifyResult.alias.members || []).join('、') || '—' }}</span>
@@ -831,7 +831,7 @@ mapping <span class="dim">字段映射</span>
             </div>
             <div v-if="!docVerifyVerdict?.match || (verifyResult.alias && !verifyResult.alias.ok)" class="ar-verify-guide" data-test="adhoc-verify-guide" role="alert">
               排查指引：文档数不一致时，先确认源索引在全量期间是否继续写入（增量策略可「重跑」补齐追平轮；直连模式请按业务主键核对）；
-              别名未指向目标索引时，先到<router-link to="/aliases" data-test="adhoc-verify-aliases-link" title="打开别名管理页核查切换结果">别名管理页</router-link>核查切换结果，再决定重跑或人工切换。
+              别名未指向目标索引时，先到<router-link to="/aliases" data-test="adhoc-verify-aliases-link" v-tip="'打开别名管理页核查切换结果'">别名管理页</router-link>核查切换结果，再决定重跑或人工切换。
             </div>
           </template>
           <div v-else class="dim">核对文档数与别名指向，确认重建结果可接手业务流量后再删除旧索引</div>
@@ -839,29 +839,29 @@ mapping <span class="dim">字段映射</span>
         <!-- w80：SUCCEEDED 后「去查询验证」常驻钮——此前只挂在确认切换 toast 的 action 上（12s 即逝），
  错过就得手动找索引。目标优先作业回传，回落向导内 destIndex/建议名（深链同 doConfirmSwitch 的 toast action） -->
         <button v-if="job.status === 'SUCCEEDED'" class="btn primary next" data-test="go-verify"
-                :title="'在查询工作台打开「' + (verifiedTarget || '目标索引') + '」验证数据'"
+                v-tip="'在查询工作台打开「' + (verifiedTarget || '目标索引') + '」验证数据'"
                 @click="goVerifyFromJob"><Search :size="13" /> 去查询验证</button>
         <!-- 成功后跨板块联动：健康报告页核对目标索引分片/存储/映射健康度（与去查询验证并列的验收入口） -->
         <button v-if="job.status === 'SUCCEEDED'" class="btn ghost next" data-test="adhoc-health-link"
-                title="打开健康报告页，核对目标索引的分片/存储/映射健康度"
+                v-tip="'打开健康报告页，核对目标索引的分片/存储/映射健康度'"
                 @click="router.push('/health-report')"><Activity :size="13" /> 查看健康报告</button>
         <!-- R3 一键重跑：FAILED/ABORTED 作业同 jobId 重置，成功后直接留在监控态（跳过向导）；
              2026-11-21 对账批升级为参数覆盖弹层（rps/slices/batchSize 可选填，未填沿用原值） -->
         <button v-if="job.status === 'FAILED' || job.status === 'ABORTED'" class="btn primary next" data-test="adhoc-retry"
-                :disabled="retrying" :title="retrySemanticsHint(job)" @click="openRetryModal(job)">
+                :disabled="retrying" v-tip="retrySemanticsHint(job)" @click="openRetryModal(job)">
           <Loader2 v-if="retrying" :size="13" class="spinning" /><RotateCw v-else :size="13" /> 重跑该作业
         </button>
         <span v-if="job.status === 'FAILED' || job.status === 'ABORTED'" class="dim ar-retry-hint" data-test="adhoc-retry-hint">{{ retrySemanticsHint(job) }}</span>
         <!-- 以此参数新建：作业参数回填向导（源/策略/参数）并回到向导首步重新探测——
              settings/mapping 不随作业持久化，由回填后的探测重新预填 -->
         <button v-if="job.status !== 'RUNNING'" class="btn ghost next" data-test="ar-reuse-params"
-                title="把该作业的源索引、策略与执行参数回填向导并回到第一步（settings/mapping 重新探测预填）"
+                v-tip="'把该作业的源索引、策略与执行参数回填向导并回到第一步（settings/mapping 重新探测预填）'"
                 @click="reuseJobParams(job)"><Wand2 :size="13" /> 以此参数新建</button>
         <!-- 导出快照：JSON 下载（完整 toMap 快照）+ Markdown 工单贴片（matrixText 导出风格） -->
         <span v-if="job.status !== 'RUNNING'" class="ar-export-row">
-          <button class="btn ghost next" data-test="ar-export-json" title="下载该作业的完整 JSON 快照（toMap 全量字段）"
+          <button class="btn ghost next" data-test="ar-export-json" v-tip="'下载该作业的完整 JSON 快照（toMap 全量字段）'"
                   @click="exportJobSnapshotJson"><Download :size="13" /> 导出 JSON</button>
-          <button class="btn ghost next" data-test="ar-export-md" title="复制该作业的 Markdown 工单贴片（基本信息 + 轮次 + 对账结论）"
+          <button class="btn ghost next" data-test="ar-export-md" v-tip="'复制该作业的 Markdown 工单贴片（基本信息 + 轮次 + 对账结论）'"
                   @click="exportJobSnapshotMd"><ClipboardList :size="13" /> 复制 Markdown</button>
         </span>
         <button v-if="job.status !== 'RUNNING'" class="btn ghost next" @click="reset"><RotateCcw :size="13" /> 再来一次</button>
@@ -884,11 +884,11 @@ mapping <span class="dim">字段映射</span>
 <History :size="14" /> 最近作业
         <!-- 导出两钮恒在场 disabled 联动过滤行集（exportEmptyGuard936 口径：无数据 disabled 而非 v-if 消失；
      过滤筛零行时按钮保持座位，铁律 B 位置恒定）。导出函数内空集另有 warning 报真兜底。 -->
-        <button class="btn ghost sm" style="margin-left:auto" :disabled="!visibleJobs.length" @click="exportJobsMatrix('md')" title="复制当前视图为 Markdown 表（群聊/工单直贴）"><ClipboardList :size="12" /> Markdown</button>
-        <button class="btn ghost sm" :disabled="!visibleJobs.length" @click="exportJobsMatrix('tsv')" title="复制当前视图为 TSV（Excel 可直接粘贴）"><ClipboardCopy :size="12" /> 导出 TSV</button>
-        <button aria-label="刷新任务列表" class="btn ghost sm" :disabled="jobsLoading" @click="loadJobs()" title="刷新任务列表"><RefreshCw :size="12" :class="{ spinning: jobsLoading }" /></button>
+        <button class="btn ghost sm" style="margin-left:auto" :disabled="!visibleJobs.length" @click="exportJobsMatrix('md')" v-tip="'复制当前视图为 Markdown 表（群聊/工单直贴）'"><ClipboardList :size="12" /> Markdown</button>
+        <button class="btn ghost sm" :disabled="!visibleJobs.length" @click="exportJobsMatrix('tsv')" v-tip="'复制当前视图为 TSV（Excel 可直接粘贴）'"><ClipboardCopy :size="12" /> 导出 TSV</button>
+        <button aria-label="刷新任务列表" class="btn ghost sm" :disabled="jobsLoading" @click="loadJobs()" v-tip="'刷新任务列表'"><RefreshCw :size="12" :class="{ spinning: jobsLoading }" /></button>
         <!-- R9 历史治理：批量清理 7 天前终态记录（确认后调批量 DELETE；仅清记录，不影响 ES 索引） -->
-        <button class="btn ghost sm" data-test="adhoc-cleanup" :disabled="jobsLoading" title="清理 7 天前已结束（成功/失败/中止）的作业记录；进行中作业不受影响，仅清记录不影响 ES 索引" @click="doCleanupJobs"><Trash2 :size="12" /> 清理 7 天前</button>
+        <button class="btn ghost sm" data-test="adhoc-cleanup" :disabled="jobsLoading" v-tip="'清理 7 天前已结束（成功/失败/中止）的作业记录；进行中作业不受影响，仅清记录不影响 ES 索引'" @click="doCleanupJobs"><Trash2 :size="12" /> 清理 7 天前</button>
       </div>
       <!-- 拉取失败错误卡：卡片不消隐（整卡消失会被误读成「没有历史作业」），重试钮就地重拉 -->
       <div v-if="jobsErr" role="alert" class="err-bar ar-jobs-err" data-test="ar-jobs-err">
@@ -899,21 +899,21 @@ mapping <span class="dim">字段映射</span>
       <!-- 健康摘要条（2026-11-21 对账批）：从已加载 jobs 前端派生（总数/运行中/成功/失败/
            平均轮次耗时/平均速率/冲突总数/停门中），空清单隐藏——不冒充 0；只读展示，点击行为不做 -->
       <div v-if="jobHealth" class="ar-health" data-test="ar-health">
-        <span class="chip ar-health-chip" data-test="ar-health-total" title="当前清单中的作业总数">总数 {{ jobHealth.total }}</span>
-        <span class="chip ar-health-chip" data-test="ar-health-running" title="status=RUNNING 的作业（含停在 AWAIT_CONFIRM 的等待确认）">运行中 {{ jobHealth.running }}</span>
-        <span class="chip ar-health-chip ar-health-ok" data-test="ar-health-succeeded" title="status=SUCCEEDED 的作业">成功 {{ jobHealth.succeeded }}</span>
-        <span class="chip ar-health-chip ar-health-bad" data-test="ar-health-failed" title="status=FAILED 的作业（中止不计入，见状态列）">失败 {{ jobHealth.failed }}</span>
-        <span class="chip ar-health-chip" data-test="ar-health-avg-round" :title="'全部作业轮次 roundTookMs 的算术平均（' + (jobHealth.roundCount ?? 0) + ' 轮采样；无轮次不展示数值）'">平均轮次耗时 {{ jobHealth.avgRoundMs != null ? fmtMs(jobHealth.avgRoundMs) : '—' }}</span>
-        <span class="chip ar-health-chip" data-test="ar-health-avg-rate" title="各作业速率（Σ轮次已建 / Σ轮次耗时）的算术平均，仅计有耗时轮次的作业；无可速率作业展示 —">平均速率 {{ jobHealth.avgRate != null ? fmtNum(jobHealth.avgRate) + ' docs/s' : '—' }}</span>
-        <span class="chip ar-health-chip" data-test="ar-health-conflicts" title="全部作业轮次 versionConflicts 总和（轮次表「冲突跳过」列同数据源）；无冲突字段展示 —">冲突总数 {{ jobHealth.conflictTotal != null ? fmtNum(jobHealth.conflictTotal) : '—' }}</span>
-        <span class="chip ar-health-chip ar-health-gate" data-test="ar-health-gated" title="RUNNING 且 stage=AWAIT_CONFIRM（业务写入正被阻断，等待人工放行）">停门中 {{ jobHealth.gated }}</span>
+        <span class="chip ar-health-chip" data-test="ar-health-total" v-tip="'当前清单中的作业总数'">总数 {{ jobHealth.total }}</span>
+        <span class="chip ar-health-chip" data-test="ar-health-running" v-tip="'status=RUNNING 的作业（含停在 AWAIT_CONFIRM 的等待确认）'">运行中 {{ jobHealth.running }}</span>
+        <span class="chip ar-health-chip ar-health-ok" data-test="ar-health-succeeded" v-tip="'status=SUCCEEDED 的作业'">成功 {{ jobHealth.succeeded }}</span>
+        <span class="chip ar-health-chip ar-health-bad" data-test="ar-health-failed" v-tip="'status=FAILED 的作业（中止不计入，见状态列）'">失败 {{ jobHealth.failed }}</span>
+        <span class="chip ar-health-chip" data-test="ar-health-avg-round" v-tip="'全部作业轮次 roundTookMs 的算术平均（' + (jobHealth.roundCount ?? 0) + ' 轮采样；无轮次不展示数值）'">平均轮次耗时 {{ jobHealth.avgRoundMs != null ? fmtMs(jobHealth.avgRoundMs) : '—' }}</span>
+        <span class="chip ar-health-chip" data-test="ar-health-avg-rate" v-tip="'各作业速率（Σ轮次已建 / Σ轮次耗时）的算术平均，仅计有耗时轮次的作业；无可速率作业展示 —'">平均速率 {{ jobHealth.avgRate != null ? fmtNum(jobHealth.avgRate) + ' docs/s' : '—' }}</span>
+        <span class="chip ar-health-chip" data-test="ar-health-conflicts" v-tip="'全部作业轮次 versionConflicts 总和（轮次表「冲突跳过」列同数据源）；无冲突字段展示 —'">冲突总数 {{ jobHealth.conflictTotal != null ? fmtNum(jobHealth.conflictTotal) : '—' }}</span>
+        <span class="chip ar-health-chip ar-health-gate" data-test="ar-health-gated" v-tip="'RUNNING 且 stage=AWAIT_CONFIRM（业务写入正被阻断，等待人工放行）'">停门中 {{ jobHealth.gated }}</span>
       </div>
       <div class="ar-jobs-tools">
         <!-- kw 过滤改用 SearchFilterBar 统一件（559 TasksView tv-kw 先例；placeholder 逐字保留，
  Esc 清空/Enter 语义内建；ar-jobs-kw 类锚随 input-class 保留在 input 上——524/529 挂载过滤锁同路径零迁，
  落位宽度随改用迁 wrap 根） -->
         <SearchFilterBar v-model="jobKw" class="ar-jobs-kw-wrap" input-class="ar-jobs-kw" placeholder="过滤：jobId / 逻辑名 / 状态" />
-        <button v-if="jobKw || jobStatusFilter" class="btn ghost xs" @click="clearJobFilters" title="清除过滤条件，恢复完整清单">清除过滤</button>
+        <button v-if="jobKw || jobStatusFilter" class="btn ghost xs" @click="clearJobFilters" v-tip="'清除过滤条件，恢复完整清单'">清除过滤</button>
         <span v-if="jobKw || jobStatusFilter" class="dim ar-jobs-hit">{{ visibleJobs.length }}/{{ allJobs.length }} 条命中</span>
       </div>
       <QueryResultTable :cols="JOB_COLS" :rows="jobsMatrix" sortable
@@ -922,7 +922,7 @@ mapping <span class="dim">字段映射</span>
         <template #cell-jobId="{ row }">
           <!-- 行级右键（2026-11-21 对账批）：右键 jobId 单元格出行菜单（复制索引名/详情/
                重跑/调速/中止/治理删除/以此参数新建）；.stop 防冒泡进 QRT 内建单元格菜单 -->
-          <span class="mono cpy" :title="'点击复制 jobId：' + row[0] + '（右键打开行操作菜单）'" tabindex="0" role="button"
+          <span class="mono cpy" v-tip="'点击复制 jobId：' + row[0] + '（右键打开行操作菜单）'" tabindex="0" role="button"
                 data-test="ar-job-cell"
                 @contextmenu.prevent.stop="openJobRowMenu($event, jobOf(row))"
                 @keydown.enter.prevent="copyJobId(String(row[0] ?? ''))" @keydown.space.prevent="copyJobId(String(row[0] ?? ''))" @click.stop="copyJobId(String(row[0] ?? ''))"><MarkText :text="row[0]" :kw="jobKw" /></span>
@@ -952,14 +952,14 @@ mapping <span class="dim">字段映射</span>
         <template #cell-startedAt="{ row }"><TimeCell :ts="row[5]" /></template>
         <template #cell-tookMs="{ row }"><!-- ：作业耗时徽标（TookBadge 四档语义；后端 AdhocRebuildJob.toMap tookMs=finishedAt-startedAt，运行中约定 -1、字段缺席 null——两者都不冒充 0，走 '—' 档；null 直判防 Number(null)=0 误显 0ms） --><TookBadge v-if="row[6] != null && Number(row[6]) >= 0" :ms="Number(row[6])" title="作业总耗时（启动 → 收尾）" /><span v-else class="dim">—</span></template>
         <template #row-actions="{ row }">
-          <button aria-label="查看任务详情" class="btn ghost sm" @click.stop="watchJob(String(row[0] ?? ''))" title="查看任务详情"><Eye :size="12" /></button>
+          <button aria-label="查看任务详情" class="btn ghost sm" @click.stop="watchJob(String(row[0] ?? ''))" v-tip="'查看任务详情'"><Eye :size="12" /></button>
           <!-- R3 行级重跑：仅 FAILED/ABORTED 行渲染（打开参数覆盖弹层，语义同监控卡重跑钮） -->
           <button v-if="['FAILED', 'ABORTED'].includes(String(jobOf(row).status))" aria-label="重跑作业" class="btn ghost sm"
-                  data-test="adhoc-retry-row" :title="'重跑该作业（可选填执行参数覆盖）：' + retrySemanticsHint(jobOf(row))"
+                  data-test="adhoc-retry-row" v-tip="'重跑该作业（可选填执行参数覆盖）：' + retrySemanticsHint(jobOf(row))"
                   @click.stop="openRetryModal(jobOf(row))"><RotateCw :size="12" /></button>
           <!-- R9 行级删除：终态才可用，进行中禁用并说明 -->
           <button aria-label="删除记录" class="btn ghost sm" :disabled="jobOf(row).status === 'RUNNING'"
-                  :title="jobOf(row).status === 'RUNNING' ? '作业进行中，不可删除记录（先中止或等待终态）' : '删除该作业记录（仅清记录，不影响 ES 索引与已迁移数据）'"
+                  v-tip="jobOf(row).status === 'RUNNING' ? '作业进行中，不可删除记录（先中止或等待终态）' : '删除该作业记录（仅清记录，不影响 ES 索引与已迁移数据）'"
                   @click.stop="doDeleteJob(String(row[0] ?? ''))"><Trash2 :size="12" /></button>
         </template>
       </QueryResultTable>
@@ -1003,7 +1003,7 @@ mapping <span class="dim">字段映射</span>
           <!-- 粘贴区高度四档循环钮（adhoc.pasteH data-ar-paste-h 同范式，
  title 实时回显当前档，点击切下一档末档回首档） -->
           <button type="button" class="btn ghost sm" data-ar-pi-h style="margin-right:auto"
-                  :title="'粘贴区高度档：' + piH + '（点击循环）'" @click="cyclePiH">高</button>
+                  v-tip="'粘贴区高度档：' + piH + '（点击循环）'" @click="cyclePiH">高</button>
           <button class="btn" @click="pasteImportOpen = false">取消</button>
           <button class="btn primary" :disabled="!pasteImportText.trim()" @click="doPasteImport">
             <ClipboardPaste :size="12" /> 解析并填入
@@ -1088,28 +1088,28 @@ mapping <span class="dim">字段映射</span>
           <label class="lbl">限流（docs/s）</label>
           <n-input-number v-model:value="retryRps" size="small" class="ar-num" :min="-1"
                           placeholder="沿用原值" data-test="ar-retry-rps"
-                          title="每秒批次数（requests_per_second）：留空沿用原值，-1 表示不限速" />
+                          v-tip="'每秒批次数（requests_per_second）：留空沿用原值，-1 表示不限速'" />
         </div>
         <div class="ar-retry-row">
           <label class="lbl">slices</label>
           <n-input-number v-model:value="retrySlices" size="small" class="ar-num" :min="1"
                           placeholder="沿用原值" data-test="ar-retry-slices"
-                          title="reindex 并行切片数：留空沿用原值，>=1 的整数" />
+                          v-tip="'reindex 并行切片数：留空沿用原值，>=1 的整数'" />
         </div>
         <div class="ar-retry-row">
           <label class="lbl">批大小（size）</label>
           <n-input-number v-model:value="retryBatch" size="small" class="ar-num" :min="1"
                           placeholder="沿用原值" data-test="ar-retry-batch"
-                          title="reindex 每批文档数（REST size 键）：留空沿用原值，>=1 的整数" />
+                          v-tip="'reindex 每批文档数（REST size 键）：留空沿用原值，>=1 的整数'" />
         </div>
         <div class="ar-retry-row ar-retry-preset">
           <label class="lbl">参数预设</label>
           <n-select v-model:value="arPresetId" :options="arPresetOpts" size="small" clearable filterable
                     class="ar-preset-sel" placeholder="选择预设应用参数" data-test="ar-preset-pick"
-                    title="应用已保存的 rps/slices/批大小组合到当前表单" @update:value="applyArPreset" />
+                    v-tip="'应用已保存的 rps/slices/批大小组合到当前表单'" @update:value="applyArPreset" />
           <input v-model="arPresetName" data-test="ar-preset-name" class="inp mono" spellcheck="false" autocomplete="off" placeholder="预设名" />
-          <button class="btn sm ghost" data-test="ar-preset-save" title="按预设名保存当前三项参数组合（存在本地）" @click="saveArPreset">保存预设</button>
-          <button class="btn sm ghost" :disabled="!arPresetId" data-test="ar-preset-del" title="删除当前选中的参数预设" @click="delArPreset">删除预设</button>
+          <button class="btn sm ghost" data-test="ar-preset-save" v-tip="'按预设名保存当前三项参数组合（存在本地）'" @click="saveArPreset">保存预设</button>
+          <button class="btn sm ghost" :disabled="!arPresetId" data-test="ar-preset-del" v-tip="'删除当前选中的参数预设'" @click="delArPreset">删除预设</button>
         </div>
         <div v-if="retryErr" class="ar-paste-err" data-test="ar-retry-err">{{ retryErr }}</div>
       </div>

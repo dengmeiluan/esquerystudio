@@ -88,6 +88,7 @@ vi.mock('../api', async (importOriginal) => {
 });
 
 import SynonymsManagerView from '../views/SynonymsManagerView.vue';
+import { vTip } from '../directives/vTip';
 
 const DRAFT_KEY = 'esquerystudio.draft2:synonyms:host:-:-:raw';
 
@@ -105,6 +106,7 @@ async function mountSy() {
   await router.push('/');
   await router.isReady();
   const app = createApp({ render: () => h(SynonymsManagerView as any) });
+  app.directive('tip', vTip); /* 下发禁用原因已迁 v-tip 指令，注册后经浮层读取 */
   apps.push(app);
   app.use(createPinia());
   app.use(router);
@@ -165,7 +167,10 @@ describe('同义词规则行级 lint（524+1 批）', () => {
     const host = await mountSy();
     const btn = findSendBtn(host);
     expect(btn.disabled, '坏行必须禁用下发（close→PUT→open 失败会让索引停在关闭态）').toBe(true);
-    expect(btn.title).toContain('无法解析的规则行');
+    /* 禁用原因已迁 v-tip 指令（DOM 无 title 属性）：focusin 通道立即显示单例浮层 #vt-tip，
+       合成事件不受按钮 disabled 影响 */
+    btn.dispatchEvent(new Event('focusin', { bubbles: false }));
+    expect(document.getElementById('vt-tip')?.textContent ?? '').toContain('无法解析的规则行');
   });
 
   it('③ filter 名非法（大写/非法字符）红字 + 下发禁用；合法后恢复', async () => {
@@ -186,7 +191,9 @@ describe('同义词规则行级 lint（524+1 批）', () => {
     expect(err!.textContent).toContain('仅允许小写字母、数字、下划线');
     const btn = findSendBtn(host);
     expect(btn.disabled).toBe(true);
-    expect(btn.title).toContain('仅允许小写字母');
+    /* 同上：v-tip 浮层文本承载禁用原因 */
+    btn.dispatchEvent(new Event('focusin', { bubbles: false }));
+    expect(document.getElementById('vt-tip')?.textContent ?? '').toContain('仅允许小写字母');
     /* 修成合法 → 红字熄、禁用解除（真实流转，非同值赋值） */
     inp!.value = 'my_filter_2';
     inp!.dispatchEvent(new Event('input'));

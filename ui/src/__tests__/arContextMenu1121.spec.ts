@@ -205,7 +205,7 @@ describe('行级右键：挂载行为', () => {
     const host = await mountAR([baseJob()]);
     const rows = [...host.querySelectorAll('table.qrt-tbl tbody tr')];
     const row = rows.find(tr => (tr.textContent || '').includes('ctx-1'))!;
-    expect(row.querySelector('button[title="查看任务详情"]')).toBeTruthy();
+    expect(row.querySelector('button[aria-label="查看任务详情"]')).toBeTruthy();
     expect(row.querySelector('[data-test="adhoc-retry-row"]')).toBeTruthy();
     expect(row.querySelector('button[aria-label="删除记录"]')).toBeTruthy();
   });

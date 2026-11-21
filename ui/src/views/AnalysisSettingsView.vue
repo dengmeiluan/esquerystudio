@@ -59,7 +59,7 @@
             <div class="as-card-hd">
               <component :is="g.icon" :size="14" class="as-hd-ic2" :class="'lv-' + g.key" />
               <span>{{ g.label }}</span>
-              <span class="as-count" :title="filterKw.trim() ? ('命中 ' + g.count + ' / 共 ' + g.total) : undefined">{{ g.count }}</span>
+              <span class="as-count" v-tip="filterKw.trim() ? ('命中 ' + g.count + ' / 共 ' + g.total) : undefined">{{ g.count }}</span>
               <router-link v-if="g.key === 'filter' && hasSynFilter" to="/synonyms" class="as-link">
                 <ExternalLink :size="10" /> 到同义词编辑器
               </router-link>
@@ -74,7 +74,7 @@
                 <div class="as-item-hd" role="button" tabindex="0" :aria-expanded="!!openMap[g.key + ':' + String(name)]" @click="toggle(g.key, String(name))" @keydown.enter.prevent="toggle(g.key, String(name))" @keydown.space.prevent="toggle(g.key, String(name))">
                   <ChevronRight :size="10" class="as-caret" :class="{ open: openMap[g.key + ':' + name] }" />
                   <!-- 条目名/类型走 MarkText 命中高亮（textContent 与原文一致，title 不受影响） -->
-                  <span class="as-item-nm" :title="String(name)"><MarkText :text="String(name)" :kw="filterKw" /></span>
+                  <span class="as-item-nm" v-tip="String(name)"><MarkText :text="String(name)" :kw="filterKw" /></span>
                   <span v-if="(cfg as any)?.type" class="as-item-tp"><MarkText :text="String((cfg as any).type)" :kw="filterKw" /></span>
                   <!-- syn 徽标改用 StatusPill 统一件（550 裁定推翻 530「带图标 syn 与
  violet 档形态不等价不换」——theme.css 无 .tag 原语可作替代面，统一件是

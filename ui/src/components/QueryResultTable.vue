@@ -12,7 +12,7 @@
     <template v-if="searchOpen && !searchable">
       <HitNav v-model="searchKw" :count="searchMatches.length" :current="searchCur" class="qrt-hn"
               placeholder="结果内查找…" @next="searchNext" @prev="searchPrev" @keydown.esc.stop="closeSearch" />
-      <span v-if="renderTruncated" class="qrt-search-note mono" :title="`结果已截断渲染——查找仅覆盖已渲染的前 ${renderRows.length} 行`">≈ 前 {{ renderRows.length }} 行</span>
+      <span v-if="renderTruncated" class="qrt-search-note mono" v-tip="`结果已截断渲染——查找仅覆盖已渲染的前 ${renderRows.length} 行`">≈ 前 {{ renderRows.length }} 行</span>
     </template>
     <!-- 键盘行导航接入（useRowNav 共享内核，48 批 ResultTable 范式）——
  容器获焦后 ↑↓/Home/End 移动高亮行，深结果集滚动跟随；输入框聚焦不接管。
@@ -83,33 +83,33 @@
           </Tip>
           <div v-if="expMenuOpen" class="qrt-menu" role="menu" aria-label="导出当前视图">
             <button :aria-label="'导出当前视图 CSV'" class="qrt-mi" role="menuitem"
-              title="导出当前视图 CSV（筛选/排序所见即所得）" :disabled="!rawRows.length" @click="exportCsv(); closeMenus()">
+              v-tip="'导出当前视图 CSV（筛选/排序所见即所得）'" :disabled="!rawRows.length" @click="exportCsv(); closeMenus()">
               <span class="qrt-mi-f">CSV</span> 通用表格
             </button>
             <!-- XLSX 档（xlsxMini 手写零依赖，data+meta 双 sheet） -->
             <button :aria-label="'导出当前视图 XLSX'" class="qrt-mi" role="menuitem"
-              title="导出当前视图 XLSX（含 meta 页）" :disabled="!rawRows.length" @click="exportXlsx(); closeMenus()">
+              v-tip="'导出当前视图 XLSX（含 meta 页）'" :disabled="!rawRows.length" @click="exportXlsx(); closeMenus()">
               <span class="qrt-mi-f">XLSX</span> Excel · 含 meta 页
             </button>
             <!-- JSON 第五导出钮——QRT 矩阵 JSON 即正解（与「复制整表 JSON」同口径） -->
             <button :aria-label="'导出当前视图 JSON'" class="qrt-mi" role="menuitem"
-              title="导出当前视图 JSON（矩阵，与复制整表 JSON 同口径）" :disabled="isEmpty" @click="exportJson(); closeMenus()">
+              v-tip="'导出当前视图 JSON（矩阵，与复制整表 JSON 同口径）'" :disabled="isEmpty" @click="exportJson(); closeMenus()">
               <span class="qrt-mi-f">JSON</span> JSON · 矩阵
             </button>
             <!-- PNG 快照档（tableSnapshot 2x 像素，html-to-image 动态 import） -->
             <button :aria-label="'导出表格快照 PNG'" class="qrt-mi" role="menuitem"
-              title="导出表格快照 PNG（所见即所得截图）" :disabled="isEmpty" @click="exportPng(); closeMenus()">
+              v-tip="'导出表格快照 PNG（所见即所得截图）'" :disabled="isEmpty" @click="exportPng(); closeMenus()">
               <span class="qrt-mi-f">PNG</span> PNG · 表格快照
             </button>
             <!-- Markdown 档（RT 同格式——表格直贴文档/聊天） -->
             <button :aria-label="'导出当前视图 Markdown'" class="qrt-mi" role="menuitem"
-              title="导出当前视图 Markdown 表格" :disabled="!rawRows.length" @click="exportMd(); closeMenus()">
+              v-tip="'导出当前视图 Markdown 表格'" :disabled="!rawRows.length" @click="exportMd(); closeMenus()">
               <span class="qrt-mi-f">MD</span> Markdown · 表格
             </button>
             <!-- 1141：NDJSON 档（rows 型行对象语义——SQL/日志类通道宿主不再手写导出；
  表头=可见列，逐行一 JSON 对象） -->
             <button v-if="exportNdjson" :aria-label="'导出当前视图 NDJSON'" class="qrt-mi" role="menuitem"
-              title="导出当前视图 NDJSON（每行一个对象，键=可见列）" :disabled="!rawRows.length" @click="exportNdjsonFile(); closeMenus()">
+              v-tip="'导出当前视图 NDJSON（每行一个对象，键=可见列）'" :disabled="!rawRows.length" @click="exportNdjsonFile(); closeMenus()">
               <span class="qrt-mi-f">NDJSON</span> 每行一对象
             </button>
           </div>
@@ -118,7 +118,7 @@
  当前档 ✓，比连点循环可预期；列宽重置=低频破坏性弱操作，菜单底项+分隔线隔离） -->
         <span class="menu-wrap">
           <button aria-label="视图设置" class="btn sm ghost qrt-tool-btn" :class="{ on: viewMenuOpen }"
-            aria-haspopup="menu" :aria-expanded="viewMenuOpen" title="视图：行高、列宽"
+            aria-haspopup="menu" :aria-expanded="viewMenuOpen" v-tip="'视图：行高、列宽'"
             @click.stop="viewMenuOpen = !viewMenuOpen">
             <SlidersHorizontal :size="13" /><span class="qrt-tool-t">视图 ⋯</span>
           </button>
@@ -131,7 +131,7 @@
             <button class="qrt-mi" :class="{ on: rowH === 'cozy' }" role="menuitemradio" :aria-checked="rowH === 'cozy'"
               @click="setRowH('cozy'); closeMenus()">宽松</button>
             <div class="qrt-m-sep" role="separator"></div>
-            <button :aria-label="'重置全部列宽'" class="qrt-mi" role="menuitem" title="重置全部列宽（拖拽过的列回原始宽）"
+            <button :aria-label="'重置全部列宽'" class="qrt-mi" role="menuitem" v-tip="'重置全部列宽（拖拽过的列回原始宽）'"
               :disabled="!Object.keys(colWidths).length" @click="resetColWidths(); closeMenus()">
               ⤺ 重置全部列宽
             </button>
@@ -141,19 +141,19 @@
             <div class="qrt-m-t">表格视图</div>
             <button class="qrt-mi" role="menuitemcheckbox" :aria-checked="aggOn"
               :aria-label="aggOn ? '聚合行：开' : '聚合行：关'"
-              title="底部聚合行（数值列 Σ/avg；勾选行时只算所见集）"
+              v-tip="'底部聚合行（数值列 Σ/avg；勾选行时只算所见集）'"
               @click="toggleAggRow(); closeMenus()">
               {{ aggOn ? '✓ ' : '' }}聚合行
             </button>
             <button v-if="!isHits" class="qrt-mi" role="menuitemcheckbox" :aria-checked="transposeOn"
               :aria-label="transposeOn ? '转置视图：开' : '转置视图：关'"
-              title="转置视图（列名做行、前 N 行做列）"
+              v-tip="'转置视图（列名做行、前 N 行做列）'"
               @click="toggleTranspose(); closeMenus()">
               {{ transposeOn ? '✓ ' : '' }}转置视图
             </button>
             <button class="qrt-mi" role="menuitemcheckbox" :aria-checked="semPref"
               :aria-label="semPref ? '语义格式化：开' : '语义格式化：关'"
-              title="语义格式化（bytes/时长/百分比只改显示；复制与导出恒原始值）"
+              v-tip="'语义格式化（bytes/时长/百分比只改显示；复制与导出恒原始值）'"
               @click="semPref = !semPref; closeMenus()">
               {{ semPref ? '✓ ' : '' }}语义格式化
             </button>
@@ -172,7 +172,7 @@
         <template v-if="focusable !== false">
           <span class="rt-bar-div" role="separator" />
           <button class="btn sm ghost qrt-tool-btn" :aria-label="focused ? '还原结果表' : '放大结果表'"
-            :title="focused ? '还原（Esc 也可退出）' : '放大结果表（整表铺满全屏）'"
+            v-tip="focused ? '还原（Esc 也可退出）' : '放大结果表（整表铺满全屏）'"
             @click="focused = !focused">
             <Minimize2 v-if="focused" :size="13" />
             <Maximize2 v-else :size="13" />
@@ -203,7 +203,7 @@
     <!-- 非工具行通道（未开 tableBar 且无 storageKey）:悬浮放大钮,查找条打开时让位其左 -->
     <button v-if="focusable !== false && !barOn" class="btn sm ghost qrt-fs-btn" :class="{ open: searchOpen }"
       :aria-label="focused ? '还原结果表' : '放大结果表'"
-      :title="focused ? '还原（Esc 也可退出）' : '放大结果表（整表铺满全屏）'"
+      v-tip="focused ? '还原（Esc 也可退出）' : '放大结果表（整表铺满全屏）'"
       @click="focused = !focused">
       <Minimize2 v-if="focused" :size="13" />
       <Maximize2 v-else :size="13" />
@@ -214,7 +214,7 @@
     <span v-if="!barOn" class="menu-wrap qrt-fs-view">
       <button class="btn sm ghost qrt-fs-btn" :class="{ on: fsViewOpen, open: fsViewOpen }"
         aria-label="视图设置" aria-haspopup="menu" :aria-expanded="fsViewOpen"
-        title="表格视图：聚合行 / 转置 / 语义格式化"
+        v-tip="'表格视图：聚合行 / 转置 / 语义格式化'"
         @click.stop="fsViewOpen = !fsViewOpen">
         <Table :size="13" />
       </button>
@@ -222,19 +222,19 @@
         <div class="qrt-m-t">表格视图</div>
         <button class="qrt-mi" role="menuitemcheckbox" :aria-checked="aggOn"
           :aria-label="aggOn ? '聚合行：开' : '聚合行：关'"
-          title="底部聚合行（数值列 Σ/avg；勾选行时只算所见集）"
+          v-tip="'底部聚合行（数值列 Σ/avg；勾选行时只算所见集）'"
           @click="toggleAggRow(); fsViewOpen = false">
           {{ aggOn ? '✓ ' : '' }}聚合行
         </button>
         <button v-if="!isHits" class="qrt-mi" role="menuitemcheckbox" :aria-checked="transposeOn"
           :aria-label="transposeOn ? '转置视图：开' : '转置视图：关'"
-          title="转置视图（列名做行、前 N 行做列）"
+          v-tip="'转置视图（列名做行、前 N 行做列）'"
           @click="toggleTranspose(); fsViewOpen = false">
           {{ transposeOn ? '✓ ' : '' }}转置视图
         </button>
         <button class="qrt-mi" role="menuitemcheckbox" :aria-checked="semPref"
           :aria-label="semPref ? '语义格式化：开' : '语义格式化：关'"
-          title="语义格式化（bytes/时长/百分比只改显示；复制与导出恒原始值）"
+          v-tip="'语义格式化（bytes/时长/百分比只改显示；复制与导出恒原始值）'"
           @click="semPref = !semPref; fsViewOpen = false">
           {{ semPref ? '✓ ' : '' }}语义格式化
         </button>
@@ -245,8 +245,8 @@
     <div v-if="transposeOn && !bodyHidden" class="qrt-tr-bar" :class="{ 'after-bar': barOn }">
       <span class="qrt-coln mono">转置视图 · 前 {{ transposeCount }} 行做列</span>
       <n-select class="qrt-t-n mono" size="tiny" :value="transposeN" :options="transposeNOpts"
-        aria-label="转置显示的行数" title="转置显示的行数" @update:value="(v: number) => setTransposeN(v)" />
-      <button class="qrt-tr-off" aria-label="退出转置视图" title="退出转置视图" @click="toggleTranspose">✕ 退出转置</button>
+        aria-label="转置显示的行数" v-tip="'转置显示的行数'" @update:value="(v: number) => setTransposeN(v)" />
+      <button class="qrt-tr-off" aria-label="退出转置视图" v-tip="'退出转置视图'" @click="toggleTranspose">✕ 退出转置</button>
     </div>
     <!-- 内建 alt 视图体（viewSeg 非表格档）——AltHitsViews 单源三档（565 共享件），
  容器=border-top 分节+滚动区（ih-alt-body 同语言），maxHeight 与 qrt-wrap 一口径无新
@@ -300,12 +300,12 @@
         <thead>
           <tr>
             <th class="qrt-t-field">字段</th>
-            <th v-for="(r, ti) in transposeRows" :key="ti" class="mono qrt-t-hid" :title="'第 ' + (ti + 1) + ' 行'">r{{ ti + 1 }}</th>
+            <th v-for="(r, ti) in transposeRows" :key="ti" class="mono qrt-t-hid" v-tip="'第 ' + (ti + 1) + ' 行'">r{{ ti + 1 }}</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="(c, ci) in shownCols" :key="c">
-            <td class="qrt-t-key mono" :title="c">{{ c }}</td>
+            <td class="qrt-t-key mono" v-tip="c">{{ c }}</td>
             <td v-for="(r, ti) in transposeRows" :key="ci + ':' + ti" class="qrt-t-val mono">{{ r[ci] == null ? '∅' : cellText(r[ci]) }}</td>
           </tr>
         </tbody>
@@ -316,7 +316,7 @@
             <!-- W-B：selectable 行多选通道——表头全选（口径=当前视图全量）；
  缺省 false 不渲染（零增量） -->
             <th v-if="selectable" class="qrt-sel-col">
-              <n-checkbox size="small" :checked="allSel" :aria-label="allSelHint" :title="allSelHint" @click.stop @update:checked="toggleAllSel" />
+              <n-checkbox size="small" :checked="allSel" :aria-label="allSelHint" v-tip="allSelHint" @click.stop @update:checked="toggleAllSel" />
             </th>
             <!-- 冻结序号列（对齐 RT dbx 冻结窗格）——宽表横向滚动时行身份不滚走 -->
             <th class="qrt-idx">#</th>
@@ -326,7 +326,7 @@
               :data-col="c"
               :class="{ sortable, on: chainHas(c), 'qrt-col-frozen': isFrozenCol(c), 'qrt-col-flash': flashCol === c, 'qrt-drop-before': barOn && qDragOver === c && qDragPlace === 'before' && qDragCol !== c, 'qrt-drop-after': barOn && qDragOver === c && qDragPlace === 'after' && qDragCol !== c }"
               :style="barOn ? frozenStyle(c) : colStyle(c)"
-              :title="thTitle(c)"
+              v-tip="thTitle(c)"
               :aria-sort="sortable && chainCount > 0 && dispChain[0].f === c ? (dispChain[0].d === 'asc' ? 'ascending' : 'descending') : undefined"
               :tabindex="sortable ? 0 : undefined"
               @keydown.enter.prevent.stop="onSort(i)"
@@ -337,7 +337,7 @@
               @contextmenu.prevent="openColMenu($event, c)"
             >
               <span class="qrt-th-name" :class="{ 'qrt-drag-src': qDragCol === c }" draggable="true"
-                :title="isFrozenCol(c) ? '冻结列不可拖动（先取消冻结再移动）' : '拖动重排此列'"
+                v-tip="isFrozenCol(c) ? '冻结列不可拖动（先取消冻结再移动）' : '拖动重排此列'"
                 @dragstart="qOnDragStart($event, c)" @dragend="qOnDragEnd">{{ c }}</span>
               <!-- 类型语义：单行内联弱化显示（旧双层列头占 13px 高，宽表首行显脏）；
  无类型列仍留 .qrt-th-sub 空位契约（qrtThTypes 锁面），视觉零占宽 -->
@@ -345,14 +345,14 @@
               <span v-if="sortable" class="qrt-sort-i">{{ sortInd(i) }}</span><sup v-if="sortable && chainHas(c) && chainCount > 1" class="qrt-sort-ord">{{ chainOrd(c) + 1 }}</sup>
               <!-- 列头筛选漏斗（激活实色高亮；keydown.stop 防冒泡触发排序）；常驻按钮但视觉只在
  悬停/聚焦/生效时出现——宽表 8 列不再挂 8 个灰漏斗 -->
-              <button class="qrt-funnel" :class="{ on: funnelOn(c) }" :aria-label="'筛选 ' + c + ' 列'" title="筛选此列"
+              <button class="qrt-funnel" :class="{ on: funnelOn(c) }" :aria-label="'筛选 ' + c + ' 列'" v-tip="'筛选此列'"
                 @click.stop="openFilter($event, c)" @keydown.stop>
 <Filter :size="10" />
 </button>
               <!-- 1136：列宽拖拽对所有宿主可用（无 storageKey 走内存态、不落盘）——
  DBX 式数据网格的首行基础能力，SQL 结果表此前完全没有 -->
               <span
-                class="qrt-rs" role="slider" tabindex="0" :aria-label="'调整 ' + c + ' 列宽（←/→ 微调，Enter 自适应）'" title="拖拽调整列宽；双击自适应内容（重置走「列宽」钮）"
+                class="qrt-rs" role="slider" tabindex="0" :aria-label="'调整 ' + c + ' 列宽（←/→ 微调，Enter 自适应）'" v-tip="'拖拽调整列宽；双击自适应内容（重置走「列宽」钮）'"
                 @click.stop @dblclick="fitCol(c)" @mousedown="beginColResize($event, c)"
                 @keydown.left.prevent.stop="nudgeColWidth(c, -32)" @keydown.right.prevent.stop="nudgeColWidth(c, 32)" @keydown.enter.prevent.stop="fitCol(c)"
               ></span>
@@ -387,7 +387,7 @@
             <td
               v-for="(cell, ci) in row" :key="ci"
               :data-ri="ri" :data-col="shownCols[ci]"
-              class="qrt-cell" :class="{ expanded: cellMeta[ri]?.[ci]?.expanded, 'qrt-col-frozen': isFrozenCol(shownCols[ci]), 'qrt-hit': isSearchHit(ri, ci), 'rt-hit-cur': isSearchCur(ri, ci), 'num-col': cellMeta[ri]?.[ci]?.numeric, 'ip-col': cellMeta[ri]?.[ci]?.ip, 'qrt-agg-sel': isAggCell(ri, ci), 'qrt-region': isRegionCell(ri, ci), 'qrt-region-anchor': !!touchAnchor && touchAnchor.ri === ri && touchAnchor.ci === ci, ...(cellMeta[ri]?.[ci]?.tone || {}) }" :title="cell === null || cell === undefined ? '' : (cellMeta[ri]?.[ci]?.full || '')"
+              class="qrt-cell" :class="{ expanded: cellMeta[ri]?.[ci]?.expanded, 'qrt-col-frozen': isFrozenCol(shownCols[ci]), 'qrt-hit': isSearchHit(ri, ci), 'rt-hit-cur': isSearchCur(ri, ci), 'num-col': cellMeta[ri]?.[ci]?.numeric, 'ip-col': cellMeta[ri]?.[ci]?.ip, 'qrt-agg-sel': isAggCell(ri, ci), 'qrt-region': isRegionCell(ri, ci), 'qrt-region-anchor': !!touchAnchor && touchAnchor.ri === ri && touchAnchor.ci === ci, ...(cellMeta[ri]?.[ci]?.tone || {}) }" v-tip="cell === null || cell === undefined ? '' : (cellMeta[ri]?.[ci]?.full || '')"
               @mousedown="onCellDown($event); onRegionStart($event, ri, ci)"
               @pointerdown="onCellPointerDown($event, ri, ci)"
               @pointerup="onCellPointerUp"
@@ -408,7 +408,7 @@
               <span v-else-if="qHlHtml(ri, ci)" class="qrt-hl" v-html="qHlHtml(ri, ci)"></span>
               <template v-else-if="isSearchHit(ri, ci)"><template v-for="(seg, si) in splitMark(cellMeta[ri]?.[ci]?.text ?? '', searchDeferred)" :key="si"><mark v-if="seg.m" class="qrt-mark">{{ seg.t }}</mark><template v-else>{{ seg.t }}</template></template></template>
               <!-- W7：长 JSON 对象折叠预览 chip——点击开既有单元格详情弹窗；title 恒 raw 全串 -->
-              <button v-else-if="cellMeta[ri]?.[ci]?.chip" class="rt-json-chip" :title="cellMeta[ri]?.[ci]?.full"
+              <button v-else-if="cellMeta[ri]?.[ci]?.chip" class="rt-json-chip" v-tip="cellMeta[ri]?.[ci]?.full"
                       :aria-label="'查看完整值（对象 ' + (cellMeta[ri]?.[ci]?.chip?.n ?? 0) + ' 键）'"
                       @click.stop="cellDetail = { ri, ci }">
                 <span class="rt-json-chip-p">{{ cellMeta[ri]?.[ci]?.chip?.label }}</span>
@@ -418,17 +418,17 @@
               <!-- hover 行内快捷钮（dbx 悬浮行内钮）——浮在行尾格右缘，移出行消失。
                    最后一列由宿主 #cell- 动作槽接管时停用：内建钮是 absolute 右缘，
                    会压在宿主动作钮上（BrowserView「操作」列实测 expand 被「更多」盖住）。 -->
-              <button v-if="ci === row.length - 1 && !lastColHasCellSlot" class="qrt-row-copy" :aria-label="'复制行 JSON（第 ' + (ri + 1) + ' 行）'" title="复制行 JSON" @click.stop="copyRowJson(ri)"><Copy :size="11" /></button>
+              <button v-if="ci === row.length - 1 && !lastColHasCellSlot" class="qrt-row-copy" :aria-label="'复制行 JSON（第 ' + (ri + 1) + ' 行）'" v-tip="'复制行 JSON'" @click.stop="copyRowJson(ri)"><Copy :size="11" /></button>
               <!-- W7：行内展开详情钮（行尾 hover，与复制钮同语言） -->
               <button v-if="ci === row.length - 1 && !lastColHasCellSlot" class="qrt-row-expand" :aria-label="expandedRows.has(qRowKey(ri)) ? '收起此行详情' : '展开此行详情'"
-                :title="expandedRows.has(qRowKey(ri)) ? '收起此行详情（Esc 全部收起）' : '展开此行详情（焦点行按 E）'"
+                v-tip="expandedRows.has(qRowKey(ri)) ? '收起此行详情（Esc 全部收起）' : '展开此行详情（焦点行按 E）'"
                 @click.stop="toggleRowExpand(qRowKey(ri))">
                 <ChevronDown v-if="expandedRows.has(qRowKey(ri))" :size="11" />
                 <ChevronRight v-else :size="11" />
               </button>
               <!-- _index 格跳转芯片（AliasesView/SnapshotsView 同语义）——
  单击复制语义不变，芯片专职跳转索引工作区 -->
-              <button v-if="shownCols[ci] === '_index' && typeof cell === 'string' && cell" class="qrt-idx-go" :aria-label="'打开索引工作区：' + cell" title="打开索引工作区" @click.stop="gotoIndex(cell)"><ExternalLink :size="11" /></button>
+              <button v-if="shownCols[ci] === '_index' && typeof cell === 'string' && cell" class="qrt-idx-go" :aria-label="'打开索引工作区：' + cell" v-tip="'打开索引工作区'" @click.stop="gotoIndex(cell)"><ExternalLink :size="11" /></button>
               <!-- W7：消费方行级行动注入位（行尾，hover 复制钮旁）——无注入零占位 -->
               <slot v-if="ci === row.length - 1" name="row-actions" :row="row" :ri="ri" />
             </td>
@@ -463,7 +463,7 @@
     <!-- 长列表回顶（RT 同款）——根级独立 v-if，不混入 loading/empty/wrap 渲染链；
  随壳合并 TableBacktop（双表同款单一出处），class 透传 DOM 不变；
  移入 qrt-wrap-shell 定位壳（分支链之后兄弟），锚滚动视口底沿不再盖壳外分页行 -->
-    <TableBacktop v-if="showTop && !bodyHidden" class="rt-backtop qrt-backtop" aria-label="回到顶部" title="回到顶部" @top="backToTop" />
+    <TableBacktop v-if="showTop && !bodyHidden" class="rt-backtop qrt-backtop" aria-label="回到顶部" v-tip="'回到顶部'" @top="backToTop" />
     </div>
 
     <!-- 1366：页脚状态栏（RT 同款）——此前 QRT 只有分页行，缺 RT 的「选区聚合 + 操作提示」。
@@ -475,9 +475,9 @@
         <span class="qrt-stat-seg">
           <span class="qrt-stat-hint qrt-sel-badge">已框选 <b>{{ regionCellCount }}</b> 格<span v-if="regionSummary">（数值 {{ regionSummary.numCount }}/{{ regionSummary.count }}）</span></span>
           <span v-if="regionSummary && regionSummary.numCount" class="qrt-stat mono">Σ {{ fmtNum(regionSummary.sum) }} · avg {{ regionSummary.avg != null ? regionSummary.avg.toFixed(2) : '—' }}</span>
-          <button class="qrt-stat-x" data-test="qrt-copy-region-tsv" title="复制框选区域为 TSV（不含表头；空值空串）" @click="copyRegionMatrix('tsv')">复制 TSV</button>
-          <button class="qrt-stat-x" data-test="qrt-copy-region-json" title="复制框选区域为 JSON 二维数组" @click="copyRegionMatrix('json')">复制 JSON</button>
-          <button class="qrt-stat-x" data-test="qrt-clear-region" aria-label="清除框选" title="清除框选（Esc 亦可）" @click="clearRegion">清除</button>
+          <button class="qrt-stat-x" data-test="qrt-copy-region-tsv" v-tip="'复制框选区域为 TSV（不含表头；空值空串）'" @click="copyRegionMatrix('tsv')">复制 TSV</button>
+          <button class="qrt-stat-x" data-test="qrt-copy-region-json" v-tip="'复制框选区域为 JSON 二维数组'" @click="copyRegionMatrix('json')">复制 JSON</button>
+          <button class="qrt-stat-x" data-test="qrt-clear-region" aria-label="清除框选" v-tip="'清除框选（Esc 亦可）'" @click="clearRegion">清除</button>
         </span>
       </template>
       <!-- 行选中动作条（RT「选中浮动栏」同语义的内核版）——勾选后此处给出出口；
@@ -486,20 +486,20 @@
       <template v-if="selectable && selSet.size">
         <span class="qrt-stat-seg">
           <span class="qrt-stat-hint qrt-sel-badge">已选 <b>{{ selSet.size }}</b> 行</span>
-          <button class="qrt-stat-x" data-test="qrt-copy-sel-tsv" title="复制选中行为 TSV（首行列名，可直接贴进表格软件）" @click="copySelMatrix('tsv')">复制 TSV</button>
-          <button class="qrt-stat-x" data-test="qrt-copy-sel-json" title="复制选中行为 JSON 数组（键=可见列）" @click="copySelMatrix('json')">复制 JSON</button>
-          <button class="qrt-stat-x" data-test="qrt-invert-sel" title="反选：当前视图里已选的取消、没选的选上" @click="invertSelRows">反选</button>
-          <button class="qrt-stat-x" data-test="qrt-clear-sel" aria-label="清除已选行" title="清除已选行" @click="clearSelRows">清除</button>
+          <button class="qrt-stat-x" data-test="qrt-copy-sel-tsv" v-tip="'复制选中行为 TSV（首行列名，可直接贴进表格软件）'" @click="copySelMatrix('tsv')">复制 TSV</button>
+          <button class="qrt-stat-x" data-test="qrt-copy-sel-json" v-tip="'复制选中行为 JSON 数组（键=可见列）'" @click="copySelMatrix('json')">复制 JSON</button>
+          <button class="qrt-stat-x" data-test="qrt-invert-sel" v-tip="'反选：当前视图里已选的取消、没选的选上'" @click="invertSelRows">反选</button>
+          <button class="qrt-stat-x" data-test="qrt-clear-sel" aria-label="清除已选行" v-tip="'清除已选行'" @click="clearSelRows">清除</button>
         </span>
       </template>
       <template v-if="aggCellStats && aggCellStats.numCount">
-        <span class="qrt-stat-seg" :title="`已选 ${aggCellStats.picked} 格 · Σ ${fmtNum(aggCellStats.sum)} · avg ${aggCellStats.avg != null ? fmtNum(aggCellStats.avg) : '—'} · min ${fmtNum(aggCellStats.min)} · max ${fmtNum(aggCellStats.max)} · count ${fmtNum(aggCellStats.count)}（再点一次取消）`">
+        <span class="qrt-stat-seg" v-tip="`已选 ${aggCellStats.picked} 格 · Σ ${fmtNum(aggCellStats.sum)} · avg ${aggCellStats.avg != null ? fmtNum(aggCellStats.avg) : '—'} · min ${fmtNum(aggCellStats.min)} · max ${fmtNum(aggCellStats.max)} · count ${fmtNum(aggCellStats.count)}（再点一次取消）`">
           <span class="qrt-stat mono">Σ {{ fmtNum(aggCellStats.sum) }}</span>
           <span class="qrt-stat mono">avg {{ aggCellStats.avg != null ? fmtNum(aggCellStats.avg) : '—' }}</span>
           <!-- 1413：min/max/count 收进 tooltip——三段并存时（框选+选行+聚合）这三项会把
                「清除」挤出可视区（实测 803 > 760）。Σ/avg 是主信息，其余悬停可读且导出不受影响。 -->
           <span class="qrt-stat-hint">已选 {{ aggCellStats.picked }} 格</span>
-          <button class="qrt-stat-x" aria-label="清除单元格聚合选择" title="清除选择（Esc 亦可）" @click="clearAggCells">清除</button>
+          <button class="qrt-stat-x" aria-label="清除单元格聚合选择" v-tip="'清除选择（Esc 亦可）'" @click="clearAggCells">清除</button>
         </span>
       </template>
       <span v-else-if="aggCellStats" class="qrt-stat-hint">已选 {{ aggCellStats.picked }} 格（都不是数值，无数可算）· 再点一次取消</span>
@@ -559,9 +559,9 @@
         <div v-if="rdwRow" class="qrt-rdw-body">
           <div class="qrt-rdw-meta mono">第 {{ rdwRow.ri + 1 }} 行 · {{ rdwCols.length }} 列</div>
           <div v-for="(c, i) in rdwCols" :key="c" class="qrt-rdw-row">
-            <span class="qrt-rdw-k mono" :title="c">{{ c }}</span>
-            <span class="qrt-rdw-v mono" :title="fullText(rdwCells?.[i])">{{ cellText(rdwCells?.[i]) }}</span>
-            <button class="btn ghost xs" :aria-label="'复制 ' + c" title="复制该格全文" @click="copyDrawerCell(i)"><Copy :size="11" /></button>
+            <span class="qrt-rdw-k mono" v-tip="c">{{ c }}</span>
+            <span class="qrt-rdw-v mono" v-tip="fullText(rdwCells?.[i])">{{ cellText(rdwCells?.[i]) }}</span>
+            <button class="btn ghost xs" :aria-label="'复制 ' + c" v-tip="'复制该格全文'" @click="copyDrawerCell(i)"><Copy :size="11" /></button>
           </div>
         </div>
         <template #footer>

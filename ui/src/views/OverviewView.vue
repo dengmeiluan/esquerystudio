@@ -60,14 +60,14 @@
  evalTopoClip（spec 直采单源），topoClip 消费为真元素 v-if fade（勿 ::after，可测性优先）。
  fade 锚在 nodes-wrap：.ov-topo 直挂 right:0 会压住 .ov-topo-r KPI（ 语义=暗示可滚，
  不是遮数据），故 .ov-topo 无需 position:relative、由 wrapper 承接（检查结论） -->
-    <div class="ov-topo" role="button" tabindex="0" aria-label="进入完整分布式拓扑视图" @click="router.push('/topology')" @keydown.enter.prevent="router.push('/topology')" @keydown.space.prevent="router.push('/topology')" title="查看完整分布式拓扑">
+    <div class="ov-topo" role="button" tabindex="0" aria-label="进入完整分布式拓扑视图" @click="router.push('/topology')" @keydown.enter.prevent="router.push('/topology')" @keydown.space.prevent="router.push('/topology')" v-tip="'查看完整分布式拓扑'">
       <div class="ov-topo-l">
         <span class="ov-topo-title"><Network :size="13" /> 分布式拓扑</span>
         <span class="ov-topo-sub">点击进入完整视图 →</span>
       </div>
       <div class="ov-topo-nodes-wrap">
         <div class="ov-topo-nodes" ref="topoNodesEl" v-if="topoNodes.length">
-          <div v-for="n in topoNodes" :key="n.node" class="ov-topo-node" :title="n.node + ' · ' + n.shards + ' 分片'">
+          <div v-for="n in topoNodes" :key="n.node" class="ov-topo-node" v-tip="n.node + ' · ' + n.shards + ' 分片'">
             <span class="ov-topo-node-name mono">{{ shortName(n.node) }}</span>
             <div class="ov-topo-bar">
               <div v-for="(seg, si) in n.segs" :key="si" class="ov-topo-seg"
@@ -86,7 +86,7 @@
       <div class="ov-topo-r">
         <div class="ov-topo-kpi meta-num"><span class="ov-topo-kpi-l">节点</span><b class="mono">{{ topoNodes.length }}</b></div>
         <div class="ov-topo-kpi meta-num"><span class="ov-topo-kpi-l">分片</span><b class="mono">{{ topoTotalShards }}</b></div>
-        <div class="ov-topo-kpi meta-num" :class="{ alert: topoUaAbnormal }"><span class="ov-topo-kpi-l">未分配</span><b class="mono" :style="topoUaAbnormal ? 'color:var(--err)' : topoUnassigned ? 'color:var(--tx2)' : ''" :title="topoUnassigned && !topoUaAbnormal ? '单数据节点副本无处放置，常态' : ''">{{ topoUnassigned }}</b></div>
+        <div class="ov-topo-kpi meta-num" :class="{ alert: topoUaAbnormal }"><span class="ov-topo-kpi-l">未分配</span><b class="mono" :style="topoUaAbnormal ? 'color:var(--err)' : topoUnassigned ? 'color:var(--tx2)' : ''" v-tip="topoUnassigned && !topoUaAbnormal ? '单数据节点副本无处放置，常态' : ''">{{ topoUnassigned }}</b></div>
         <div class="ov-topo-kpi meta-num" :class="{ alert: topoRelocating }"><span class="ov-topo-kpi-l">迁移中</span><b class="mono" :style="topoRelocating ? 'color:var(--warn)' : ''">{{ topoRelocating }}</b></div>
       </div>
     </div>
@@ -96,14 +96,14 @@
       <div class="ov-cell">
         <div class="card-t"><HardDrive :size="13" /> 存储 Top 10</div>
         <div v-for="idx in topBySize" :key="idx.index" class="ov-bar-row" role="button" tabindex="0" :aria-label="'查看索引 ' + idx.index" @click="goIndex(idx.index)" @contextmenu.prevent="openOvMenu($event, 'idx', idx)" @keydown="onOvKey($event, 'idx', idx)" data-row-nav @keydown.self="rowArrowNav">
-          <span class="ov-bar-name mono" :title="idx.index">{{ idx.index }}</span>
+          <span class="ov-bar-name mono" v-tip="idx.index">{{ idx.index }}</span>
           <div class="ov-bar-track">
             <div class="ov-bar-fill" :style="{ width: (idx._sizeN / topBySize[0]._sizeN * 100) + '%' }"></div>
           </div>
           <!-- store.size 裸 ES 串 → semFormat bytes 单源（parseBytes 先归一字节数——
  semFormat 只吃数字；解析失败回落原串；title 保 raw 原值，右对齐 .ov-bar-val 既有
  数值列对齐口径不变） -->
-          <span class="ov-bar-val mono" :title="idx['store.size']">{{ storeSizeText(idx['store.size']) }}</span>
+          <span class="ov-bar-val mono" v-tip="idx['store.size']">{{ storeSizeText(idx['store.size']) }}</span>
         </div>
         <EmptyState v-if="!topBySize.length" compact :icon="HardDrive" text="暂无索引" hint="按存储占用排序需集群内有索引" />
       </div>
@@ -112,7 +112,7 @@
       <div class="ov-cell">
         <div class="card-t"><FileText :size="13" /> 文档数 Top 10</div>
         <div v-for="idx in topByDocs" :key="idx.index" class="ov-bar-row" role="button" tabindex="0" :aria-label="'查看索引 ' + idx.index" @click="goIndex(idx.index)" @contextmenu.prevent="openOvMenu($event, 'idx', idx)" @keydown="onOvKey($event, 'idx', idx)" data-row-nav @keydown.self="rowArrowNav">
-          <span class="ov-bar-name mono" :title="idx.index">{{ idx.index }}</span>
+          <span class="ov-bar-name mono" v-tip="idx.index">{{ idx.index }}</span>
           <div class="ov-bar-track">
             <div class="ov-bar-fill docs" :style="{ width: (Number(idx['docs.count']) / Number(topByDocs[0]['docs.count'] || 1) * 100) + '%' }"></div>
           </div>
@@ -127,7 +127,7 @@
       <div class="ov-cell">
         <div class="card-t"><Activity :size="13" /> 健康分布</div>
         <div class="ov-health">
-          <div v-for="h in healthDist" :key="h.name" class="ov-h-item" role="button" tabindex="0" :aria-label="'查看 ' + h.name + ' 索引清单'" @click="goHealth(h.name)" @contextmenu.prevent="openOvMenu($event, 'health', h)" @keydown="onOvKey($event, 'health', h)" data-row-nav @keydown.self="rowArrowNav" :title="'查看 ' + h.name + ' 索引清单'">
+          <div v-for="h in healthDist" :key="h.name" class="ov-h-item" role="button" tabindex="0" :aria-label="'查看 ' + h.name + ' 索引清单'" @click="goHealth(h.name)" @contextmenu.prevent="openOvMenu($event, 'health', h)" @keydown="onOvKey($event, 'health', h)" data-row-nav @keydown.self="rowArrowNav" v-tip="'查看 ' + h.name + ' 索引清单'">
             <!-- 健康分布色点改用 MetaStrip dot 形态单源（DiagView dgMeta 先例）——
  .ov-h-dot 私造圆点退役，8px 圆点形态归组件 .ms-dot 单源（色值 h.color 直传） -->
             <MetaStrip :items="[{ dot: h.color }]" />
@@ -153,7 +153,7 @@
         <div v-else-if="recentJobs.length">
           <!-- key 禁用 jobId——19 位雪花 long 曾被 JSON.parse 截断成重复值，keyed diff 失效导致
  每轮 5s 轮询整块重挂 + rise 动画重放（布局抖动）；indexKey 每索引一条、天然唯一且稳定 -->
-          <div v-for="(j, i) in recentJobs" :key="j.indexKey" class="ov-job rise" :style="{ animationDelay: i * 45 + 'ms' }" role="button" tabindex="0" aria-label="前往托管重建" @click="goJob(j)" @contextmenu.prevent="openOvMenu($event, 'job', j)" @keydown="onOvKey($event, 'job', j)" data-row-nav @keydown.self="rowArrowNav" :title="j.indexKey">
+          <div v-for="(j, i) in recentJobs" :key="j.indexKey" class="ov-job rise" :style="{ animationDelay: i * 45 + 'ms' }" role="button" tabindex="0" aria-label="前往托管重建" @click="goJob(j)" @contextmenu.prevent="openOvMenu($event, 'job', j)" @keydown="onOvKey($event, 'job', j)" data-row-nav @keydown.self="rowArrowNav" v-tip="j.indexKey">
             <!-- 状态徽标改用 StatusPill（中文主显 jobStatusZh + en 英文小字档组件化，
  英文小字类同步更新退役）。dot-pulse 呼吸点保留本地：StatusPill 无插槽不硬塞，
  点以兄弟元素随行渲染（） -->
@@ -181,24 +181,24 @@
         <!-- 「上次自动」置于弹性占位条之前：提示出现/消失/变宽全部由占位条吸收，
  右侧动作组（实时监控/自动刷新/TSV/MD/刷新）钉在右缘零位移——占位条之后的行尾放置
  会被占位条放大成整组平移（真机量尺实测） -->
-        <span v-if="mhMs > 0 && mhAutoAt" class="dim sm-txt" style="white-space:nowrap" title="上次自动刷新时间">上次自动 {{ fmtTime(mhAutoAt) }}</span>
+        <span v-if="mhMs > 0 && mhAutoAt" class="dim sm-txt" style="white-space:nowrap" v-tip="'上次自动刷新时间'">上次自动 {{ fmtTime(mhAutoAt) }}</span>
         <span style="flex:1"></span>
         <!-- ③ 复盘收口（ Phase 0 最后一项活口）：运行时指标**入口**缺位补入口——
  两页分工约定定案：概览=历史回看+探活（/monitor-history），实时监控页=运行时指标（/live）；
  指标本体不搬防重复建设（G16「全站单源一致性」同族裁决） -->
-        <button class="btn sm ghost" title="进入实时监控大屏：QPS / 写入 / Heap / CPU / 磁盘实时走势、节点对比、挂墙模式" @click="router.push('/live')"><Gauge :size="11" /> 实时监控</button>
+        <button class="btn sm ghost" v-tip="'进入实时监控大屏：QPS / 写入 / Heap / CPU / 磁盘实时走势、节点对比、挂墙模式'" @click="router.push('/live')"><Gauge :size="11" /> 实时监控</button>
         <!-- 自动刷新换档位统一件（原「自动」checkbox+写死 60s 退役）：关/10s/30s/60s 可选 -->
         <AutoRefreshSelect v-model:ms="mhMs" label="自动刷新（监控历史）" />
         <!-- 导出：TSV/MD 复制走 QRT getCsvBlock 单源（表头自动继承列名，所见即所复） -->
-        <button class="btn sm ghost" :disabled="!mhRows.length" title="复制当前筛选结果为 TSV（Excel/飞书直贴）" @click="copyMonitorTsv">TSV</button>
-        <button class="btn sm ghost" :disabled="!mhRows.length" title="复制当前筛选结果为 Markdown（群聊/工单直贴）" @click="copyMonitorMd">MD</button>
+        <button class="btn sm ghost" :disabled="!mhRows.length" v-tip="'复制当前筛选结果为 TSV（Excel/飞书直贴）'" @click="copyMonitorTsv">TSV</button>
+        <button class="btn sm ghost" :disabled="!mhRows.length" v-tip="'复制当前筛选结果为 Markdown（群聊/工单直贴）'" @click="copyMonitorMd">MD</button>
         <button class="btn sm ghost" :disabled="mhLoading" @click="loadHistory"><RotateCw :size="11" :class="{ spinning: mhLoading }" /> 刷新</button>
       </div>
       <div class="ov-mh-filters">
         <!-- W3c：三筛原生 select 升档 NSelect small（选项值/序/文案零变化，aria-label/title 保留） -->
-        <n-select v-model:value="mhConn" class="ov-mh-sel" size="small" :options="mhConnOpts" aria-label="筛选集群" title="筛选集群" />
-        <n-select v-model:value="mhStatus" class="ov-mh-sel" size="small" :options="mhStatusOpts" aria-label="筛选状态" title="筛选状态" />
-        <n-select v-model:value="mhRange" class="ov-mh-sel" size="small" :options="MH_RANGE_OPTS" aria-label="时间范围" title="时间范围" />
+        <n-select v-model:value="mhConn" class="ov-mh-sel" size="small" :options="mhConnOpts" aria-label="筛选集群" v-tip="'筛选集群'" />
+        <n-select v-model:value="mhStatus" class="ov-mh-sel" size="small" :options="mhStatusOpts" aria-label="筛选状态" v-tip="'筛选状态'" />
+        <n-select v-model:value="mhRange" class="ov-mh-sel" size="small" :options="MH_RANGE_OPTS" aria-label="时间范围" v-tip="'时间范围'" />
       </div>
       <div v-if="mhErr" role="alert" class="err-bar">
         监控历史加载失败：{{ mhErr }}
@@ -207,7 +207,7 @@
       <!-- 健康摘要条：窗口内每集群采样数/RED 次数一眼可见（probeDigest 单源） -->
       <div v-if="mhDigest.length" class="ov-mh-digest">
         <span v-for="d in mhDigest" :key="d.name" class="ov-mh-digest-i"
-          :title="`${d.name}：采样 ${d.total} 条 · RED ${d.reds} 次 · 最慢 ${d.worstMs ?? '-'} ms`">
+          v-tip="`${d.name}：采样 ${d.total} 条 · RED ${d.reds} 次 · 最慢 ${d.worstMs ?? '-'} ms`">
           <b class="mono">{{ d.name }}</b>
           <span class="mono">{{ d.total }}</span>
           <span v-if="d.reds" class="ov-mh-red">RED {{ d.reds }}</span>

@@ -23,7 +23,7 @@ describe('563 方案 B:请求工具行高频前置 + 溢出收纳', () => {
   it('行上高频:插入字段(主操作实底 btn xs)+格式化+复制 icon-only+字号 seg', () => {
     expect(reqPane).toMatch(/class="btn xs"[^>]*aria-label="插入字段"/);
     expect(reqPane).toMatch(/@click="format">/);
-    expect(reqPane, '复制请求体改 icon-only(title/aria 承载文案)').toMatch(/aria-label="复制请求体" title="复制请求体原文" @click="copyBody">\s*<Copy :size="11" \/>\s*<\/button>/);
+    expect(reqPane, '复制请求体改 icon-only(title/aria 承载文案)').toMatch(/aria-label="复制请求体" v-tip="'复制请求体原文'" @click="copyBody">\s*<Copy :size="11" \/>\s*<\/button>/);
     expect(reqPane).toContain('dt-font-seg');
   });
   it('「⋯」溢出菜单收纳五件:压缩/骨架/自动格式化开关/收藏/清空(danger)', () => {
@@ -55,7 +55,7 @@ describe('563 方案 B 补刀:响应头与请求头同构对称(空态不再失�
   });
   it('复制响应钮常驻化(无数据 disabled 而非 v-if 消失,空态行结构恒定)', () => {
     const respPane = dt.slice(dt.indexOf('#pane-devtools-search-response'), dt.indexOf('NModal'));
-    expect(respPane).toMatch(/aria-label="复制响应" title="复制响应全文（截断展示时仍取完整原文）"\s*:disabled="!cur\.result"/);
+    expect(respPane).toMatch(/aria-label="复制响应" v-tip="'复制响应全文（截断展示时仍取完整原文）'"\s*:disabled="!cur\.result"/);
     expect(respPane, '常驻钮不再条件消失').not.toMatch(/<button v-if="cur\.result"[^>]*aria-label="复制响应"/);
   });
 });

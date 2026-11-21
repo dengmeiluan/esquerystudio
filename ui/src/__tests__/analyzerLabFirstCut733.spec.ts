@@ -216,9 +216,10 @@ describe('733 G112 lane MetaStrip tokens 段中文 tip（铁律 F；G101 同族�
     await settle();
     const ms = host.querySelector('.al-lane-meta .ms-i');
     expect(ms, 'lane meta 段在场').toBeTruthy();
-    expect(ms!.getAttribute('title'), 'G112 病灶：tokens 段无 tip').toBe('分词结果条数');
+    /* 段提示已迁 v-tip 指令（DOM 无 title 属性）——tip 文案改源码锚（items prop 传 tip，MetaStrip 内部 v-tip 承接） */
+    expect(read('../views/AnalyzerLabView.vue')).toContain("tip: '分词结果条数'");
     expect(ms!.classList.contains('help'), 'tip 悬停通道 help 档').toBe(true);
-    expect(ms!.textContent, 'tip 只走 title 悬停通道，不进可见文本').not.toContain('分词结果条数');
+    expect(ms!.textContent, 'tip 只走悬停通道，不进可见文本').not.toContain('分词结果条数');
   });
 });
 

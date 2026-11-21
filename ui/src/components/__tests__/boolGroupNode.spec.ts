@@ -99,13 +99,13 @@ describe('BoolGroupNode', () => {
 
   it('canDissolve=false 不显示解散钮', () => {
     const { host } = mount(SRC, { canDissolve: false });
-    expect(host.querySelector('[title^="解散"]')).toBeNull();
+    expect(host.querySelector('[aria-label^="解散"]')).toBeNull();
   });
 
   it('canDissolve=true 且无组参数时显示解散钮并 emit dissolve', () => {
     let fired = 0;
     const { host } = mount(SRC, { canDissolve: true, onDissolve: () => { fired++; } });
-    const btn = host.querySelector('[title^="解散"]') as HTMLElement;
+    const btn = host.querySelector('[aria-label^="解散"]') as HTMLElement;
     expect(btn).not.toBeNull();
     btn.click();
     expect(fired).toBe(1);

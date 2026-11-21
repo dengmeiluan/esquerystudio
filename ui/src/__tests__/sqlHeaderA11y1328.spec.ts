@@ -39,7 +39,7 @@ describe('1328 SQL 页头按钮的可发现性', () => {
   it('「转 DSL」「收藏」都带可读说明', () => {
     for (const lb of ['转 DSL', '收藏']) {
       const blk = btnBlock(lb);
-      const hasName = /:title=|title=/.test(blk) || /aria-label=/.test(blk);
+      const hasName = /v-tip=|:title=|title=/.test(blk) || /aria-label=/.test(blk);
       expect(hasName, `按钮「${lb}」必须有 title 或 aria-label`).toBe(true);
     }
   });

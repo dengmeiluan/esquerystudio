@@ -5,17 +5,17 @@
  是工具行「元素太多挤占」里最纯粹的无效占位。只有一页就没有「翻」这件事——
  整组不渲染；每页条数保留（1 页也能改成 100/页看更多行）。 -->
     <template v-if="totalPages > 1">
-      <button aria-label="上一页" class="btn sm ghost" :disabled="page <= 1 || disabled" title="上一页" @click="emit('update:page', page - 1); scrollToHead()"><ChevronLeft :size="12" /></button>
+      <button aria-label="上一页" class="btn sm ghost" :disabled="page <= 1 || disabled" v-tip="'上一页'" @click="emit('update:page', page - 1); scrollToHead()"><ChevronLeft :size="12" /></button>
       <!-- P2-6：页码输入跳页（dbx 页码 Enter 跳页对位）——输入越界钳位首末页 -->
       <input
         class="pgn-jump" type="text" :value="page" :disabled="disabled"
         :aria-label="'跳转到页（1-' + totalPages + '）'"
-        :title="'跳转到页（1-' + totalPages + '），Enter 确认'"
+        v-tip="'跳转到页（1-' + totalPages + '），Enter 确认'"
         @keydown.enter.prevent="jump($event)"
         @blur="jump($event)"
       />
       <span class="pgn-pos">/ {{ totalPages }}</span>
-      <button aria-label="下一页" class="btn sm ghost" :disabled="page >= totalPages || disabled" title="下一页" @click="emit('update:page', page + 1); scrollToHead()"><ChevronRight :size="12" /></button>
+      <button aria-label="下一页" class="btn sm ghost" :disabled="page >= totalPages || disabled" v-tip="'下一页'" @click="emit('update:page', page + 1); scrollToHead()"><ChevronRight :size="12" /></button>
     </template>
     <!-- ·实报：原生 select 系统蓝菜单与全站设计语言割裂——换 n-popover
  自定义 listbox（受控 show/选中标记/aria listbox 语义），既有胶囊语言同款。
@@ -25,7 +25,7 @@
       :show="sizeOpen" @update:show="(v: boolean) => (sizeOpen = v)">
       <template #trigger>
         <button ref="pselEl" class="pgn-psel" :disabled="disabled" aria-haspopup="listbox" :aria-expanded="sizeOpen"
-          aria-label="每页条数" :title="'每页条数（当前 ' + pageSize + '/页）'" @click="sizeOpen = !sizeOpen">
+          aria-label="每页条数" v-tip="'每页条数（当前 ' + pageSize + '/页）'" @click="sizeOpen = !sizeOpen">
           {{ pageSize }}/页 <ChevronDown :size="11" />
         </button>
       </template>

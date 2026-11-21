@@ -80,10 +80,11 @@ describe('StatusPill 统一件', () => {
     app.unmount();
   });
 
-  it('title 透传为原生提示；未传不挂空 title 属性', async () => {
+  it('title 透传为提示；未传不挂空 title 属性', async () => {
     const StatusPill = (await import('../components/StatusPill.vue')).default;
     const a = await mountComp(StatusPill, { label: 'x', title: '行详情' });
-    expect(a.host.querySelector('.pill')!.getAttribute('title')).toBe('行详情');
+    /* pill 提示已迁 v-tip 指令（DOM 无 title 属性）——title prop 透传改源码锚 */
+    expect(read('components/StatusPill.vue')).toContain('v-tip="title || undefined"');
     a.app.unmount();
     const b = await mountComp(StatusPill, { label: 'x' });
     expect(b.host.querySelector('.pill')!.hasAttribute('title')).toBe(false);

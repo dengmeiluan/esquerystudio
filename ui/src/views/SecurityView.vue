@@ -23,7 +23,7 @@
           <div class="me-row">
 <span>用户名</span>
             <!-- 委托账号是长 SSO ID，截断显示防撑破布局（hover 全量） -->
-            <b class="mono" :title="auth.me.username">{{ auth.me.username.length > 24 ? auth.me.username.slice(0, 21) + '…' : auth.me.username }}</b>
+            <b class="mono" v-tip="auth.me.username">{{ auth.me.username.length > 24 ? auth.me.username.slice(0, 21) + '…' : auth.me.username }}</b>
           </div>
           <div v-if="auth.me.displayName && auth.me.displayName !== auth.me.username" class="me-row">
             <span>姓名</span><b>{{ auth.me.displayName }}</b>
@@ -113,7 +113,7 @@
                 <span v-if="isFullGrant(g)" class="pg-full">全部页面 · 可读可写</span>
               </template>
               <div class="pg-pages" v-if="!isFullGrant(g) && g.visible.length">
-                <span v-for="p in g.visible" :key="p" class="chip static" :class="{ 'pg-w': g.writable.includes(p) }" :title="pageName(p) + (g.writable.includes(p) ? ' · 可写' : ' · 仅查看')">
+                <span v-for="p in g.visible" :key="p" class="chip static" :class="{ 'pg-w': g.writable.includes(p) }" v-tip="pageName(p) + (g.writable.includes(p) ? ' · 可写' : ' · 仅查看')">
                   {{ pageName(p) }}<b v-if="g.writable.includes(p)">·写</b>
                 </span>
               </div>
@@ -133,7 +133,7 @@
           <!-- selectable 批量勾选暗状态（有勾选时计数常驻；仅写权限可见） -->
           <template v-if="canReadUsers">
             <span v-if="canWriteUsers && usSel.length" class="dim sm-txt">已选 {{ usSel.length }} 用户</span>
-            <button aria-label="刷新用户列表" class="btn ghost sm right" @click="loadUsers" :disabled="usersLoading" title="刷新用户列表"><RefreshCw :size="12" :class="{ spinning: usersLoading }" /></button>
+            <button aria-label="刷新用户列表" class="btn ghost sm right" @click="loadUsers" :disabled="usersLoading" v-tip="'刷新用户列表'"><RefreshCw :size="12" :class="{ spinning: usersLoading }" /></button>
           </template>
         </div>
         <div v-show="!collapsed.users">
@@ -168,7 +168,7 @@
             <template #cell-角色="{ value }"><StatusPill :tone="roleTone(String(value))" :label="String(value)" /></template>
             <template #cell-更新="{ value }"><TimeCell :ts="value" abs /></template>
             <template #row-actions="{ row }">
-              <button v-if="canWriteUsers" aria-label="删除" class="btn ghost sm danger" title="删除" :disabled="deleting" @click="doDelete(row[0])"><Trash2 :size="12" :class="{ spinning: deleting }" /></button>
+              <button v-if="canWriteUsers" aria-label="删除" class="btn ghost sm danger" v-tip="'删除'" :disabled="deleting" @click="doDelete(row[0])"><Trash2 :size="12" :class="{ spinning: deleting }" /></button>
             </template>
           </QueryResultTable>
           <!-- C3/#13：err-bar 与 empty 互斥——拉取失败时不许伪装成「暂无正式账号」误导管理员重建用户
@@ -205,7 +205,7 @@
                 <b class="pc-group-name">{{ g.name }}</b>
                 <div class="pc-pages">
                   <!-- ④ 残量合并：控制集群页芯片退役自绘 .pc-page 基座，共用全局 .chip（static 非交互档） -->
-                  <span v-for="p in g.pages" :key="p.key" class="chip static" :title="p.route">
+                  <span v-for="p in g.pages" :key="p.key" class="chip static" v-tip="p.route">
                     {{ p.name }}<span v-if="p.minVer" class="pc-ver">需 {{ p.minVer }}+</span>
                   </span>
                 </div>
@@ -222,7 +222,7 @@
       <div class="card-t"><button class="sec-fold" :class="{ folded: collapsed.ctl }" :aria-label="collapsed.ctl ? '展开' : '折叠'" @click="toggleBlock('ctl')"><ChevronDown :size="14" /></button>
 <DatabaseZap :size="14" /> 控制集群
         <span class="dim sm-txt">（存放用户/连接档案/审计/作业/锁的集群）</span>
-        <button aria-label="刷新安全状态" class="btn ghost sm right" @click="loadSetup" :disabled="setupLoading" title="刷新安全状态"><RefreshCw :size="12" :class="{ spinning: setupLoading }" /></button>
+        <button aria-label="刷新安全状态" class="btn ghost sm right" @click="loadSetup" :disabled="setupLoading" v-tip="'刷新安全状态'"><RefreshCw :size="12" :class="{ spinning: setupLoading }" /></button>
       </div>
         <div v-show="!collapsed.ctl">
       <div v-if="setup" class="me-rows">
@@ -233,7 +233,7 @@
         <div class="me-row">
 <span>模式</span>
           <!-- 模式中文说明（BOOTSTRAP 等专业词不再裸奔） -->
-          <b class="mono" :title="MODE_TIP[setup.mode] || ''">{{ setup.mode }}</b>
+          <b class="mono" v-tip="MODE_TIP[setup.mode] || ''">{{ setup.mode }}</b>
           <span v-if="MODE_TIP[setup.mode]" class="dim sm-txt">{{ MODE_TIP[setup.mode] }}</span>
         </div>
         <div class="me-row"><span>地址</span><b class="mono">{{ setup.endpoint || '-' }}</b></div>
@@ -278,7 +278,7 @@
           <n-select v-model:value="fAction" class="sv-f-sel" size="small" :options="actionOpts" @update:value="loadAudit" />
           <!-- 「仅看被拒」快捷过滤—— 双路径合一：改一次性 shortcut
  （单设 PAGE_DENIED 不 toggle，select 为单源；on 态仍由 fAction 派生） -->
-          <button class="btn ghost sm" :disabled="auditLoading" :class="{ on: fAction === 'PAGE_DENIED' }" :title="fAction === 'PAGE_DENIED' ? '已聚焦页面访问被拒（请在动作下拉选「全部动作」退出）' : '只看页面访问被拒（PAGE_DENIED）'" @click="fAction = 'PAGE_DENIED'; loadAudit()">
+          <button class="btn ghost sm" :disabled="auditLoading" :class="{ on: fAction === 'PAGE_DENIED' }" v-tip="fAction === 'PAGE_DENIED' ? '已聚焦页面访问被拒（请在动作下拉选「全部动作」退出）' : '只看页面访问被拒（PAGE_DENIED）'" @click="fAction = 'PAGE_DENIED'; loadAudit()">
             <ShieldAlert :size="12" /> 仅看被拒
           </button>
           <!-- 补/210:时间范围过滤(排障高频——最近1h/24h/7d,作用于已拉取范围) -->
@@ -296,7 +296,7 @@
             <template #trigger>
               <button ref="adMoreSumEl" type="button" class="ad-more-sum" aria-label="更多筛选与导出"
                 aria-haspopup="true" :aria-expanded="adMoreOpen"
-                title="更多选项：按用户/集群/URI 过滤 + TSV/Markdown 导出">⋯</button>
+                v-tip="'更多选项：按用户/集群/URI 过滤 + TSV/Markdown 导出'">⋯</button>
             </template>
             <div class="ad-more-pop">
               <!-- 值建议：fUser（建议=审计索引 by_user terms agg 真实出现过的用户+计数）——
@@ -314,10 +314,10 @@
                 placeholder="按 URI 前缀过滤" @enter="loadAudit" @esc="fUri = ''" />
               <!-- 补/208：审计 Markdown 复制 + 天罗W6 补 TSV——数据源走 QRT ref.getCsvBlock() -->
               <div class="ad-more-acts">
-                <button class="btn ghost sm" @click="copyAuditTsv" :disabled="!adShown.length" title="复制当前筛选结果为 TSV（Excel/飞书直贴）">
+                <button class="btn ghost sm" @click="copyAuditTsv" :disabled="!adShown.length" v-tip="'复制当前筛选结果为 TSV（Excel/飞书直贴）'">
                   <ClipboardList :size="12" /> TSV
                 </button>
-                <button class="btn ghost sm" @click="copyAuditMd" :disabled="!adShown.length" title="复制当前筛选结果为 Markdown（群聊/工单直贴）">
+                <button class="btn ghost sm" @click="copyAuditMd" :disabled="!adShown.length" v-tip="'复制当前筛选结果为 Markdown（群聊/工单直贴）'">
                   <ClipboardList :size="12" /> Markdown
                 </button>
               </div>
@@ -362,9 +362,9 @@
         <template #cell-动作="{ value }"><StatusPill :tone="actTone(String(value))" :label="actionZh(String(value))" :title="'动作代码：' + value" /></template>
         <!-- W-C 批：HTTP 方法挂全局语义色轮 .m-*（GET 绿/POST 黄/PUT 紫/DELETE 红/HEAD 蓝） -->
         <template #cell-方法="{ value }"><span class="mono" :class="'m-' + String(value || '').toLowerCase()">{{ value }}</span></template>
-        <template #cell-URI="{ value }"><span class="mono uri" :title="value">{{ shortUri(value) }}</span></template>
+        <template #cell-URI="{ value }"><span class="mono uri" v-tip="value">{{ shortUri(value) }}</span></template>
         <!-- 集群列（connName 实名优先，缺省回退 connId；空档显示 -） -->
-        <template #cell-集群="{ value }"><span class="mono" :title="value" style="color: var(--tx2)">{{ value || '-' }}</span></template>
+        <template #cell-集群="{ value }"><span class="mono" v-tip="value" style="color: var(--tx2)">{{ value || '-' }}</span></template>
         <!-- 补全：来源 IP / 耗时 / 来源归属 三列升表格（数据模型已有，此前只在详情弹层） -->
         <template #cell-IP="{ value }"><span class="mono" style="color: var(--tx2)">{{ value || '-' }}</span></template>
         <template #cell-耗时(ms)="{ value }"><span class="mono" :style="Number(value) > 1000 ? 'color: var(--warn)' : 'color: var(--tx2)'">{{ value === '' || value == null ? '-' : value + 'ms' }}</span></template>
@@ -373,7 +373,7 @@
         <template #cell-详情="{ row, value }">
           <!-- 长 detail 可点开完整查看器(截断 2000 字符的详情不再只有 title)；
  打开路径不变——槽内由矩阵行重建 detailRow（AUDIT_COLS 列序契约） -->
-          <button v-if="value" class="btn ghost xs" aria-label="查看完整详情" title="查看完整详情" @click.stop="openDetailCell(row)"><Maximize2 :size="10" /></button>
+          <button v-if="value" class="btn ghost xs" aria-label="查看完整详情" v-tip="'查看完整详情'" @click.stop="openDetailCell(row)"><Maximize2 :size="10" /></button>
           <span class="detail-txt" :role="value ? 'button' : undefined" :tabindex="value ? 0 : undefined" @click="value && openDetailCell(row)" @keydown.enter.prevent="value && openDetailCell(row)" @keydown.space.prevent="value && openDetailCell(row)">{{ value || '-' }}</span>
         </template>
       </QueryResultTable>
@@ -389,7 +389,7 @@
       <!-- 审计详情查看器(长 detail 完整查看+一键复制,不再只有 title 截断) -->
       <n-modal v-model:show="detailOpen" preset="card" title="审计详情" style="width:640px;max-width:92vw" :bordered="false">
         <template #header-extra>
-          <button class="btn ghost xs" @click="copyDetailView" title="复制详情"><Copy :size="12" /> 复制</button>
+          <button class="btn ghost xs" @click="copyDetailView" v-tip="'复制详情'"><Copy :size="12" /> 复制</button>
         </template>
         <MetaStrip class="sec-dv-meta" :items="dvBaseItems" v-if="detailRow" />
         <!-- 富维度元信息行——所属集群（实名+连接 ID）/来源 IP/耗时/记录归属（控制台|宿主）

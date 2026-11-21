@@ -12,20 +12,20 @@
       <span class="fsfn-idx mono">{{ i + 1 }}</span>
       <n-select class="fsfn-type" size="tiny" :value="typeOf(f) ?? 'custom'" :options="fnTypeOptions(i)"
                 :disabled="typeOf(f) === null"
-                :title="typeOf(f) === null ? '自定义函数形态：类型位锁定，参数走右侧整项编辑防丢数据' : '函数类型'"
+                v-tip="typeOf(f) === null ? '自定义函数形态：类型位锁定，参数走右侧整项编辑防丢数据' : '函数类型'"
                 @update:value="v => setFnType(i, v)" />
       <label class="fsfn-wlb">weight</label>
       <input class="inp fsfn-w mono" :value="(f as Record<string, unknown>).weight ?? ''" placeholder="—"
-             title="全函数通用权重（可留空）" @input="patchWeight(i, ($event.target as HTMLInputElement).value)" />
+             v-tip="'全函数通用权重（可留空）'" @input="patchWeight(i, ($event.target as HTMLInputElement).value)" />
       <button aria-label="函数参数" class="btn sm ghost" :class="{ on: bodyIdx === i }" :disabled="typeOf(f) === null"
-              title="函数主参数（field/modifier/origin/scale/script…）" @click="bodyIdx = bodyIdx === i ? null : i">
+              v-tip="'函数主参数（field/modifier/origin/scale/script…）'" @click="bodyIdx = bodyIdx === i ? null : i">
         <SlidersHorizontal :size="12" />
       </button>
       <button aria-label="filter 过滤" class="btn sm ghost" :class="{ on: filterIdx === i }"
-              title="filter：该函数只作用于命中的文档子集（完整查询树）" @click="filterIdx = filterIdx === i ? null : i">
+              v-tip="'filter：该函数只作用于命中的文档子集（完整查询树）'" @click="filterIdx = filterIdx === i ? null : i">
         <Filter :size="12" />
       </button>
-      <button aria-label="删除函数" class="btn sm ghost danger" title="删除函数" @click="del(i)"><X :size="12" /></button>
+      <button aria-label="删除函数" class="btn sm ghost danger" v-tip="'删除函数'" @click="del(i)"><X :size="12" /></button>
       <!-- 衰减族快径：字段作键 + origin/scale/offset/decay + multi_value_mode；
            多字段/非对象 inner 等非快径体走递归表（零丢失） -->
       <div v-if="bodyIdx === i && decayRows[i]" class="fsfn-sub fsfn-decay">
@@ -34,15 +34,15 @@
           @update:model-value="v => onDecayField(i, v)"
         />
         <input class="inp mono fsfn-dp" :value="decayText(i, 'origin')" placeholder="origin 起点（now / 0 …）"
-               title="origin：衰减中心（date-math 或数值，缺省 now/0）" @input="onDecayParam(i, 'origin', ($event.target as HTMLInputElement).value)" />
+               v-tip="'origin：衰减中心（date-math 或数值，缺省 now/0）'" @input="onDecayParam(i, 'origin', ($event.target as HTMLInputElement).value)" />
         <input class="inp mono fsfn-dp" :value="decayText(i, 'scale')" placeholder="scale 跨度（10d / 20 …）"
-               title="scale：到 origin 该距离时得分衰减到 decay 值（必填）" @input="onDecayParam(i, 'scale', ($event.target as HTMLInputElement).value)" />
+               v-tip="'scale：到 origin 该距离时得分衰减到 decay 值（必填）'" @input="onDecayParam(i, 'scale', ($event.target as HTMLInputElement).value)" />
         <input class="inp mono fsfn-dp fsfn-dp-opt" :value="decayText(i, 'offset')" placeholder="offset 偏移"
-               title="offset：origin 两侧不衰减的平区宽度（可空）" @input="onDecayParam(i, 'offset', ($event.target as HTMLInputElement).value)" />
+               v-tip="'offset：origin 两侧不衰减的平区宽度（可空）'" @input="onDecayParam(i, 'offset', ($event.target as HTMLInputElement).value)" />
         <input class="inp mono fsfn-dp fsfn-dp-opt" :value="decayText(i, 'decay')" placeholder="decay 0..1"
-               title="decay：scale 距离处的得分比例（缺省 0.5）" @input="onDecayParam(i, 'decay', ($event.target as HTMLInputElement).value)" />
+               v-tip="'decay：scale 距离处的得分比例（缺省 0.5）'" @input="onDecayParam(i, 'decay', ($event.target as HTMLInputElement).value)" />
         <n-select class="fsfn-mvm" size="tiny" :value="decayRows[i]!.mvm ?? ''" :options="mvmOptions"
-                  title="multi_value_mode：多值字段（数组）的聚合方式"
+                  v-tip="'multi_value_mode：多值字段（数组）的聚合方式'"
                   @update:value="v => onDecayMvm(i, v)" />
       </div>
       <div v-else-if="bodyIdx === i && typeOf(f)" class="fsfn-sub">
@@ -51,7 +51,7 @@
       <div v-if="filterIdx === i" class="fsfn-sub fsfn-flt">
         <div class="fsfn-flt-hd">
           <span class="fsfn-flt-tx">过滤条件 filter —— 只作用于命中的文档子集{{ 'filter' in f ? '' : '（未设置，当前树=全文档）' }}</span>
-          <button v-if="'filter' in f" aria-label="移除过滤条件" class="btn sm ghost danger" title="移除 filter 键（函数作用于全部命中文档）"
+          <button v-if="'filter' in f" aria-label="移除过滤条件" class="btn sm ghost danger" v-tip="'移除 filter 键（函数作用于全部命中文档）'"
                   @click="removeFilter(i)">
             <X :size="11" /> 移除
           </button>

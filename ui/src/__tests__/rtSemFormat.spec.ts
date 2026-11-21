@@ -10,6 +10,15 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { toggleViewSwitch, viewSwitch, openViewMenu } from './helpers/viewSwitch'; /* 1143 */
 import { createApp, h, nextTick } from 'vue';
 import { createPinia } from 'pinia';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+/* 单元格提示已迁 v-tip 指令（DOM 无 title 属性）——「提示恒 raw 原文」铁律改源码锚：
+ RT td 绑 cellTitle（getSourceVal 原文直出）；QRT td 绑 cellMeta full */
+const RT_SRC = readFileSync(join(__dirname, '../components/ResultTable.vue'), 'utf8');
+const QRT_SRC = readFileSync(join(__dirname, '../components/QueryResultTable.vue'), 'utf8');
+const RT_CELL_TIP_ANCHOR = 'v-tip="cellTitle(hit, c)"';
+const QRT_CELL_TIP_ANCHOR = 'v-tip="cell === null || cell === undefined ? \'\' : (cellMeta[ri]?.[ci]?.full || \'\')"';
 
 vi.mock('../api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../api')>();
@@ -76,9 +85,9 @@ describe('RT 语义格式化（W7 es_tbl_sem）', () => {
     expect(cellByCol('price').classList.contains('num-col'), '数值列右对齐经既有 num-col').toBe(true);
     expect(cellByCol('ip').classList.contains('ip-col'), 'ip 列应挂等宽类').toBe(true);
     expect(cellByCol('note').classList.contains('ip-col')).toBe(false);
-    /* 铁律：title 恒 raw 原文 */
-    expect(created.getAttribute('title')).toBe('2024-03-05T10:20:30Z');
-    expect(cellByCol('price').getAttribute('title')).toBe('1234567');
+    /* 铁律：title 恒 raw 原文（v-tip 绑 cellTitle，实现直出 getSourceVal 原文） */
+    expect(RT_SRC).toContain(RT_CELL_TIP_ANCHOR);
+    expect(RT_SRC, 'cellTitle 不做语义格式化').toContain("return typeof v === 'string' ? v : JSON.stringify(v);");
   });
 
   it('列头菜单开关：关→回落原样显示；落盘 esquerystudio.pref.es_tbl_sem；新实例读盘保持关', async () => {
@@ -124,8 +133,7 @@ describe('QRT 语义格式化（W7 RT 镜像）', () => {
     expect(tds[4].textContent?.trim(), '≥1e4 大整数千分位为既有行为').toBe('1,234,567');
     expect(tds[3].classList.contains('num-col')).toBe(true);
     expect(tds[5].classList.contains('ip-col')).toBe(true);
-    expect(tds[2].getAttribute('title')).toBe('2024-03-05T10:20:30Z');
-    expect(tds[3].getAttribute('title')).toBe('1234');
+    expect(QRT_SRC, '提示恒 raw（v-tip 绑 cellMeta full）').toContain(QRT_CELL_TIP_ANCHOR);
     /* 开关：列头右键→关——语义千分位回落，既有 ≥1e4 大整数格式化保留（54 批口径不动） */
     const th = host.querySelectorAll('thead th')[3] as HTMLElement;
     th.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 10, clientY: 10 }));

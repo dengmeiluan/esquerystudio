@@ -23,7 +23,7 @@ describe('BrowserView 过 dbx 清单（一百八十四批）', () => {
   it('「复制行信息」改走 QRT #row-actions 行尾注入位（单行事实串逐字保真）', () => {
     /* 五百二十九批锚同步更新：行右键菜单退役（CellContextMenu 随 QRT 换壳移除），
        复制行信息入口平移到 QRT 行尾注入位（与行复制/展开钮同排），事实串模板逐字不变 */
-    expect(src).toMatch(/title="复制行信息" @click\.stop="copyRowInfo\(row\)"/);
+    expect(src).toMatch(/v-tip="'复制行信息'" @click\.stop="copyRowInfo\(row\)"/);
     expect(src).toContain("health=${i.health} status=${i.status} docs=${i['docs.count'] || 0}");
   });
 });

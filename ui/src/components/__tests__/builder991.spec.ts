@@ -106,7 +106,7 @@ describe('991 RootExtrasPane rescore 重打分区', () => {
     if (!t.ok) throw new Error('parse failed');
     const { host, cur } = mountPane(t.tree);
     await tick();
-    const del = host.querySelector('[title="移除 rescore 键"]') as HTMLElement;
+    const del = host.querySelector('[aria-label="移除 rescore 键"]') as HTMLElement;
     expect(del, '有内容默认展开').not.toBeNull();
     del.click();
     await tick();

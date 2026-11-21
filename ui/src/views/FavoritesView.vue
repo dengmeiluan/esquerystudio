@@ -12,7 +12,7 @@
   <Upload :size="12" /> 导入
   <input ref="importInput" type="file" class="sr-only" @change="importFile" accept="application/json" />
 </label>
-<button class="btn danger sm" title="清空全部收藏（仅本地数据，不可恢复）" @click="clearAll" :disabled="items.length === 0">
+<button class="btn danger sm" v-tip="'清空全部收藏（仅本地数据，不可恢复）'" @click="clearAll" :disabled="items.length === 0">
   <Trash2 :size="12" /> 清空
 </button>
       </template>
@@ -47,10 +47,10 @@
       text="当前无收藏项"
       hint="任何 DSL 查询 / REST 请求 / 模板均可「⭐ 收藏」，跨会话恢复。">
       <!-- 空态给下一步动作（无目标页权限时禁用+提示，与重放同门——提前暴露可不可达） -->
-      <button class="btn sm primary" :disabled="!canGo('/search')" :title="canGo('/search') ? undefined : '当前身份无查询工作台页面权限'"
+      <button class="btn sm primary" :disabled="!canGo('/search')" v-tip="canGo('/search') ? undefined : '当前身份无查询工作台页面权限'"
         @click="goOrHint('/search')">去查询工作台跑一条 →</button>
       <!-- 指向页用注册名（/devtools=Dev Tools），与 /rest（REST 直连）区分 -->
-      <button class="btn sm ghost" :disabled="!canGo('/devtools')" :title="canGo('/devtools') ? undefined : '当前身份无 Dev Tools 页面权限'"
+      <button class="btn sm ghost" :disabled="!canGo('/devtools')" v-tip="canGo('/devtools') ? undefined : '当前身份无 Dev Tools 页面权限'"
         @click="goOrHint('/devtools')">去 Dev Tools 多标签控制台 →</button>
     </EmptyState>
 
@@ -95,7 +95,7 @@
           </button>
           <span class="fv-card-ops">
             <button class="btn ghost sm" @click="copyPayload(it)"><Copy :size="12" /> 复制</button>
-            <button aria-label="删除这条收藏（仅本地数据）" class="btn danger sm" title="删除这条收藏（仅本地数据）" @click="del(it.id)"><Trash2 :size="12" /></button>
+            <button aria-label="删除这条收藏（仅本地数据）" class="btn danger sm" v-tip="'删除这条收藏（仅本地数据）'" @click="del(it.id)"><Trash2 :size="12" /></button>
           </span>
         </div>
       </div>

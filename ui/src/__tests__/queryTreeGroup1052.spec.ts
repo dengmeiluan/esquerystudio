@@ -2,6 +2,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createApp, h, nextTick, shallowRef } from 'vue';
 import QueryTreePane from '../components/builder/QueryTreePane.vue';
+import { vTip } from '../directives/vTip';
 import {
   parseTree, serializeTree, canGroupByIds, groupNodesByIds,
   type QueryTree, type QueryNode,
@@ -98,6 +99,7 @@ describe('1052 条件树多选包组交互', () => {
         'onUpdate:tree': (x: QueryTree) => { cur.value = x; },
       }),
     });
+    app.directive('tip', vTip); /* 包组钮禁用原因已迁 v-tip 指令，注册后经浮层读取 */
     app.mount(host);
     return { host, cur };
   }
@@ -130,6 +132,9 @@ describe('1052 条件树多选包组交互', () => {
     boxes[0].click(); boxes[1].click(); await tick();
     const groupBtn = btn(host, '包组')!;
     expect(groupBtn.disabled).toBe(true);
-    expect(groupBtn.title).toContain('同一分组、同一逻辑');
+    /* 禁用原因已迁 v-tip 指令（DOM 无 title 属性）：focusin 通道立即显示单例浮层 #vt-tip，
+       合成事件不受按钮 disabled 影响 */
+    groupBtn.dispatchEvent(new Event('focusin', { bubbles: false }));
+    expect(document.getElementById('vt-tip')?.textContent ?? '').toContain('同一分组、同一逻辑');
   });
 });

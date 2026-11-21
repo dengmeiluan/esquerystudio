@@ -42,9 +42,21 @@ describe('ClusterSwitcher 认证方式切换', () => {
     expect(cs).toContain('authType: form.value.authType,');
     expect(cs).toContain("env: c.env || '', authType: c.authType || 'BASIC',");
   });
-  it('列表 AK 角标在场(token 化,与 .cs-ver 同构)', () => {
-    expect(cs).toContain(`title="API Key 认证">AK</span>`);
+  it('列表 AK 角标在场(token 化,与 .cs-ver 同构;title 已迁 v-tip 指令)', () => {
+    expect(cs).toContain(`v-tip="'API Key 认证'">AK</span>`);
     expect(cs).toContain('.cs-ak');
+  });
+});
+
+describe('ClusterSwitcher 表单输入 label/id 关联', () => {
+  it('五个自绘输入(名称/连接串/用户名/密码/API Key)逐个 label for ↔ input id 同键', () => {
+    for (const k of ['name', 'url', 'user', 'pass', 'key']) {
+      expect(cs, k + ' label 带 for').toContain(`:for="'cs-${k}-' + uid"`);
+      expect(cs, k + ' input 带 id').toContain(`:id="'cs-${k}-' + uid"`);
+    }
+  });
+  it('id 用实例随机后缀隔离(多实例并存不撞车,HistoryChart 同惯例)', () => {
+    expect(cs).toContain('const uid = Math.random().toString(36).slice(2, 8);');
   });
 });
 

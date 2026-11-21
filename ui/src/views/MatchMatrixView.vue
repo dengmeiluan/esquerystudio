@@ -4,10 +4,10 @@
       <PageHeader :icon="Grid3x3" title="子句命中矩阵" subtitle="named queries（_name）· 每个文档到底命中了哪些子句 · 没起作用的子句当场现形">
       <template #actions>
 <CurrentIdxChip />
-<button class="btn ghost sm" @click="autoName" title="给没有 _name 的叶子子句自动补名字">
+<button class="btn ghost sm" @click="autoName" v-tip="'给没有 _name 的叶子子句自动补名字'">
   <Wand2 :size="12" /> 自动命名
 </button>
-<button class="btn ghost sm" @click="gotoBoost" title="带关键词去「Boost 调参沙盒」拖权重调排名">
+<button class="btn ghost sm" @click="gotoBoost" v-tip="'带关键词去「Boost 调参沙盒」拖权重调排名'">
   <SlidersHorizontal :size="12" /> 去调参
 </button>
 <button class="btn primary sm" @click="run" :disabled="!index || busy">
@@ -24,7 +24,7 @@
       <div class="mm-card-hd"><FileJson :size="12" /> Query（bool 组合 + 各子句 "_name"）
         <!-- 原始 IO 快查——本页最近一次矩阵执行（search-raw）请求/响应原文（ioRecorder 记录环；
  QueryXray 卡头钮同位范式；与 548 ScoreExplain 同特征属页域各自取最近一条，跨页互见） -->
-        <button class="btn ghost sm" style="margin-left:auto" data-test="raw-io" aria-label="查看原始 IO（矩阵执行）" title="最近一次矩阵执行请求/响应原文（复制/回放/语义分档高亮）" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
+        <button class="btn ghost sm" style="margin-left:auto" data-test="raw-io" aria-label="查看原始 IO（矩阵执行）" v-tip="'最近一次矩阵执行请求/响应原文（复制/回放/语义分档高亮）'" @click="openRawIo"><Terminal :size="12" /> 原始 IO</button>
       </div>
       <!-- P0-1：编辑器划线通道挂点（banner 保留双通道，见 script queueMmLintMarkers） -->
       <JsonArea ref="mmJaRef" v-model="dsl" :dsl-assist="dslAssist" :rows="6" fill />
@@ -62,7 +62,7 @@
 
     <div v-if="clauseNames.length" class="mm-stats" role="group" aria-label="子句命中统计">
       <div v-for="c in clauseStats" :key="c.name" class="mm-stat" :class="{ dead: c.count === 0 }">
-        <span class="mm-stat-nm" :title="c.name">{{ c.name }}</span>
+        <span class="mm-stat-nm" v-tip="c.name">{{ c.name }}</span>
         <span class="mm-stat-bar-wrap"><span class="mm-stat-bar" :style="{ width: c.pct + '%' }" /></span>
         <b>{{ c.count }}/{{ hits.length }}</b>
         <!-- mm-dead-tag err 色私造标签改用 StatusPill 统一件（err→r 档；
@@ -83,8 +83,8 @@
       max-height="calc(100vh - var(--vh-offset) - 210px)"
       export-name="match-matrix" empty-text="无命中文档">
       <template #cell-_id="{ value }">
-        <span class="mono ell" :title="value">{{ value }}</span>
-        <button class="mm-id-go" :aria-label="'去查询 X 光分析：' + value" title="去查询 X 光分析该文档" @click.stop="gotoXray(value)"><ExternalLink :size="11" /></button>
+        <span class="mono ell" v-tip="value">{{ value }}</span>
+        <button class="mm-id-go" :aria-label="'去查询 X 光分析：' + value" v-tip="'去查询 X 光分析该文档'" @click.stop="gotoXray(value)"><ExternalLink :size="11" /></button>
       </template>
       <template #cell-得分="{ value }">{{ Number(value).toFixed(3) }}</template>
       <template v-for="c in clauseNames" :key="c" #[`cell-`+c]="{ value }">

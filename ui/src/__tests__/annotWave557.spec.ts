@@ -71,17 +71,17 @@ describe('五百五十七批 ①：CLUSTER_SETTINGS_CATALOG 集群级设置键�
 });
 
 describe('五百五十七批 ②：目录接线源码锚（tooltip 根治「英文参数不知作用」）', () => {
-  it('ClusterSettingsView：P/T 两档 input 接 :title=目录释义（中文 desc+示例单源精确匹配）', () => {
+  it('ClusterSettingsView：P/T 两档 input 接 v-tip=目录释义（中文 desc+示例单源精确匹配）', () => {
     const s = srcOf('views/ClusterSettingsView.vue');
     expect(s).toContain("import { CLUSTER_SETTINGS_CATALOG } from '../utils/indexSettingsCatalog';");
-    expect(s.match(/:title="csHint\(row\[1\]\)"/g)!.length, 'persistent/transient 两档各接一处').toBe(2);
+    expect(s.match(/v-tip="csHint\(row\[1\]\)"/g)!.length, 'persistent/transient 两档各接一处').toBe(2);
     expect(s).toMatch(/function csHint\(k: string\): string \{[^}]*CLUSTER_SETTINGS_CATALOG/);
   });
 
-  it('IndexSettingsView：自定义 setting 行值输入接 :title=SETTINGS_CATALOG 释义（normKey 去前缀口径）', () => {
+  it('IndexSettingsView：自定义 setting 行值输入接 v-tip=SETTINGS_CATALOG 释义（normKey 去前缀口径）', () => {
     const s = srcOf('views/IndexSettingsView.vue');
     expect(s).toContain("import { SETTINGS_CATALOG } from '../utils/indexSettingsCatalog';");
-    expect(s).toContain(':title="customHint(r.key)"');
+    expect(s).toContain('v-tip="customHint(r.key)"');
     expect(s).toMatch(/function customHint\(k: string\): string \{[^}]*SETTINGS_CATALOG[^}]*normKey/);
   });
 });

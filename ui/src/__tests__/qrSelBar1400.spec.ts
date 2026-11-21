@@ -18,12 +18,18 @@ import { createPinia } from 'pinia';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import QueryResultTable from '../components/QueryResultTable.vue';
+import { vTip } from '../directives/vTip';
 
 const HITS = [
   { _id: 'd1', _score: 1.2, _source: { title: 'alpha', n: 1 } },
   { _id: 'd2', _score: 0.8, _source: { title: 'beta', n: 2 } },
 ];
 const tick = async (n = 8) => { for (let i = 0; i < n; i++) { await nextTick(); await Promise.resolve(); } };
+/* v-tip 浮层文本读取：focusin 通道立即显示（无 300ms 悬停延迟），#vt-tip 即全 document 单例浮层 */
+const tipOf = (el: HTMLElement): string => {
+  el.dispatchEvent(new Event('focusin', { bubbles: false }));
+  return document.getElementById('vt-tip')?.textContent ?? '';
+};
 const apps: ReturnType<typeof createApp>[] = [];
 const host = document.createElement('div');
 document.body.appendChild(host);
@@ -32,6 +38,8 @@ let written = '';
 function mountQrt(props: Record<string, any>) {
   const app = createApp({ setup: () => () => h(QueryResultTable as any, props) });
   app.use(createPinia());
+  /* 1120 批 title→v-tip：勾选框提示走 v-tip 浮层，挂具注册指令后用 focusin 通道断言文本 */
+  app.directive('tip', vTip);
   app.mount(host);
   apps.push(app);
 }
@@ -114,13 +122,13 @@ describe('1400 QRT 行选中动作条', () => {
     /* 全部加载：正常说法 */
     mountQrt({ hits: HITS, total: 2, selectable: true, storageKey: 'k1400e' });
     await tick();
-    expect((host.querySelector('thead .qrt-sel-col [role="checkbox"]') as HTMLElement).getAttribute('title')).toContain('当前视图全部行');
+    expect(tipOf(host.querySelector('thead .qrt-sel-col [role="checkbox"]') as HTMLElement)).toContain('当前视图全部行');
     apps.forEach(a => { try { a.unmount(); } catch { /* noop */ } }); apps.length = 0; host.innerHTML = '';
 
     /* 只加载 2 行但共 500 条（游标/远端分页）：必须标注“仅已加载” */
     mountQrt({ hits: HITS, total: 500, selectable: true, storageKey: 'k1400f' });
     await tick();
-    const t = (host.querySelector('thead .qrt-sel-col [role="checkbox"]') as HTMLElement).getAttribute('title')!;
+    const t = tipOf(host.querySelector('thead .qrt-sel-col [role="checkbox"]') as HTMLElement);
     expect(t, '必须说清只选已加载').toContain('仅当前已加载的 2 行');
     expect(t).toContain('共 500 条');
     expect(t, '不能再说“全部行”').not.toContain('当前视图全部行');
@@ -129,7 +137,7 @@ describe('1400 QRT 行选中动作条', () => {
   it('⑦ more-rows（游标未取完、total 缺失）同样按「仅已加载」说话；SQL 宿主接线', async () => {
     mountQrt({ hits: HITS, total: 2, moreRows: true, selectable: true, storageKey: 'k1400g' });
     await tick();
-    const t = (host.querySelector('thead .qrt-sel-col [role="checkbox"]') as HTMLElement).getAttribute('title')!;
+    const t = tipOf(host.querySelector('thead .qrt-sel-col [role="checkbox"]') as HTMLElement);
     expect(t, '不知道总数时不能说“共 N 条”').not.toContain('共 2 条');
     expect(t).toContain('结果未取完');
     expect(t).toContain('仅当前已加载的 2 行');

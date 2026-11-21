@@ -132,7 +132,7 @@ describe('五百五十四批⑤：SqlConsoleView 模板侧栏展开/收起双钮
     expect(t.match(/data-sq-rail-toggle/g)?.length, '单钮唯一出处').toBe(1);
     expect(t, '同钮随态换文案（模板/收起）').toContain("{{ railOpen ? '收起' : '模板' }}");
     expect(t, '点击翻转').toContain('@click="railOpen = !railOpen"');
-    expect(t, 'title 随态（XmigrateView 先例同语言）').toContain(':title="railOpen ? \'收起模板侧栏\' : \'展开模板侧栏\'"');
+    expect(t, 'tip 随态（XmigrateView 先例同语言）').toContain('v-tip="railOpen ? \'收起模板侧栏\' : \'展开模板侧栏\'"');
     expect(t, 'chevron 随态旋转').toMatch(/rotate\(180deg\)/);
   });
 

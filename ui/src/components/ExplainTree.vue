@@ -4,13 +4,13 @@
       @contextmenu.prevent.stop="openCtx($event)">
       <ChevronRight v-if="hasKids" :size="10" class="xt-caret" :class="{ open }" />
       <span v-else class="xt-caret-ph" />
-      <span class="xt-val" :title="String(node.value)">{{ fmtVal(node.value) }}</span>
+      <span class="xt-val" v-tip="String(node.value)">{{ fmtVal(node.value) }}</span>
       <span class="xt-bar-wrap">
         <span class="xt-bar" :class="kindClass" :style="{ width: pct + '%' }" />
       </span>
       <span class="xt-pct">{{ pct.toFixed(1) }}%</span>
       <span v-if="kind" class="xt-kind" :class="kindClass">{{ kind }}</span>
-      <span class="xt-desc" :title="node.description">{{ shortDesc }}</span>
+      <span class="xt-desc" v-tip="node.description">{{ shortDesc }}</span>
     </div>
     <div v-if="open && hasKids" class="xt-kids">
       <ExplainTree v-for="(d, i) in node.details" :key="i" :node="d" :total="total" :depth="depth + 1" />

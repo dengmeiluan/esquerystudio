@@ -1,5 +1,5 @@
 <template>
-  <span class="dotkey mono" :title="full || k"><template v-for="(c, i) in cells" :key="i"><mark v-if="c.m" class="dotkey-mark">{{ c.t }}</mark><template v-else>{{ c.s }}<wbr v-if="c.w" /></template></template></span>
+  <span class="dotkey mono" v-tip="full || k"><template v-for="(c, i) in cells" :key="i"><mark v-if="c.m" class="dotkey-mark">{{ c.t }}</mark><template v-else>{{ c.s }}<wbr v-if="c.w" /></template></template></span>
 </template>
 
 <script setup lang="ts">

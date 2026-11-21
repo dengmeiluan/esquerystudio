@@ -275,9 +275,11 @@ describe('531 B：XmigrateView 改用与排序（源码锚）', () => {
        现行生效形态（border-top 分节覆盖行）改由 rebuildFlat534:97 与 cardShellWave547 正锁 */
     expect(xm).not.toMatch(/\.xm-group \{ margin-bottom: var\(--sp-3\); padding: var\(--sp-2\) var\(--sp-3\); border: 1px solid var\(--line\); border-radius: var\(--r-m\); \}/);
     expect(xm).not.toMatch(/\.xm-group \{[^}]*background/);
-    expect(xm).toContain('<span class="xm-g-num">1</span>');
-    expect(xm).toContain('<span class="xm-g-num">2</span>');
-    expect(xm).toContain('<span class="xm-g-num">3</span>');
+    /* 编号语义保留：三步编号升级为完成态点亮（CheckCircle2 换数字，xmStepDone 判定），
+       锚随迁到新形态——编号字面量仍在 v-else 分支 */
+    expect(xm).toContain('<span class="xm-g-num" :class="{ done: xmStepDone(1) }" data-test="xm-step1"><CheckCircle2 v-if="xmStepDone(1)" :size="12" /><template v-else>1</template></span>');
+    expect(xm).toContain('<span class="xm-g-num" :class="{ done: xmStepDone(2) }" data-test="xm-step2"><CheckCircle2 v-if="xmStepDone(2)" :size="12" /><template v-else>2</template></span>');
+    expect(xm).toContain('<span class="xm-g-num" :class="{ done: xmStepDone(3) }" data-test="xm-step3"><CheckCircle2 v-if="xmStepDone(3)" :size="12" /><template v-else>3</template></span>');
     /* 900 档查漏：xm-actions wrap + xm-remote 侧距收窄 */
     const block = xm.match(/@media \(max-width: 900px\) \{[\s\S]*?\n\}/);
     expect(block, '900 档在场').toBeTruthy();

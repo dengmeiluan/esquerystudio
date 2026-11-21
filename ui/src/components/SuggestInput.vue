@@ -28,7 +28,7 @@
               v-for="(it, i) in items" :key="it.key"
               class="sgi-item" :class="{ act: i === cursor }"
               role="option" :id="itemId(i)" :aria-selected="i === cursor" tabindex="-1"
-              :title="it.meta || undefined"
+              v-tip="it.meta || undefined"
               @mouseenter="cursor = i" @click="choose(it.key)"
             >
               <span class="sgi-key mono">{{ it.key }}</span>

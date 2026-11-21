@@ -217,37 +217,44 @@ describe('741 G148 RawIo 原始 IO 三件套（铁律 F·头号；Slm D6 同款�
 });
 
 describe('741 G149 列头中文语义 tip（铁律 F·717 G60 双语同款；colTips 内核通道）', () => {
-  it('raw 表四列 th title 各含中文语义+内建排序提示保留；可见文本零泄漏', async () => {
+  it('raw 表四列提示各含中文语义+内建排序提示保留；可见文本零泄漏', async () => {
     const host = await mountView();
     const raw = qrtOf(host, 1);
+    /* 列头提示已迁 v-tip 指令（DOM 无 title 属性）——colTips 通道释义改源码锚
+      （RAW_COL_TIPS 常量 → QRT colTips prop → thTitle 装配「语义+右键：列管理」） */
+    const v = readFileSync(join(__dirname, '../views/PluginsView.vue'), 'utf-8');
     const tips: Record<string, string> = {
-      node: '安装该插件的 ES 节点名',
-      component: '插件组件名',
-      version: '插件版本',
-      description: '插件用途描述',
+      node: '节点名：安装该插件的 ES 节点名',
+      component: '插件组件名：bin/elasticsearch-plugin 安装的身份标识',
+      version: '插件版本：须与 ES 节点版本匹配',
+      description: '插件用途描述：该插件干什么用',
     };
     for (const [col, tip] of Object.entries(tips)) {
       const th = raw.querySelector(`th[data-col="${col}"]`);
       expect(th, `raw 列 ${col} 表头在场`).toBeTruthy();
-      expect(th!.getAttribute('title'), `G149 病灶：${col} 列无中文语义 tip`).toContain(tip);
-      expect(th!.getAttribute('title'), '内建排序/列管理提示保留（不回归）').toContain('右键：列管理');
+      expect(v, `G149 病灶：${col} 列无中文语义 tip`).toContain(tip);
     }
-    /* tip 走 :title 悬停通道，不进可见文本（可见面零泄漏） */
+    expect(v, 'colTips 通道接线（QRT prop）').toContain(':col-tips="RAW_COL_TIPS"');
+    expect(readFileSync(join(__dirname, '../components/QueryResultTable.vue'), 'utf-8'), '内建排序/列管理提示保留（thTitle 装配不回归）').toContain('右键：列管理');
+    /* tip 走悬停通道，不进可见文本（可见面零泄漏） */
     for (const tip of Object.values(tips)) {
       expect(host.textContent, `tip 不进可见文本：${tip}`).not.toContain(tip);
     }
   });
 
-  it('矩阵「插件」列 th title 含中文语义（同族顺带）；节点列缺省对照（无 tip=纯内建提示）', async () => {
+  it('矩阵「插件」列提示含中文语义（同族顺带）；节点列缺省对照（无 tip=纯内建提示）', async () => {
     const host = await mountView();
     const mx = qrtOf(host, 0);
     const thPlug = mx.querySelector('th[data-col="插件"]');
     expect(thPlug, '矩阵插件列头在场').toBeTruthy();
-    expect(thPlug!.getAttribute('title'), 'G149 同族：插件列中文语义 tip').toContain('按 component 汇总');
+    const v = readFileSync(join(__dirname, '../views/PluginsView.vue'), 'utf-8');
+    expect(v, 'G149 同族：插件列中文语义 tip').toContain('插件名：按 component 汇总');
     const thNode = mx.querySelector('th[data-col="es-node-1"]');
     expect(thNode, '节点列头在场').toBeTruthy();
-    expect(thNode!.getAttribute('title'), '缺省对照：未传 tip 的列=纯内建提示').not.toContain('汇总');
-    expect(thNode!.getAttribute('title')).toContain('右键：列管理');
+    /* 缺省对照：节点列不在 MX_COL_TIPS（未传 tip 的列=纯内建提示） */
+    const mxTips = v.match(/const MX_COL_TIPS[^=]*= \{([\s\S]*?)\};/);
+    expect(mxTips, 'MX_COL_TIPS 块在场').toBeTruthy();
+    expect(mxTips![1]).not.toContain('es-node-');
   });
 });
 

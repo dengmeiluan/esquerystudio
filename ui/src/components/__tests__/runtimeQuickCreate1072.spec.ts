@@ -6,6 +6,7 @@ import { createApp, h, ref, nextTick, type App } from 'vue';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import QueryTreePane from '../builder/QueryTreePane.vue';
+import { vTip } from '../../directives/vTip';
 import { guessRuntimeType, runtimeScriptMissing } from '../../utils/runtimeFields';
 import { parseTree, serializeTree, type QueryTree } from '../../utils/queryAst';
 
@@ -59,9 +60,16 @@ function mount(src: unknown, fields = ['a']) {
     }),
   });
   apps.push(app);
+  app.directive('tip', vTip); /* 建运行时字段钮提示已迁 v-tip 指令，注册后经浮层读取 */
   app.mount(host);
   return { tree, defined, edits };
 }
+
+/* v-tip 浮层文本读取：focusin 通道立即显示（无 300ms 悬停延迟），#vt-tip 即全 document 单例浮层 */
+const tipOf = (el: HTMLElement): string => {
+  el.dispatchEvent(new Event('focusin', { bubbles: false }));
+  return document.getElementById('vt-tip')?.textContent ?? '';
+};
 
 beforeEach(() => { document.body.innerHTML = ''; localStorage.clear(); });
 afterEach(() => { while (apps.length) apps.pop()!.unmount(); });
@@ -102,7 +110,7 @@ describe('1072 条件行一键建运行时字段', () => {
     const btn = host.querySelector('.cn-defrt') as HTMLButtonElement;
     expect(btn, '未知字段应出现建运行时字段入口').not.toBeNull();
     expect(btn.textContent).toContain('运行时');
-    expect(btn.title).toContain('long');
+    expect(tipOf(btn), '提示必须点名推断类型 long').toContain('long');
     btn.click();
     await nextTick();
     await new Promise(r => setTimeout(r));

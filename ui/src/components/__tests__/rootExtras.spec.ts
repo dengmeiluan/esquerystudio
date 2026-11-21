@@ -102,7 +102,7 @@ describe('RootExtrasPane', () => {
     const t = emptyTree();
     t.sort = [{ id: 's1', field: 'a', form: 'short', params: { order: 'desc' } }];
     const { host, cur } = mount(t);
-    (host.querySelector('.rx-sort-row [title="删除"]') as HTMLElement).click();
+    (host.querySelector('.rx-sort-row button[aria-label="删除"]') as HTMLElement).click();
     await tick();
     expect(cur.value.sort).toEqual([]);
     expect(serializeTree(cur.value)).toEqual({ sort: [] });
@@ -115,7 +115,7 @@ describe('RootExtrasPane', () => {
       { id: 's2', field: 'b', form: 'str', params: {} },
     ];
     const { host, cur } = mount(t);
-    (host.querySelectorAll('.rx-sort-row [title="上移"]')[1] as HTMLElement).click();
+    (host.querySelectorAll('.rx-sort-row button[aria-label="上移"]')[1] as HTMLElement).click();
     await tick();
     expect(cur.value.sort![0].field).toBe('b');
     expect(cur.value.sort![1].field).toBe('a');
@@ -251,7 +251,7 @@ describe('RootExtrasPane', () => {
     const t = emptyTree();
     t.aggs = [{ id: 'a1', name: 'g', op: 'terms', body: { field: 'a' }, children: [], meta: {}, aggKey: 'aggs' }];
     const { host, cur } = mount(t);
-    (host.querySelector('[title="移除聚合键"]') as HTMLElement).click();
+    (host.querySelector('button[aria-label="移除聚合键"]') as HTMLElement).click();
     await tick();
     expect(cur.value.aggs).toBeNull();
     expect(serializeTree(cur.value)).not.toHaveProperty('aggs');

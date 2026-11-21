@@ -204,6 +204,9 @@ describe('纯浏览器编排：重跑 / 调速 / 记录治理（browserAdhoc）'
 
 /* ══════════════ 视图行为（真挂载） ══════════════ */
 
+/* 原生 title 已迁 v-tip 指令：单测 app 不注册指令无浮层 DOM 通道，禁用原因等
+   文案断言退化为视图源码锁（运行时禁用态仍走 DOM 断言） */
+const arSrc = readFileSync(join(__dirname, '../views/AdhocRebuildView.vue'), 'utf-8');
 const askConfirmFn = vi.fn();
 const prepareFn = vi.fn();
 const statusFn = vi.fn();
@@ -328,7 +331,7 @@ async function openMonitorStep(host: HTMLElement, jobRow: any) {
   const rows = [...host.querySelectorAll('table.qrt-tbl tbody tr')];
   const row = rows.find(tr => (tr.textContent || '').includes(jobRow.jobId));
   expect(row, '最近作业表必须渲染出该作业行').toBeTruthy();
-  (row!.querySelector('button[title="查看任务详情"]') as HTMLButtonElement).click();
+  (row!.querySelector('button[aria-label="查看任务详情"]') as HTMLButtonElement).click();
   await settle(10);
 }
 
@@ -512,7 +515,8 @@ describe('视图：失败处置动作（复制 id / 回补 query）', () => {
     await openMonitorStep(h2, noTf);
     const disabled = h2.querySelector<HTMLButtonElement>('[data-test="ar-failure-backfill"]')!;
     expect(disabled.disabled).toBe(true);
-    expect(disabled.title).toContain('无时间字段');
+    expect(arSrc).toContain("v-tip=\"backfillGenBlockedReason || '按作业时间字段生成失败窗口（启动~收尾）的回补 _reindex DSL 并复制（op_type=create 幂等）'\"");
+    expect(arSrc).toContain("if (!j.timeField) return '作业无时间字段，无法生成时间窗回补 query（请按业务主键人工圈定失败范围）'");
   });
 });
 
@@ -554,7 +558,7 @@ describe('视图：历史治理（行删除 + 批量清理）', () => {
     const runRow = rows.find(tr => (tr.textContent || '').includes('run-9'))!;
     const del = runRow.querySelector<HTMLButtonElement>('button[aria-label="删除记录"]')!;
     expect(del.disabled).toBe(true);
-    expect(del.title).toContain('作业进行中');
+    expect(arSrc).toContain("v-tip=\"jobOf(row).status === 'RUNNING' ? '作业进行中，不可删除记录（先中止或等待终态）' : '删除该作业记录（仅清记录，不影响 ES 索引与已迁移数据）'\"");
   });
 
   it('表头清理钮：确认后调 cleanupJobs(7) 并提示清理条数', { timeout: 20000 }, async () => {
@@ -646,13 +650,12 @@ describe('视图：轮次耗时列与追平轮 pill', () => {
 });
 
 describe('视图：中止钮语义与切换后守卫', () => {
-  it('中止钮 title 与确认窗同源：目标索引与已迁移数据保留、可重跑续接', { timeout: 20000 }, async () => {
+  it('中止钮 v-tip 与确认窗同源：目标索引与已迁移数据保留、可重跑续接', { timeout: 20000 }, async () => {
     const { host } = await mountAR({ jobs: [CATCHUP_JOB], status: CATCHUP_JOB });
     await openMonitorStep(host, CATCHUP_JOB);
     const abort = btnByText(host, '中止');
-    expect(abort.title).toContain('目标索引与已迁移数据保留');
-    expect(abort.title).toContain('可重跑续接');
-    expect(abort.title, '旧「删除半成品/回滚/数据丢弃」说法不得回潮').not.toContain('删除半成品');
+    expect(arSrc).toContain("v-tip=\"switchConfirmed ? '切换已确认，无法中止' : '中止 reindex task 并结束作业；目标索引与已迁移数据保留，可重跑续接'\"");
+    expect(arSrc, '旧「删除半成品/回滚/数据丢弃」说法不得回潮').not.toContain('删除半成品');
     expect(abort.disabled).toBe(false);
   });
 
@@ -663,7 +666,7 @@ describe('视图：中止钮语义与切换后守卫', () => {
       await openMonitorStep(host, job);
       const abort = btnByText(host, '中止');
       expect(abort.disabled, stage + ' 阶段中止钮必须禁用').toBe(true);
-      expect(abort.title).toContain('切换已确认，无法中止');
+      expect(arSrc).toContain("'切换已确认，无法中止'");
       apps.pop()!.unmount();
       document.body.innerHTML = '';
     }

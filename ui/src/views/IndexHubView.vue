@@ -7,8 +7,8 @@
       <template #actions>
     <!-- 列表改抽屉,开关常驻页头;放大/还原=工作区全屏(整行含主表,.fs-active 见样式区)。
          计数徽标：开关本身带全量索引数（显眼度——不看钮文不知列表内有多少索引） -->
-    <button aria-label="索引列表" class="btn sm ghost" :title="(listOpen ? '关闭索引列表（Esc 也可）' : '打开索引列表（搜索/健康过滤/排序）') + (store.indices.length ? ' · 共 ' + store.indices.length + ' 个' : '')" @click="listOpen = !listOpen"><List :size="13" /> 索引列表<span v-if="store.indices.length" class="ih-ilct mono">{{ store.indices.length }}</span></button>
-        <button v-if="cur && canRebuild" aria-label="托管重建当前索引" class="btn sm ghost" title="托管重建当前索引（粘贴期望配置 / 探测 / 校验 / 切换一条龙）" @click="goto('/adhoc-rebuild')"><Rocket :size="13" /> 托管重建</button>
+    <button aria-label="索引列表" class="btn sm ghost" v-tip="(listOpen ? '关闭索引列表（Esc 也可）' : '打开索引列表（搜索/健康过滤/排序）') + (store.indices.length ? ' · 共 ' + store.indices.length + ' 个' : '')" @click="listOpen = !listOpen"><List :size="13" /> 索引列表<span v-if="store.indices.length" class="ih-ilct mono">{{ store.indices.length }}</span></button>
+        <button v-if="cur && canRebuild" aria-label="托管重建当前索引" class="btn sm ghost" v-tip="'托管重建当前索引（粘贴期望配置 / 探测 / 校验 / 切换一条龙）'" @click="goto('/adhoc-rebuild')"><Rocket :size="13" /> 托管重建</button>
       </template>
     </PageHeader>
     <!-- 回补:①放大钮并入 ih-lbar 工具行(headless);②聚焦面 .fs-active 包整个 .ih(列表+主表整行) -->
@@ -34,18 +34,18 @@
         <div class="ih-ws" :class="{ 'ih-ws-fill': tab === 'docs' && docsView === 'table' }">
           <div class="ih-hd">
             <div class="ih-hd-l">
-              <span class="ih-hdot lg" :style="{ background: healthColor(curInfo?.health || '') }" :title="curInfo?.health"></span>
-              <span class="ih-hd-nm mono" :title="cur">{{ cur }}</span>
+              <span class="ih-hdot lg" :style="{ background: healthColor(curInfo?.health || '') }" v-tip="curInfo?.health"></span>
+              <span class="ih-hd-nm mono" v-tip="cur">{{ cur }}</span>
               <!-- 裸 status 串+手滚 pill 三元退役 → StatusPill 统一件+indexStatusZh
  （en 档英文小字：中文主体「已打开/已关闭」+弱化 open/close 原码，未知态回落原文不丢信息） -->
               <StatusPill :tone="curInfo?.status === 'open' ? 'g' : 'n'" :label="indexStatusZh(curInfo?.status) || (curInfo?.status || '?')" :en="curInfo?.status || undefined" :title="curInfo?.status || undefined" />
-              <button aria-label="复制索引名" class="btn sm ghost" title="复制索引名" @click="copyName"><Copy :size="11" /></button>
+              <button aria-label="复制索引名" class="btn sm ghost" v-tip="'复制索引名'" @click="copyName"><Copy :size="11" /></button>
             </div>
             <div class="ih-hd-acts">
               <!-- 放大态还原钮必须置于聚焦面内的工作区卡片头——历史事故：
  .fs-active(fixed inset12 z300) 盖住页头，「还原」钮鼠标不可达，
  全屏态唯一退出路径只剩 Esc（纯鼠标用户被锁死）。面内还原钮保证放大/还原两个方向都有鼠标路径 -->
-              <button v-if="fsActive" aria-label="还原工作区" class="btn sm" title="还原工作区（Esc 也可）" @click="fsActive = false"><Minimize2 :size="11" /> 还原</button>
+              <button v-if="fsActive" aria-label="还原工作区" class="btn sm" v-tip="'还原工作区（Esc 也可）'" @click="fsActive = false"><Minimize2 :size="11" /> 还原</button>
               <!-- 文档/查询/Mapping 已工作区就地化（下方 Tab），头部留跳页入口；
  改 Setting 放开全员可见——IndexSettingsView 读取/分析全角色可用，
  页内写控件仍按 rank 门禁（permGating 两保存出口照旧锁 rank3+）；
@@ -63,7 +63,7 @@
  mono/值亮/标签暗/·分隔形态全由统一件承担；别名段留默认插槽（前 3 截断 + 「管控」跳转交互原样）；
  整条 hover title 原文留根：title 里的别名是全量列表而显示只截前 3，拆段 tip 会丢这份兜底信息 -->
             <!-- 插槽前手写 sep 退役——组件「有默认插槽自动渲染 .ms-sep」承担 -->
-            <MetaStrip class="ih-meta-pos" :items="ihMeta" :title="ihMetaTip">
+            <MetaStrip class="ih-meta-pos" :items="ihMeta" v-tip.long="ihMetaTip">
               <span class="ih-meta-alias">
                 <i>别名</i>
                 <template v-if="curAliases.length"><b>{{ curAliases.slice(0, 3).map(a => a.alias).join('、') }}</b><span v-if="curAliases.length > 3" class="dim"> +{{ curAliases.length - 3 }}</span></template>
@@ -75,14 +75,14 @@
 
           <div class="seg ih-tabs">
             <button v-for="t in TABS" :key="t.k" :class="[{ on: tab === t.k }, 'ih-t-' + t.k]" @click="tab = t.k">{{ t.t }}<span v-if="tabCount(t.k)" class="ih-tab-n mono">{{ tabCount(t.k) }}</span></button>
-            <button class="btn sm ghost" title="启动期 Mapping 自动补全的对账报告" @click="rrOpen = true">
+            <button class="btn sm ghost" v-tip="'启动期 Mapping 自动补全的对账报告'" @click="rrOpen = true">
               <ScrollText :size="11" /> 启动对账
             </button>
             <span style="flex:1"></span>
             <!-- settings/mapping 区高度三档档位钮（⇕，对齐抽屉宽度档钮形态；
  各自 tab 在场才显——档位只作用于对应 tab 的主体区，别处无意义） -->
-            <button v-if="tab === 'settings'" aria-label="Settings 高度档位" class="btn sm ghost" style="margin:var(--sp-1h) var(--sp-2)" :title="'Settings 区高度：' + settingsH + '（点击循环 三档）'" @click="cycleSettingsH"><ArrowUpDown :size="11" /></button>
-            <button v-if="tab === 'mapping'" aria-label="Mapping 高度档位" class="btn sm ghost" style="margin:var(--sp-1h) var(--sp-2)" :title="'Mapping 区高度：' + mapH + '（点击循环 三档）'" @click="cycleMapH"><ArrowUpDown :size="11" /></button>
+            <button v-if="tab === 'settings'" aria-label="Settings 高度档位" class="btn sm ghost" style="margin:var(--sp-1h) var(--sp-2)" v-tip="'Settings 区高度：' + settingsH + '（点击循环 三档）'" @click="cycleSettingsH"><ArrowUpDown :size="11" /></button>
+            <button v-if="tab === 'mapping'" aria-label="Mapping 高度档位" class="btn sm ghost" style="margin:var(--sp-1h) var(--sp-2)" v-tip="'Mapping 区高度：' + mapH + '（点击循环 三档）'" @click="cycleMapH"><ArrowUpDown :size="11" /></button>
             <button class="btn sm ghost" style="margin:var(--sp-1h) var(--sp-2)" :disabled="detailLoading" @click="loadDetail(true)">
               <RefreshCw :size="11" :class="{ spinning: detailLoading }" /> 刷新
             </button>
@@ -114,16 +114,16 @@
                 <button class="btn sm primary" :disabled="docsLoading" @click="runDocsNew()"><Play :size="11" /> {{ docsLoading ? '执行中 ' + (docsQr.elapsedMs.value / 1000).toFixed(1) + 's' : '检索' }}</button>
                 <button v-if="docsLoading" class="btn sm" @click="docsQr.cancel()"><X :size="11" /> 取消</button>
                 <!-- 带词跳转——docsQ 非空经 ?q= 直达查询工作台并预填 DSL（跨页联动闭环） -->
-                <button aria-label="在查询工作台打开（变量/聚合图/Profile）" class="btn sm ghost" :title="docsQ.trim() ? '在查询工作台打开当前查询词（变量/聚合图/Profile）' : '在查询工作台打开（变量/聚合图/Profile）'" @click="goto(docsQ.trim() ? '/search?q=' + encodeURIComponent(docsQ.trim()) : '/search')"><ExternalLink :size="11" /></button>
+                <button aria-label="在查询工作台打开（变量/聚合图/Profile）" class="btn sm ghost" v-tip="docsQ.trim() ? '在查询工作台打开当前查询词（变量/聚合图/Profile）' : '在查询工作台打开（变量/聚合图/Profile）'" @click="goto(docsQ.trim() ? '/search?q=' + encodeURIComponent(docsQ.trim()) : '/search')"><ExternalLink :size="11" /></button>
                 <!-- P1：失败态 RawIo 常驻——RT 内 Terminal 钮只随 docsRan 成功态渲染，
  检索失败（docsErr）时全页无取数入口；工具行常驻钮补失败现场回看（openRawIo 双特征回退单源零触） -->
-                <button class="btn sm ghost" aria-label="查看原始 IO（检索行）" title="最近一次检索的请求/响应原文（失败现场也可回看；语义分档高亮 + 复制/curl 回放）" @click="openRawIo('query')"><Terminal :size="11" /></button>
+                <button class="btn sm ghost" aria-label="查看原始 IO（检索行）" v-tip="'最近一次检索的请求/响应原文（失败现场也可回看；语义分档高亮 + 复制/curl 回放）'" @click="openRawIo('query')"><Terminal :size="11" /></button>
                 <!-- cURL 快速复制（DevToolsView copyCurl 钮形）——当前检索词经
  buildDocsDslWithSort() 组 POST /{idx}/_search -d body，工单/群聊直贴 -->
-                <button class="btn sm ghost" aria-label="复制 cURL" title="把当前检索复制为 cURL 命令（含排序/分页，直贴终端回放）" @click="copyDocsCurl"><Terminal :size="11" /> cURL</button>
+                <button class="btn sm ghost" aria-label="复制 cURL" v-tip="'把当前检索复制为 cURL 命令（含排序/分页，直贴终端回放）'" @click="copyDocsCurl"><Terminal :size="11" /> cURL</button>
                 <!-- 检索历史入口（docs 检索自 一直入 lucene 历史但无入口）——
  复用本页 histOpen 历史面板（lucene 行并显，回放走 docsQ 草稿路径） -->
-                <button class="btn sm ghost" data-test="docs-hist" @click="histOpen = true" title="检索历史"><History :size="11" /> 历史</button>
+                <button class="btn sm ghost" data-test="docs-hist" @click="histOpen = true" v-tip="'检索历史'"><History :size="11" /> 历史</button>
               </div>
               <!-- 语义高亮批：Lucene 括号失配纠错——只报组件内联检查（LuceneInput：引号/尾随运算符）
  不覆盖的括号失配，避免与组件提示条重复播报；警告档 --warn；纯提示不拦截，
@@ -148,7 +148,7 @@
               <div v-if="docsPartialHint && !docsPartialDismissed" class="ih-partial mono" role="status">
                 <AlertTriangle :size="12" />
                 <span>{{ docsPartialHint }}</span>
-                <button class="ih-partial-x" aria-label="关闭提示" title="关闭提示" @click="docsPartialDismissed = true"><X :size="11" /></button>
+                <button class="ih-partial-x" aria-label="关闭提示" v-tip="'关闭提示'" @click="docsPartialDismissed = true"><X :size="11" /></button>
               </div>
               <!-- 有旧结果时再检索失败：结果表仍在（docsRan 不复位），错误只能挤在右下角 toast
                    里、盖住表格正文。原位错误条把它搬回表格上方——不遮挡、可重试、旧结果标明
@@ -194,7 +194,7 @@
                     </div>
                     <!-- 1439：改了检索词没重新检索时，表格里仍是上一次的结果——DSL/Lucene 同款芯片 -->
                     <span v-if="docsStale" class="pill warn stale-chip" role="status"
-                      title="当前检索词已修改但还没执行——下方结果仍来自上一次检索（回车或点「检索」更新）">结果已过期</span>
+                      v-tip="'当前检索词已修改但还没执行——下方结果仍来自上一次检索（回车或点「检索」更新）'">结果已过期</span>
                     <Pagination v-if="docsView !== 'json' && docsView !== 'tree'"
                       :page="docsPage" :total-pages="docsTotalPages" :page-size="docsSize"
                       :disabled="docsLoading" @update:page="goDocsPage" @update:page-size="setDocsSize" />
@@ -203,7 +203,7 @@
                     <!-- 1357：行内「原始 IO」钮退役——与工具行「更多 ⋯」里的 ih-raw-io-docs
  是同一动作同一入口函数，重复平铺违反项目右键约定；低频排查留在菜单内。 -->
                     <button class="btn sm ghost rt-tool-btn ih-tip-btn" aria-label="表格操作提示"
-                      :title="`${docsQuerySummary(docsQ)}
+                      v-tip="`${docsQuerySummary(docsQ)}
 表格内 Ctrl+F 查找并高亮命中；双击单元格就地编辑（保存即全量覆盖 _source）${canWrite ? '' : '；当前角色只读，双击不会进入编辑'}；↑↓ 行导航、Enter 打开文档`">
                       <Info :size="13" />
                     </button>
@@ -265,36 +265,36 @@
                 <button class="btn sm primary btn-run-lock" :disabled="qryLoading" @click="runDslNew"><Play :size="11" /> {{ qryLoading ? '执行中 ' + (qryQr.elapsedMs.value / 1000).toFixed(1) + 's' : '执行查询' }}</button>
                 <button v-if="qryLoading" class="btn sm" @click="qryQr.cancel()"><X :size="11" /> 取消</button>
                 <!-- 在 DevTools 打开（473 同款，就地 DSL 带到多标签控制台） -->
-                <button class="btn sm ghost" :disabled="!qryResp" @click="openQryInDevTools" title="把当前索引与 DSL 带到 DevTools 多标签控制台">
+                <button class="btn sm ghost" :disabled="!qryResp" @click="openQryInDevTools" v-tip="'把当前索引与 DSL 带到 DevTools 多标签控制台'">
                   <ExternalLink :size="11" /> DevTools
                 </button>
                 <!--  P1：失败态 RawIo 常驻——RT 内 Terminal 钮只在 qryResp 成功态渲染
                      （v-else-if），查询失败（qryErr）时无取数入口；失败现场回看同 docs 检索行 -->
-                <button class="btn sm ghost" aria-label="查看原始 IO（查询行）" title="最近一次查询的请求/响应原文（失败现场也可回看；语义分档高亮 + 复制/curl 回放）" @click="openRawIo('query')"><Terminal :size="11" /></button>
+                <button class="btn sm ghost" aria-label="查看原始 IO（查询行）" v-tip="'最近一次查询的请求/响应原文（失败现场也可回看；语义分档高亮 + 复制/curl 回放）'" @click="openRawIo('query')"><Terminal :size="11" /></button>
                 <!-- cURL 快速复制（query 档）——编辑器 DSL 原文组 POST /{idx}/_search -->
-                <button class="btn sm ghost" aria-label="复制 cURL" title="把当前 DSL 复制为 cURL 命令（直贴终端回放）" @click="copyQryCurl"><Terminal :size="11" /> cURL</button>
+                <button class="btn sm ghost" aria-label="复制 cURL" v-tip="'把当前 DSL 复制为 cURL 命令（直贴终端回放）'" @click="copyQryCurl"><Terminal :size="11" /> cURL</button>
                 <!-- 页内历史入口（Kibana 对标第四维）——runDsl 自 一直在
                      push('dsl') 历史，此前只写不显（其余模式出口在查询工作台抽屉） -->
-                <button class="btn sm ghost" data-test="open-hist" @click="histOpen = true" title="查询历史"><History :size="11" /> 历史</button>
+                <button class="btn sm ghost" data-test="open-hist" @click="histOpen = true" v-tip="'查询历史'"><History :size="11" /> 历史</button>
                 <!-- Profile 开关（「组件就绪待接」落地）——开启后就地执行走
                      /cluster/profile 通道（body 透传 _search+profile:true，hits/aggregations 同形），
                      树回显 per-shard/分段耗时；形态=DQ 执行行 dq-sw 激活胶囊同语言（ih-sw 本页落款） -->
                 <!-- Profile 开关：原生 checkbox 升档 NCheckbox（.ih-sw 激活胶囊类挂根，on 态绑定不动） -->
                 <n-checkbox class="ih-sw" :class="{ on: profileOn }" v-model:checked="profileOn" size="small"
-                  title="Query Profiler：返回 breakdown 耗时树（开启后就地执行走 Profile 通道）">Profile</n-checkbox>
+                  v-tip="'Query Profiler：返回 breakdown 耗时树（开启后就地执行走 Profile 通道）'">Profile</n-checkbox>
                 <!-- 编辑器高度四档钮（S/M/L/满，查询工作台 dq-eh 同款视觉）。
                       P2：拖柄自定态下档位钮全灭（qryH>0 覆写档位），点档位钮清零
                      回档位高度（DQ「回不去」根治同款） -->
-                <div class="ih-eh" role="group" aria-label="编辑器高度档位" title="编辑器高度档位：S/M/L/满">
+                <div class="ih-eh" role="group" aria-label="编辑器高度档位" v-tip="'编辑器高度档位：S/M/L/满'">
                   <button v-for="eh in EDITOR_H_TIERS" :key="eh.k" type="button" class="ih-eh-btn"
                     :class="{ on: editorH === eh.k && qryH <= 0 }" :aria-pressed="editorH === eh.k && qryH <= 0"
-                    :title="'编辑器高度：' + eh.t" @click="editorH = eh.k; qryH = 0">{{ eh.t }}</button>
+                    v-tip="'编辑器高度：' + eh.t" @click="editorH = eh.k; qryH = 0">{{ eh.t }}</button>
                 </div>
                 <!-- 编辑器字号三档 seg（ih.font 落盘；dq.font/dt.font 同源
                      EDITOR_FONT_TIERS 单源，编辑器设置族与高度档同排同语义） -->
                 <span class="seg ih-font-seg" role="group" aria-label="编辑器字号档">
                   <button v-for="f in EDITOR_FONT_TIERS" :key="f" type="button" :class="{ on: ihFont === f }"
-                    :title="'编辑器字号 ' + f + 'px'" @click="ihFont = f">{{ f }}</button>
+                    v-tip="'编辑器字号 ' + f + 'px'" @click="ihFont = f">{{ f }}</button>
                 </span>
               </div>
               <!-- Profile 耗时树接线（件落地）——profileOn 开时 runDsl 走
@@ -315,7 +315,7 @@
               <div v-if="qryPartialHint && !qryPartialDismissed" class="ih-partial mono" role="status">
                 <AlertTriangle :size="12" />
                 <span>{{ qryPartialHint }}</span>
-                <button class="ih-partial-x" aria-label="关闭提示" title="关闭提示" @click="qryPartialDismissed = true"><X :size="11" /></button>
+                <button class="ih-partial-x" aria-label="关闭提示" v-tip="'关闭提示'" @click="qryPartialDismissed = true"><X :size="11" /></button>
               </div>
               <!-- 私造红壳（border+err-soft+radius，样式 :ih-qerr 段）退役，合并全局
                    err-bar 形态（role=alert+重试钮+errPreHtml/errMeta 双参；DslQueryView :269 554
@@ -350,7 +350,7 @@
                   </div>
                   <!-- 1439：改了 DSL 没重新执行时结果还是上一次的——docs/Lucene/工作台同款芯片 -->
                   <span v-if="qryStale" class="pill warn stale-chip" role="status"
-                    title="当前 DSL 已修改但还没执行——下方结果仍来自上一次执行（Ctrl+Enter 或点「执行查询」更新）">结果已过期</span>
+                    v-tip="'当前 DSL 已修改但还没执行——下方结果仍来自上一次执行（Ctrl+Enter 或点「执行查询」更新）'">结果已过期</span>
                   <Pagination v-if="qryView !== 'json' && qryView !== 'tree'"
                     :page="qryPage" :total-pages="qryTotalPages" :page-size="qrySize"
                     :disabled="qryLoading" @update:page="goQryPage" @update:page-size="setQrySize" />
@@ -359,7 +359,7 @@
                   <!-- 1357：行内「原始 IO」钮退役（与 ih-raw-io-query 菜单项重复，同 1357 裁决） -->
                   <!-- 查询 tab 教育文案合并 Info 钮 tooltip（docs tab 同款裁决，去常驻独立行） -->
                   <button class="btn sm ghost rt-tool-btn ih-tip-btn" aria-label="查询操作提示"
-                    :title="`对 ${cur} 就地执行 DSL（Ctrl+Enter 执行）；变量、聚合可视化、Profile 等深度调试去「查询工作台」；表格内 Ctrl+F 查找并高亮命中，↑↓ 行导航、Enter 打开文档`">
+                    v-tip="`对 ${cur} 就地执行 DSL（Ctrl+Enter 执行）；变量、聚合可视化、Profile 等深度调试去「查询工作台」；表格内 Ctrl+F 查找并高亮命中，↑↓ 行导航、Enter 打开文档`">
                     <Info :size="13" />
                   </button>
                 </template>
@@ -393,7 +393,7 @@
               <div class="ih-kv-ms">
                 <MetaStrip :items="settingsKvMeta" />
                 <button class="btn sm ghost ih-tip-btn" type="button" aria-label="Settings 说明"
-                  title="线上实际 settings（含系统键）。要改热参数用「改 Setting」，静态参数需重建。">
+                  v-tip="'线上实际 settings（含系统键）。要改热参数用「改 Setting」，静态参数需重建。'">
                   <Info :size="13" />
                 </button>
               </div>
@@ -428,7 +428,7 @@
                   <span class="ih-sh-total mono">共 {{ shardRows.length }} 分片（{{ curInfo?.pri }} 主 × {{ Number(curInfo?.rep || 0) + 1 }} 份）</span>
                   <span style="flex:1"></span>
                   <!-- 分片分布表复制（Markdown 群聊/工单直贴，与 复制组同语义） -->
-                  <button class="btn sm ghost" title="复制分片分布表（Markdown）" @click="copyShardTable"><ClipboardList :size="11" /> 复制分布表</button>
+                  <button class="btn sm ghost" v-tip="'复制分片分布表（Markdown）'" @click="copyShardTable"><ClipboardList :size="11" /> 复制分布表</button>
                   <button v-if="shardStats.unassigned" class="btn sm" @click="goto('/diag')"><Stethoscope :size="11" /> 诊断未分配原因</button>
                 </div>
                 <div v-for="grp in shardsByNode" :key="grp.node" class="ih-sh-node">
@@ -442,7 +442,7 @@
                       v-for="(s, i) in grp.shards" :key="i"
                       class="ih-sh-block mono"
                       :class="[s.prirep === 'p' ? 'pri' : 'rep', { bad: s.state !== 'STARTED' }]"
-                      :title="`分片 ${s.shard} · ${s.prirep === 'p' ? '主' : '副本'} · ${s.state}\n文档 ${fmtNum(s.docs)} · 存储 ${fmtSize(s.storeBytes)}\n点击复制分片定位`"
+                      v-tip="`分片 ${s.shard} · ${s.prirep === 'p' ? '主' : '副本'} · ${s.state}\n文档 ${fmtNum(s.docs)} · 存储 ${fmtSize(s.storeBytes)}\n点击复制分片定位`"
                       @click="copyShardLocate(grp.node, s)"
                      role="button" tabindex="0" @keydown.enter.prevent="copyShardLocate(grp.node, s)" @keydown.space.prevent="copyShardLocate(grp.node, s)">
 {{ s.shard }}<span class="ih-sh-pr">{{ s.prirep === 'p' ? 'P' : 'R' }}</span>
@@ -566,7 +566,7 @@
                    但此前全页取数口只认 /cluster/query；Terminal 钮挂分节行尾（docs/query 两 tab 同款钮形），
                    门禁与行级执行同权（canOps || canAdmin） -->
               <div v-if="canOps || canAdmin" style="margin-top:var(--sp-2)">
-                <button class="btn sm ghost" aria-label="查看原始 IO（运维操作）" title="最近一次运维操作的请求/响应原文（语义分档高亮 + 复制/curl 回放）" @click="openRawIo('ops')"><Terminal :size="13" /></button>
+                <button class="btn sm ghost" aria-label="查看原始 IO（运维操作）" v-tip="'最近一次运维操作的请求/响应原文（语义分档高亮 + 复制/curl 回放）'" @click="openRawIo('ops')"><Terminal :size="13" /></button>
               </div>
             </template>
           </div>
@@ -617,7 +617,7 @@
           <button class="btn sm ghost" @click="docEditMode = false">取消</button>
           <!-- 编辑器高度档钮（ih.docH useTierCycle 循环，title 实时回显当前档；
                dq.docH :500 档钮同款形态） -->
-          <button class="btn sm ghost" :title="'编辑器高度档：' + docH + '（点击循环）'" @click="cycleDocH">高</button>
+          <button class="btn sm ghost" v-tip="'编辑器高度档：' + docH + '（点击循环）'" @click="cycleDocH">高</button>
         </div>
       </template>
     </n-modal>
@@ -630,7 +630,7 @@
       <div v-if="listOpen" class="ih-drawer-mask" @click.self="listOpen = false">
         <div ref="drawerEl" class="ih-left ih-drawer" tabindex="-1" :style="{ width: drawerWCss }"><!-- ：card 壳摘除（556 设计稿 P1）——fixed 浮层上再包一层 .card 是空框感主源；.ih-drawer 既有 padding/shadow-pop/r-l 圆角+遮罩承担层级，bg0 直贴（theme.css .card 依赖随之消失；.ih-left/.ih-drawer 声明零改） -->
           <div class="ih-lbar">
-            <button class="ih-collapse-btn" aria-label="关闭索引列表" title="关闭（Esc 也可）" @click="listOpen = false">
+            <button class="ih-collapse-btn" aria-label="关闭索引列表" v-tip="'关闭（Esc 也可）'" @click="listOpen = false">
               <X :size="13" />
             </button>
             <div class="ih-search">
@@ -640,27 +640,27 @@
             <!-- 搜索定位：命中计数 + 上/下一个（Enter/Shift+Enter 在搜索框接线） -->
             <HitNav :count="filtered.length" :current="hitCur" compact @next="hitNext" @prev="hitPrev" />
             <!-- B：元信息排序（字段下拉 + 升/降切换），状态进 URL；W3c：原生 select 升档 NSelect（档值零变化） -->
-            <n-select v-model:value="sortKey" class="ih-sort-sel" size="tiny" :options="sortFieldOpts" title="排序字段" />
-            <button :aria-label="sortDir === 'asc' ? '升序' : '降序'" class="ih-sort-dir" :title="sortDir === 'asc' ? '升序' : '降序'" @click="sortDir = sortDir === 'asc' ? 'desc' : 'asc'">
+            <n-select v-model:value="sortKey" class="ih-sort-sel" size="tiny" :options="sortFieldOpts" v-tip="'排序字段'" />
+            <button :aria-label="sortDir === 'asc' ? '升序' : '降序'" class="ih-sort-dir" v-tip="sortDir === 'asc' ? '升序' : '降序'" @click="sortDir = sortDir === 'asc' ? 'desc' : 'asc'">
               <ArrowUp v-if="sortDir === 'asc'" :size="13" />
               <ArrowDown v-else :size="13" />
             </button>
             <!-- 抽屉宽度三档循环钮（常规 32vw/宽 40vw/吃满 86vw），usePref 跨会话记忆（ih.editorH 同款范式） -->
-            <button :aria-label="`抽屉宽度：当前${drawerWLabel}，点击循环三档`" class="ih-sort-dir" :title="`抽屉宽度：${drawerWLabel}（点击循环 常规→宽→吃满）`" @click="cycleDrawerW">
+            <button :aria-label="`抽屉宽度：当前${drawerWLabel}，点击循环三档`" class="ih-sort-dir" v-tip="`抽屉宽度：${drawerWLabel}（点击循环 常规→宽→吃满）`" @click="cycleDrawerW">
               <MoveHorizontal :size="13" />
             </button>
             <!-- 放大/还原双态钮（历史重构遗失，裁决回补）——同钮双态聚焦范式；
                  放大=工作区整行(.ih)全屏聚焦面 .fs-active，还原钮同步内置于工作区卡片头（防盖死） -->
             <button :aria-label="fsActive ? '还原工作区' : '放大工作区'" class="ih-collapse-btn ih-fs-btn" :class="{ on: fsActive }"
-              :title="fsActive ? '还原工作区（Esc 也可）' : '放大工作区（列表+详情整行全屏）'" @click="toggleFs">
+              v-tip="fsActive ? '还原工作区（Esc 也可）' : '放大工作区（列表+详情整行全屏）'" @click="toggleFs">
               <Minimize2 v-if="fsActive" :size="13" />
               <Maximize2 v-else :size="13" />
             </button>
-            <button aria-label="刷新索引列表" class="btn sm ghost" title="刷新索引列表" :disabled="store.loadingIndices" @click="store.loadIndices()">
+            <button aria-label="刷新索引列表" class="btn sm ghost" v-tip="'刷新索引列表'" :disabled="store.loadingIndices" @click="store.loadIndices()">
               <RefreshCw :size="12" :class="{ spinning: store.loadingIndices }" />
             </button>
             <!-- 新建索引一等入口；：rank3+ 可见（/cluster/create-index=CLUSTER 档） -->
-            <button v-if="canCreateIdx" aria-label="新建索引（名称校验 + 分片/副本 + 别名 + 高级 JSON）" class="btn sm primary" title="新建索引（名称校验 + 分片/副本 + 别名 + 高级 JSON）" @click="createOpen = '1'">
+            <button v-if="canCreateIdx" aria-label="新建索引（名称校验 + 分片/副本 + 别名 + 高级 JSON）" class="btn sm primary" v-tip="'新建索引（名称校验 + 分片/副本 + 别名 + 高级 JSON）'" @click="createOpen = '1'">
               <Plus :size="12" />
             </button>
           </div>
@@ -670,7 +670,7 @@
             </button>
             <!-- v3.0.1：行高三档钮同源同键(es_tbl_rowh/同循环序),与查询工作台行高心智一致 -->
             <button :aria-label="`行高：当前${rowHLabel}，点击循环三档`" class="ih-rowh-btn"
-              :title="`行高：${rowHLabel}（点击循环 紧凑→标准→宽松）`" @click="cycleRowH">
+              v-tip="`行高：${rowHLabel}（点击循环 紧凑→标准→宽松）`" @click="cycleRowH">
               <AlignJustify :size="12" /> {{ rowHLabel }}
             </button>
           </div>
@@ -690,24 +690,24 @@
               <span class="ih-hdot" :style="{ background: healthColor(idx.health) }"></span>
               <div class="ih-row-main">
                 <div class="ih-row-top">
-                  <span class="ih-row-nm mono" :title="idx.index"><MarkText :text="idx.index" :kw="kwInput" /></span>
+                  <span class="ih-row-nm mono" v-tip="idx.index"><MarkText :text="idx.index" :kw="kwInput" /></span>
                   <span
                     v-if="rowAliases(idx.index).length"
-                    class="ih-row-alias" :title="'别名：' + rowAliases(idx.index).join(', ')"
+                    class="ih-row-alias" v-tip="'别名：' + rowAliases(idx.index).join(', ')"
                   >{{ rowAliases(idx.index).length }} 别名</span>
                   <span class="ih-row-docs mono">{{ fmtNum(idx['docs.count']) }}</span>
                 </div>
-                <div class="ih-row-meta mono" :title="`存储 ${idx['store.size'] || '-'} · ${idx.pri}/${idx.rep} 分片 · 创建 ${fmtDate(idx['creation.date.string'])}`">
+                <div class="ih-row-meta mono" v-tip="`存储 ${idx['store.size'] || '-'} · ${idx.pri}/${idx.rep} 分片 · 创建 ${fmtDate(idx['creation.date.string'])}`">
                   <!-- 裸 ES 字节串退役 → semBytes 同页同口径（title 恒 raw 原串） -->
                   {{ semBytes(idx['store.size']) }} · {{ idx.pri }}/{{ idx.rep }} 分片
                 </div>
               </div>
-              <button :aria-label="'复制：' + idx.index" class="ih-row-copy" :title="'复制：' + idx.index" @click.stop="doCopyName(idx.index)"><Copy :size="10" /></button>
+              <button :aria-label="'复制：' + idx.index" class="ih-row-copy" v-tip="'复制：' + idx.index" @click.stop="doCopyName(idx.index)"><Copy :size="10" /></button>
             </div>
             <EmptyState v-if="!filtered.length && store.indices.length" compact :icon="Search" text="无匹配索引" action-text="清除过滤" @action="kw = ''; healthF = 'all'" />
             <EmptyState v-else-if="!filtered.length && !store.loadingIndices" compact :icon="Boxes" text="集群暂无索引" />
           </div>
-          <div class="ih-lfoot mono">{{ filtered.length }} / {{ store.indices.length }}<span v-if="ihKb" class="ih-kbd-hint" title="列表已获焦：↑↓ 浏览、Home/End 跳首末、Enter 选中">↑↓ Enter</span></div>
+          <div class="ih-lfoot mono">{{ filtered.length }} / {{ store.indices.length }}<span v-if="ihKb" class="ih-kbd-hint" v-tip="'列表已获焦：↑↓ 浏览、Home/End 跳首末、Enter 选中'">↑↓ Enter</span></div>
         </div>
       </div>
     </transition>

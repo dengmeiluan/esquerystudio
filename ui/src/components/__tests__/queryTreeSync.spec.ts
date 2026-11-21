@@ -29,6 +29,11 @@ function mount(src: unknown, opts: { stale?: boolean } = {}) {
 beforeEach(() => { document.body.innerHTML = ''; localStorage.clear(); delete (window as any)[DRAG_KEY]; });
 afterEach(() => { while (apps.length) apps.pop()!.unmount(); });
 
+/* 「折叠全部/展开全部/停用全部/启用全部」icon+文本钮迁 v-tip 后无 title/aria-label
+   （可见文本即可访问名），按可见文本精确锚定 */
+const btnText = (host: HTMLElement, text: string) =>
+  [...host.querySelectorAll('button')].find(b => b.textContent?.trim() === text) as HTMLElement | undefined;
+
 describe('QueryTreePane', () => {
   it('root=null（无 query 键）显示「加查询条件」，点击生成 bool.must', async () => {
     const { host, tree } = mount({ size: 10 });
@@ -64,7 +69,7 @@ describe('QueryTreePane', () => {
 
   it('删光组内子句 → root 自动回退 match_all', async () => {
     const { host, tree } = mount({ query: { bool: { must: [{ term: { a: 1 } }] } } });
-    (host.querySelector('.cn [title="删除"]') as HTMLElement).click();
+    (host.querySelector('.cn button[aria-label="删除"]') as HTMLElement).click();
     await new Promise(r => setTimeout(r));
     expect(tree.value.root).toMatchObject({ type: 'leaf', op: 'match_all' });
     expect(serializeTree(tree.value)).toEqual({ query: { match_all: {} } });
@@ -89,7 +94,7 @@ describe('QueryTreePane', () => {
 
   it('单节点 root 的「包成 bool 组」→ wrapRoot', async () => {
     const { host, tree } = mount({ query: { term: { a: 1 } } });
-    (host.querySelector('.cn [title="包成 bool 组"]') as HTMLElement).click();
+    (host.querySelector('.cn button[aria-label="包成 bool 组"]') as HTMLElement).click();
     await new Promise(r => setTimeout(r));
     const ser = serializeTree(tree.value) as any;
     expect(ser.query.bool.must).toEqual([{ term: { a: 1 } }]);
@@ -97,7 +102,7 @@ describe('QueryTreePane', () => {
 
   it('单节点 root 删除 → 回退 match_all（onRootRemove 直路径）', async () => {
     const { host, tree } = mount({ query: { term: { a: 1 } } });
-    (host.querySelector('.cn [title="删除"]') as HTMLElement).click();
+    (host.querySelector('.cn button[aria-label="删除"]') as HTMLElement).click();
     await new Promise(r => setTimeout(r));
     expect(tree.value.root).toMatchObject({ type: 'leaf', op: 'match_all' });
   });
@@ -161,12 +166,12 @@ describe('QueryTreePane', () => {
   it('五百一十九批：折叠全部/展开全部广播所有嵌套组（含根组）', async () => {
     const { host } = mount({ query: { bool: { must: [{ term: { a: 1 } }, { bool: { should: [{ term: { b: 2 } }] } }] } } });
     expect(host.querySelectorAll('.bgn').length).toBe(2);
-    (host.querySelector('button[title="折叠全部嵌套组"]') as HTMLElement).click();
+    btnText(host, '折叠全部')!.click();
     await new Promise(r => setTimeout(r));
     /* 根组折叠后 body（含嵌套组）整棵隐藏：可见 .bgn 只剩根组自身，且组头出摘要 */
     expect(host.querySelectorAll('.bgn-sum').length, '根组进折叠态（组头出摘要）').toBe(1);
     expect(host.querySelectorAll('.bgn').length, '嵌套组随根组 body 隐藏').toBe(1);
-    (host.querySelector('button[title="展开全部嵌套组"]') as HTMLElement).click();
+    btnText(host, '展开全部')!.click();
     await new Promise(r => setTimeout(r));
     expect(host.querySelectorAll('.bgn').length, '展开后嵌套组恢复').toBe(2);
     expect(host.querySelectorAll('.bgn-sum').length, '展开后摘要消失').toBe(0);
@@ -235,11 +240,11 @@ describe('QueryTreePane', () => {
       walk(tree.value.root);
       return out;
     };
-    (host.querySelector('button[title="全部条件临时停用（不删除，可恢复）"]') as HTMLElement).click();
+    btnText(host, '停用全部')!.click();
     await new Promise(r => setTimeout(r));
     expect(leavesOf().length).toBe(2);
     expect(leavesOf().every(l => l.disabled === true), '嵌套叶也一并停用').toBe(true);
-    (host.querySelector('button[title="全部条件恢复参与匹配"]') as HTMLElement).click();
+    btnText(host, '启用全部')!.click();
     await new Promise(r => setTimeout(r));
     expect(leavesOf().every(l => !l.disabled), '全部恢复参与匹配').toBe(true);
   });

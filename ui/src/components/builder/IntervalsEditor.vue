@@ -7,27 +7,27 @@
     <div class="ivr-hd">
       <span v-if="depth" class="ivr-idx mono">{{ (idx ?? 0) + 1 }}</span>
       <n-select class="ivr-kind" size="tiny" :value="rule.kind" :options="kindOptions"
-                title="规则类型（all_of/any_of 可嵌套子规则递归组合）"
+                v-tip="'规则类型（all_of/any_of 可嵌套子规则递归组合）'"
                 @update:value="onKind" />
       <input class="inp mono ivr-name" :value="rule.hasName ? String(rule.name ?? '') : ''" placeholder="_name"
-             title="命名查询（可选；出现在 hits.matched_queries 里供定位）" @input="onName(($event.target as HTMLInputElement).value)" />
+             v-tip="'命名查询（可选；出现在 hits.matched_queries 里供定位）'" @input="onName(($event.target as HTMLInputElement).value)" />
       <span style="flex:1"></span>
       <button aria-label="规则参数" class="btn sm ghost" :class="{ on: showParams }"
-              title="规则参数（max_gaps/ordered/analyzer/use_field…）" @click="showParams = !showParams">
+              v-tip="'规则参数（max_gaps/ordered/analyzer/use_field…）'" @click="showParams = !showParams">
         <SlidersHorizontal :size="12" />
       </button>
       <button aria-label="位置过滤 filter" class="btn sm ghost" :class="{ on: showFilter }"
-              :title="'filter：与其他规则区间的位置关系（' + (rule.filter?.slots.length || 0) + ' 个关系槽）'"
+              v-tip="'filter：与其他规则区间的位置关系（' + (rule.filter?.slots.length || 0) + ' 个关系槽）'"
               @click="showFilter = !showFilter">
         <Filter :size="12" />
       </button>
-      <button v-if="depth" aria-label="删除规则" class="btn sm ghost danger" title="删除该子规则" @click="emit('remove')">
+      <button v-if="depth" aria-label="删除规则" class="btn sm ghost danger" v-tip="'删除该子规则'" @click="emit('remove')">
         <X :size="12" />
       </button>
     </div>
     <!-- 单值型主值（query/prefix/pattern/term） -->
     <input v-if="mainMeta" class="inp mono ivr-main" :value="rule.main === undefined || rule.main === null ? '' : String(rule.main)"
-           :placeholder="mainMeta.mainLabel" :title="mainMeta.mainLabel"
+           :placeholder="mainMeta.mainLabel" v-tip="mainMeta.mainLabel"
            @input="patch({ main: ($event.target as HTMLInputElement).value })" />
     <!-- 容器型子规则（递归行） -->
     <template v-if="isContainer">
@@ -46,9 +46,9 @@
     <!-- 规则级 filter：关系槽（槽值递归）+ 其余键（script 等） -->
     <div v-if="showFilter" class="ivr-sub ivr-flt">
       <div v-for="s in rule.filter?.slots || []" :key="s.id" class="ivr-fslot">
-        <n-select class="ivr-frel" size="tiny" :value="s.rel" :options="relOptions" title="位置关系"
+        <n-select class="ivr-frel" size="tiny" :value="s.rel" :options="relOptions" v-tip="'位置关系'"
                   @update:value="v => onSlotRel(s.id, v)" />
-        <button aria-label="删除关系槽" class="btn sm ghost danger" title="删除该关系槽" @click="delSlot(s.id)">
+        <button aria-label="删除关系槽" class="btn sm ghost danger" v-tip="'删除该关系槽'" @click="delSlot(s.id)">
           <X :size="12" />
         </button>
         <IntervalsEditor :rule="s.rule" :fields="fields" :types="types" :depth="depth + 1"

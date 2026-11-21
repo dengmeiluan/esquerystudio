@@ -155,23 +155,23 @@ describe('751 A0 挂载不变量负锚（现状即守卫）', () => {
   });
 });
 
-describe('751 G183 当前设置键 :title 中文释义（铁律 F·头号·共享目录单源）', () => {
-  it('9 键全部带 :title（修前红：0/9 裸英文）+refresh_interval 悬浮含「刷新间隔」与「示例」', async () => {
+describe('751 G183 当前设置键提示中文释义（铁律 F·头号·共享目录单源）', () => {
+  it('9 键全部带提示（修前红：0/9 裸英文）+refresh_interval 悬浮含「刷新间隔」与「示例」', async () => {
     const host = await mountView();
     const ks = [...host.querySelectorAll('.io-k')] as HTMLElement[];
     expect(ks.length).toBe(9);
-    const withTitle = ks.filter(k => (k.getAttribute('title') || '').length > 3);
-    expect(withTitle.length, 'G183 病灶：当前设置键无中文释义（修前红）').toBe(9);
-    const ri = ks.find(k => (k.textContent || '').trim() === 'refresh_interval')!;
-    expect(ri.getAttribute('title')).toContain('刷新间隔');
-    expect(ri.getAttribute('title')).toContain('示例');
+    /* 键提示已迁 v-tip 指令（DOM 无 title 属性）——释义接线与目录内容改源码锚：
+       9 键共用同一 ioHint 绑定（目录精确命中即 9/9 带释义） */
+    expect(src).toContain('v-tip="ioHint(k)"');
+    expect(src).toContain("return s ? `${s.desc}｜示例：${s.example}` : ''");
+    const catalog = readFileSync(join(__dirname, '../utils/indexSettingsCatalog.ts'), 'utf8');
+    expect(catalog).toContain("{ key: 'refresh_interval', desc: '刷新间隔'");
     /* dot-path 键（translog.durability）同走目录精确命中 */
-    const td = ks.find(k => (k.textContent || '').trim() === 'translog.durability')!;
-    expect((td.getAttribute('title') || '')).toContain('translog');
+    expect(catalog).toContain("'translog.durability'");
   });
 
   it('源码锁：悬浮接线走共享索引设置目录单源（557 csHint 同款 find 形态）', () => {
-    expect(src).toMatch(/:title="ioHint\(k\)"/);
+    expect(src).toMatch(/v-tip="ioHint\(k\)"/);
     expect(src).toMatch(/SETTINGS_CATALOG\.find/);
   });
 });

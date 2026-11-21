@@ -24,6 +24,11 @@ vi.mock('../api', async (importOriginal) => {
 import QueryResultTable from '../components/QueryResultTable.vue';
 import { useTablePrefs } from '../composables/useTablePrefs';
 
+/* 单元格提示已迁 v-tip 指令（DOM 无 title 属性）——「提示恒原始全文、空值为空串」
+ 的铁律改源码锚：td 的 v-tip 绑 cellMeta 的 full（raw 全文）装配 */
+const QRT_SRC = readFileSync(join(__dirname, '../components/QueryResultTable.vue'), 'utf-8');
+const CELL_TIP_ANCHOR = 'v-tip="cell === null || cell === undefined ? \'\' : (cellMeta[ri]?.[ci]?.full || \'\')"';
+
 /* hit 型样例：10 个 source 字段（超默认 8 列），无 _index/_score */
 function makeHits(nFields: number) {
   const src: Record<string, any> = {};
@@ -301,9 +306,8 @@ describe('QRT 单元格交互（三十六批对齐 ResultTable）', () => {
     const tdV = tds[2] as HTMLElement; // 列序：#（167 批）、_id, v, e
     const tdE = tds[3] as HTMLElement;
     expect(tdV.querySelector('.qrt-null')).toBeNull();
-    expect(tdV.getAttribute('title')).toBe('hello');
     expect(tdE.querySelector('.qrt-null')).not.toBeNull();
-    expect(tdE.getAttribute('title')).toBe('');
+    expect(QRT_SRC, '非空值提示绑 full 全文、空值提示空串（v-tip 绑定）').toContain(CELL_TIP_ANCHOR);
   });
 
   it('非空单元格可复制（显式路径：右键「复制值」）；单击不再复制', async () => {
@@ -377,7 +381,7 @@ describe('QRT epoch 毫秒人性化（四十二批）', () => {
     const tdTs = tds[2] as HTMLElement; // 列序：#（167 批）、_id, ts, n
     const tdN = tds[3] as HTMLElement;
     expect(tdTs.textContent?.trim()).toBe('2023-11-15 06:13:20');
-    expect(tdTs.getAttribute('title')).toBe('1700000000000');
+    expect(QRT_SRC, '显示层日期化、提示层恒原始值（v-tip 绑 full）').toContain(CELL_TIP_ANCHOR);
     /* 五十四批起 12345 ≥1e4 走千分位 */
     expect(tdN.textContent?.trim()).toBe('12,345');
   });
@@ -446,15 +450,14 @@ describe('QRT 大整数千分位（五十四批）', () => {
     const tdFrac = tds[4] as HTMLElement;
     const tdTs = tds[5] as HTMLElement;
     expect(tdBig.textContent?.trim()).toBe('1,234,567');
-    expect(tdBig.getAttribute('title')).toBe('1234567');
+    expect(QRT_SRC, '展示千分位、提示层恒原始值（v-tip 绑 full）').toContain(CELL_TIP_ANCHOR);
     expect(tdSmall.textContent?.trim()).toBe('42');
     expect(tdFrac.textContent?.trim()).toBe('1.5');
     expect(tdTs.textContent?.trim()).toContain('2023-11-15');
     /* 复制原始值 */
     tdBig.click();
-    /* 1374：单击复制退役后，这里只守「展示千分位、title/复制口径是原始值」。
+    /* 1374：单击复制退役后，这里只守「展示千分位、提示/复制口径是原始值」。
        复制本身走右键「复制值」（copyCell 传 String(原始值)），由 1374 的菜单绑定锁覆盖。 */
-    expect(tdBig.getAttribute('title')).toBe('1234567');
     spy.mockRestore();
   });
 });

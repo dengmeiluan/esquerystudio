@@ -173,8 +173,9 @@ describe('1122 v3 ①：适配后目标结构预览', () => {
     const plan = await openPlan(host);
     (plan.querySelector('[data-test="xm-plan-body-settings"] .cp-toggle') as HTMLButtonElement).click();
     await settle(2);
+    /* JsonArea 工具钮提示已随全站 v-tip 迁移（无原生 title 属性）——按钮定位改按文本「复制」 */
     const copyBtn = [...plan.querySelectorAll('[data-test="xm-plan-body-settings"] .ja-btn')]
-      .find(b => b.getAttribute('title') === '复制全文') as HTMLButtonElement;
+      .find(b => b.textContent!.trim().startsWith('复制')) as HTMLButtonElement;
     copyBtn.click();
     await settle(4);
     expect(copyTextFn).toHaveBeenCalled();

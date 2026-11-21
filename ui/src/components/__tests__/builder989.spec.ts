@@ -309,7 +309,7 @@ describe('989 RootExtrasPane suggest 项级编辑', () => {
     (host.querySelectorAll('button[aria-label="删除建议"]')[0] as HTMLElement).click();
     await tick();
     expect(cur.value.suggest!.items.map(s => s.name)).toEqual(['b']);
-    (host.querySelector('[title="移除 suggest 键"]') as HTMLElement).click();
+    (host.querySelector('[aria-label="移除 suggest 键"]') as HTMLElement).click();
     await tick();
     expect(cur.value.suggest).toBeNull();
     expect(serializeTree(cur.value)).toEqual({});

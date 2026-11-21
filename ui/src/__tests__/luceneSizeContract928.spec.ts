@@ -160,9 +160,9 @@ describe('header size 输入两口径收敛', () => {
   it('源码锁：NInputNumber 受控 :value/@change 单点绑定（v-model 裸绑退役；原生 number 防回潮）', () => {
     const src = readFileSync(join(__dirname, '../views/LuceneQueryView.vue'), 'utf-8');
     expect(src).toContain('<n-input-number :value="size" :min="1" :max="10000" size="small" :show-button="false"');
-    expect(src).toContain('class="lc-ii sm" title="每页返回条数 · 上限 10000" @change="onSizeChange" />');
+    expect(src).toContain(`class="lc-ii sm" v-tip="'每页返回条数 · 上限 10000'" @change="onSizeChange" />`);
     expect(src, 'v-model 裸绑必须退役').not.toContain('v-model.number="size"');
     expect(src, '原生 number 形态不得回流').not.toContain('type="number"');
-    expect(src).toContain('title="每页返回条数 · 上限 10000"');
+    expect(src).toContain(`v-tip="'每页返回条数 · 上限 10000'"`);
   });
 });

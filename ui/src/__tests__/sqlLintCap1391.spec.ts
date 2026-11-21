@@ -64,6 +64,6 @@ describe('1391 lint 提示条封顶，不把编辑器挤没', () => {
   it('提示条挂点与 role 语义不动（既有契约不回退）', () => {
     expect(src).toContain('<div v-if="sqlLintFindings.length" class="lint-bar sq-sql-lint lint-bar-warn" role="status">');
     /* 行号按钮仍在（可定位），只是可能位于滚动区内 */
-    expect(src).toContain(":title=\"'定位到第 ' + f.line + ' 行'\"");
+    expect(src).toContain("v-tip=\"'定位到第 ' + f.line + ' 行'\"");
   });
 });

@@ -9,7 +9,7 @@
       />
       <!-- 搜索定位：命中计数 + 上/下一个（复用上面的搜索框，Enter/Shift+Enter 接线） -->
       <HitNav :count="hitCount" :current="hitCur" compact @next="hitNext" @prev="hitPrev" />
-      <button class="jt-btn" :title="'复制全文 JSON'" @click="copyAll"><Copy :size="11" /> {{ copied ? '已复制' : '复制' }}</button>
+      <button class="jt-btn" v-tip="'复制全文 JSON'" @click="copyAll"><Copy :size="11" /> {{ copied ? '已复制' : '复制' }}</button>
     </div>
     <JNode :kv="rootEntries" :depth="0" />
     <!-- 行级右键的复制回执：在动作落点附近闪一条，不依赖全局 toast

@@ -36,12 +36,12 @@
         <!-- 补/211:刷新频率档位(3s 盯进度/10s 常规/30s 省请求,usePref 记忆)
  下拉改用 AutoRefreshSelect 统一件（原 .ipt tv-interval 原生 select 退役） -->
         <AutoRefreshSelect v-if="autoRefresh" v-model:ms="intervalMs" :sizes="[3000, 10000, 30000]" label="自动刷新频率" />
-        <button aria-label="刷新任务列表" class="btn sm ghost" @click="load" :disabled="loading" title="刷新任务列表">
+        <button aria-label="刷新任务列表" class="btn sm ghost" @click="load" :disabled="loading" v-tip="'刷新任务列表'">
           <RefreshCw :size="12" :class="{ spinning: loading }" />
         </button>
         <!-- G255：原始 IO 快查入口（铁律 F·755 G200 三件套同构——本页与
  TaskTree 同端点 _tasks；记录环最近一条请求/响应原文直达，无记录不开空弹窗） -->
-        <button class="btn sm ghost" title="最近一次任务列表（_tasks）请求/响应原文（复制/curl 回放）" @click="openRawIo">
+        <button class="btn sm ghost" v-tip="'最近一次任务列表（_tasks）请求/响应原文（复制/curl 回放）'" @click="openRawIo">
           <Terminal :size="11" /> 原始 IO
         </button>
       </div>
@@ -75,8 +75,8 @@
  超 5m>0 warn 走组件 tone 档。：Action 类型前 3 清单原是「插槽尾巴 +
  手写 ksep + join(' · ') 串」三来源混一条 · 节奏——合并为 items 尾部 text 项
  （组件 sep 统一节奏），全量语义仍走 :title 兜底 -->
-        <MetaStrip class="tv-meta" :items="tvMeta" :title="'运行中 ' + visibleTasks.length + '（当前集群 _tasks 快照） · 可取消 ' + cancellableCount + '（cancellable=true） · 超 5m 长任务 ' + longRunning + '（runningTime > 5m） · Action 类型 ' + actionKinds.length + ' 种：' + (actionKinds.join(' · ') || '-')" />
-        <button v-if="flatList.length" class="btn sm ghost" style="margin-left:auto" @click="copyTasksMd" title="复制任务列表为 Markdown（群聊/工单直贴）">
+        <MetaStrip class="tv-meta" :items="tvMeta" v-tip.long="'运行中 ' + visibleTasks.length + '（当前集群 _tasks 快照） · 可取消 ' + cancellableCount + '（cancellable=true） · 超 5m 长任务 ' + longRunning + '（runningTime > 5m） · Action 类型 ' + actionKinds.length + ' 种：' + (actionKinds.join(' · ') || '-')" />
+        <button v-if="flatList.length" class="btn sm ghost" style="margin-left:auto" @click="copyTasksMd" v-tip="'复制任务列表为 Markdown（群聊/工单直贴）'">
           <ClipboardList :size="11" /> Markdown
         </button>
         <button class="btn sm ghost" @click="toggleExpandAll">
@@ -127,15 +127,15 @@
  胶囊形态/色值不再本页手拼 class；组件根元素仍渲染 .pill+y 档，行内形态不变） -->
             <StatusPill :tone="actionColor(t.action)" :label="actionShort(t.action)" />
             <!-- taskId/描述列 MarkText 命中高亮（textContent 与原文一致，title 不受影响） -->
-            <span class="mono tv-tid" :title="t.taskId"><MarkText :text="t.taskId" :kw="kw" /></span>
-            <span class="mono tv-node-node" :title="t.node">@ {{ t.node }}</span>
+            <span class="mono tv-tid" v-tip="t.taskId"><MarkText :text="t.taskId" :kw="kw" /></span>
+            <span class="mono tv-node-node" v-tip="t.node">@ {{ t.node }}</span>
           </div>
           <div class="tv-node-m">
-            <span class="tv-node-desc mono" :title="t.description"><MarkText :text="trunc(t.description, 80)" :kw="kw" /></span>
+            <span class="tv-node-desc mono" v-tip="t.description"><MarkText :text="trunc(t.description, 80)" :kw="kw" /></span>
             <!-- reindex 进度渲染（可观测断链）——ES _tasks?detailed 已带回
  status（BulkByScrollTask.Status），有 total 出「已处理/总数 百分比」+进度条，
  total 缺失只显已处理数；不逐行打 /progress 端点（详见 reindexProgress 注释） -->
-            <span v-if="t.prog" class="tv-prog" :title="t.prog.title">
+            <span v-if="t.prog" class="tv-prog" v-tip="t.prog.title">
               <!-- G257b：进度条 progressbar 语义（704 G32/773 族；原 aria-hidden
  退役——bar 获读屏语义，可见文本通道不动） -->
               <span v-if="t.prog.pct != null" class="tv-prog-bar" role="progressbar" :aria-valuenow="t.prog.pct" aria-valuemin="0" aria-valuemax="100" :aria-label="'任务进度 ' + t.prog.pct + '%'">
@@ -151,7 +151,7 @@
  折算 ms，任务在途即已耗时），缺失时前端回落 runningMs 同源折算，不再有「-1 显 -」
  兜底语义。口径：ES _tasks 无 finished 概念（任务完成即从列表消失），本列是
  「该任务至今已耗时」而非「作业总耗时终值」；人话化时长走 semFormat duration 单源 -->
-            <span class="tv-took mono" :title="'已耗时 ' + tookText(t.tookMs)">
+            <span class="tv-took mono" v-tip="'已耗时 ' + tookText(t.tookMs)">
               {{ tookText(t.tookMs) }}
             </span>
             <span class="tv-dur mono" :class="{ warn: t.runningMs > 5 * 60000 }">
@@ -163,7 +163,7 @@
               :class="{ danger: t.cancellable }"
               :disabled="!t.cancellable || cancelling.has(t.taskId)"
               @click="cancelOne(t)"
-              :title="t.cancellable ? '取消任务' : '不可取消'"
+              v-tip="t.cancellable ? '取消任务' : '不可取消'"
             >
               <!-- G256：取消钮 Loader2/X 双态（cancelling 按行门控=天然无跨钮
  污染；772 G246 族） -->
@@ -172,7 +172,7 @@
             </button>
           </div>
           <!-- 补（原 183 口径）：取消失败原因持久显示在任务行上（title 全量） -->
-          <div v-if="cancelFailures.has(t.taskId)" class="tv-cancel-err" :title="cancelFailures.get(t.taskId)">
+          <div v-if="cancelFailures.has(t.taskId)" class="tv-cancel-err" v-tip="cancelFailures.get(t.taskId)">
             取消失败：{{ cancelFailures.get(t.taskId) }}
           </div>
         </div>

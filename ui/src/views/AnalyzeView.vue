@@ -33,7 +33,7 @@
             :class="{ on: p.name === activePreset }"
             :aria-pressed="p.name === activePreset"
             @click="applyPreset(p)"
-            :title="p.desc"
+            v-tip="p.desc"
           >
 {{ p.label }}
 </button>
@@ -51,10 +51,10 @@
           <FlaskConical :size="13" /> _analyze 请求 body
           <!-- 路径 hint 修正（index 空时实际请求就是全局 /_analyze，原拼接显示
  「/_analyze/_analyze」误导）+ 窄 pane 溢出治理（flex-wrap + hint 可收缩省略） -->
-          <span class="av-body-hint mono" :title="'POST ' + (index ? '/' + index + '/_analyze' : '/_analyze')">POST {{ index ? '/' + index + '/_analyze' : '/_analyze' }}</span>
+          <span class="av-body-hint mono" v-tip="'POST ' + (index ? '/' + index + '/_analyze' : '/_analyze')">POST {{ index ? '/' + index + '/_analyze' : '/_analyze' }}</span>
           <!-- G162：原始 IO 快查入口（铁律 F·RankDebug 三件套同构）——
  运行后请求体/响应 tokens 原文直达；无记录不开空弹窗（toast 引导） -->
-          <button class="btn sm ghost" style="margin-left:auto" @click="openRawIo" title="最近一次 _analyze 请求/响应原文（复制/curl 回放）">
+          <button class="btn sm ghost" style="margin-left:auto" @click="openRawIo" v-tip="'最近一次 _analyze 请求/响应原文（复制/curl 回放）'">
             <Terminal :size="11" /> 原始 IO
           </button>
           <!-- G161：运行钮 Play 在途窗补 spinning（737 G132/743 G153 族；disabled 既有） -->
@@ -88,7 +88,7 @@
             class="btn sm ghost"
             style="margin-left:auto"
             @click="copyResultMd"
-            title="复制为 Markdown 表（文档/群聊直贴）"
+            v-tip="'复制为 Markdown 表（文档/群聊直贴）'"
           >
             <ClipboardList :size="11" /> Markdown
           </button>
@@ -96,7 +96,7 @@
             v-if="tokens.length"
             class="btn sm ghost"
             @click="copyResult"
-            :title="'复制 tokens 为 JSON'"
+            v-tip="'复制 tokens 为 JSON'"
           >
             <Copy :size="11" /> 复制
           </button>
@@ -127,7 +127,7 @@
             <div class="av-block-t">原文（高亮 tokens 覆盖）</div>
             <div class="av-orig-wrap mono">
               <template v-for="(seg, i) in highlightedSegs" :key="i">
-                <span v-if="seg.tk" class="av-hl" :style="{ background: colorFor(seg.tk.token) }" :title="posZh(seg.tk.type) + ' · 序位=' + seg.tk.position">{{ seg.text }}</span>
+                <span v-if="seg.tk" class="av-hl" :style="{ background: colorFor(seg.tk.token) }" v-tip="posZh(seg.tk.type) + ' · 序位=' + seg.tk.position">{{ seg.text }}</span>
                 <span v-else class="av-plain">{{ seg.text }}</span>
               </template>
             </div>
@@ -174,10 +174,10 @@
             >
               <template #cell-词元="{ value }"><span class="mono av-tk-hl" :style="{ background: colorFor(value) }"><MarkText :text="value" :kw="tkKw" /></span></template>
               <!-- 数值列 title 原值（展示缩写/区间的列悬停可查证 ES 原始字段名与取值） -->
-              <template #cell-序位="{ value }"><span class="mono" :title="'position=' + value">{{ value }}</span></template>
-              <template #cell-字符区间="{ value }"><span class="mono" :title="'start_offset=' + String(value).split('-')[0] + ' · end_offset=' + String(value).split('-')[1]">{{ value }}</span></template>
-              <template #cell-词性="{ value }"><span class="mono av-tk-type" :title="posTip(value)"><MarkText :text="posZh(value)" :kw="tkKw" /></span></template>
-              <template #cell-长度="{ value }"><span class="mono" :title="'length=' + value">{{ value }}</span></template>
+              <template #cell-序位="{ value }"><span class="mono" v-tip="'position=' + value">{{ value }}</span></template>
+              <template #cell-字符区间="{ value }"><span class="mono" v-tip="'start_offset=' + String(value).split('-')[0] + ' · end_offset=' + String(value).split('-')[1]">{{ value }}</span></template>
+              <template #cell-词性="{ value }"><span class="mono av-tk-type" v-tip="posTip(value)"><MarkText :text="posZh(value)" :kw="tkKw" /></span></template>
+              <template #cell-长度="{ value }"><span class="mono" v-tip="'length=' + value">{{ value }}</span></template>
             </QueryResultTable>
           </div>
         </div>

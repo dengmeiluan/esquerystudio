@@ -219,12 +219,13 @@ public class XmigrateSyncStructureToolsTest {
     /* ───────── 组映射与静态清单 ───────── */
 
     @Test
-    public void 组内18个action_尾部为compare_diff_throttle() {
+    public void 组内19个action_尾部为compare_diff_verify_throttle() {
         Map<String, String> xmigrate = McpController.GROUP_ACTIONS.get("es_xmigrate");
-        assertEquals(18, xmigrate.size());
+        assertEquals(19, xmigrate.size());
         assertEquals(Arrays.asList("preflight", "start", "status", "jobs", "fetch_config", "resume", "abort",
                 "reconcile", "conflicts", "connect_check", "resolve_preview", "dest_indices", "delete_jobs",
-                "sync_structure", "probe_capabilities", "compare_capabilities", "diff_structure", "throttle"),
+                "sync_structure", "probe_capabilities", "compare_capabilities", "diff_structure",
+                "verify_equivalence", "throttle"),
                 new ArrayList<>(xmigrate.keySet()));
         assertEquals("es_xmigrate_sync_structure", xmigrate.get("sync_structure"));
         assertEquals("es_xmigrate:sync_structure", McpController.TOOL_ACTIONS.get("es_xmigrate_sync_structure"));
@@ -236,7 +237,8 @@ public class XmigrateSyncStructureToolsTest {
                 McpController.TOOL_ACTIONS.get("es_xmigrate_compare_capabilities"));
         assertEquals("es_xmigrate_diff_structure", xmigrate.get("diff_structure"));
         assertEquals("es_xmigrate_throttle", xmigrate.get("throttle"));
-        assertEquals("实现名总数随组 +3", 166, McpController.ACTION_TOOL_NAMES.size());
+        assertEquals("实现名总数随组 +4", 167, McpController.ACTION_TOOL_NAMES.size());
+        assertEquals("es_xmigrate_verify_equivalence", xmigrate.get("verify_equivalence"));
     }
 
     /** 与组内 start 同档：写工具 + MRTR 二次确认；建索引不覆盖既有索引，不进破坏性清单。

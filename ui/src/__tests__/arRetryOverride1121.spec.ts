@@ -93,7 +93,7 @@ async function mountAR(job: any) {
   const rows = [...host.querySelectorAll('table.qrt-tbl tbody tr')];
   const row = rows.find(tr => (tr.textContent || '').includes(job.jobId));
   expect(row, '最近作业表必须渲染出该作业行').toBeTruthy();
-  (row!.querySelector('button[title="查看任务详情"]') as HTMLButtonElement).click();
+  (row!.querySelector('button[aria-label="查看任务详情"]') as HTMLButtonElement).click();
   await settle(10);
   return host;
 }

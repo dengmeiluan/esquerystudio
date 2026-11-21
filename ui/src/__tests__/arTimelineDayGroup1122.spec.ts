@@ -100,7 +100,7 @@ async function mountAR() {
   /* 进监控步（事件时间线在监控卡内） */
   const rows = [...host.querySelectorAll('table.qrt-tbl tbody tr')];
   const row = rows.find(tr => (tr.textContent || '').includes(doneJob.jobId));
-  (row!.querySelector('button[title="查看任务详情"]') as HTMLButtonElement).click();
+  (row!.querySelector('button[aria-label="查看任务详情"]') as HTMLButtonElement).click();
   await settle(12);
   return host;
 }

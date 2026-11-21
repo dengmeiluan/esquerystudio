@@ -12,9 +12,9 @@ const v = readFileSync(join(__dirname, '../views/SearchSandboxView.vue'), 'utf-8
 
 describe('seg 禁用原因提示（478 批）', () => {
   it('478 title 在场；481 explain/profile 升级为一键自动解锁（title 换新语义）', () => {
-    expect(v).toContain('title="DSL 需包含 aggs 聚合才有数据"');
-    expect(v).toContain('title="自动勾选 explain 并显示解释树（请求选项可关）"');
-    expect(v).toContain('title="自动勾选 profile 并显示分片耗时（请求选项可关）"');
+  expect(v).toContain(`v-tip="'DSL 需包含 aggs 聚合才有数据'"`);
+  expect(v).toContain(`v-tip="'自动勾选 explain 并显示解释树（请求选项可关）'"`);
+  expect(v).toContain(`v-tip="'自动勾选 profile 并显示分片耗时（请求选项可关）'"`);
     expect(v).not.toContain(':disabled="!opts.explain"');
     expect(v).not.toContain(':disabled="!opts.profile"');
   });

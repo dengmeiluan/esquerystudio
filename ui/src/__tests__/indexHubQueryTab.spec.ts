@@ -298,7 +298,7 @@ describe('IndexHub 查询 tab 页内历史接线（535 批 W3）', () => {
   it('源码锁：工具行历史钮 + NModal+QueryHistoryPanel（mode=dsl 单档全量），回放走 runDslNew 不绕门', () => {
     const v = readFileSync(join(__dirname, '../views/IndexHubView.vue'), 'utf-8');
     /* 查询 tab 工具行历史钮（执行/取消/DevTools 同一行） */
-    expect(v).toContain('<button class="btn sm ghost" data-test="open-hist" @click="histOpen = true" title="查询历史"><History :size="11" /> 历史</button>');
+    expect(v).toContain(`<button class="btn sm ghost" data-test="open-hist" @click="histOpen = true" v-tip="'查询历史'"><History :size="11" /> 历史</button>`);
     /* NModal + QueryHistoryPanel（SqlConsoleView 528 范式；导入/清空关闭） */
     expect(v).toMatch(/<n-modal v-model:show="histOpen" preset="card" title="查询历史（索引工作区）"/);
     /* 550 同步更新：actions 加 'fav'（IH fav 闭环，track2Wave550 批）——QueryHistoryPanel 行级门

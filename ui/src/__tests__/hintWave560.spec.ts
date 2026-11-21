@@ -311,7 +311,7 @@ describe('H ScoreExplain/SearchSandbox toast friendly（560）', () => {
 describe('I LuceneQueryView sort label 释义 title（560）', () => {
   it('size/from/order 三件套补齐第四件：sort 裸 label 挂中文释义 title', () => {
     const lc = read('views/LuceneQueryView.vue');
-    expect(lc).toContain('<span title="排序字段（可排序类型，_score/_doc 可手输）">sort</span>');
+    expect(lc).toContain(`<span v-tip="'排序字段（可排序类型，_score/_doc 可手输）'">sort</span>`);
   });
 });
 

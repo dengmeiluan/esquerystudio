@@ -53,8 +53,11 @@
 
       <!-- HIGH 风险：输入确认文案解锁 -->
       <div v-if="estimate && riskLevel === 'HIGH' && guardText" class="ga-guard">
-        <div class="ga-guard-tip">高危操作，输入 <b class="mono">{{ guardText }}</b> 以解锁执行：</div>
-        <input v-model="guardInput" class="inp mono" :placeholder="guardText" />
+        <div :id="guardTipId" class="ga-guard-tip">高危操作，输入 <b class="mono">{{ guardText }}</b> 以解锁执行：</div>
+        <!-- Enter=执行（与同构 ConfirmModal 守卫输入同款原生接管；canExecute 不满足时 doExecute 自身拦截） -->
+        <input v-model="guardInput" class="inp mono" :placeholder="guardText"
+               :aria-label="'输入确认词 ' + guardText" :aria-describedby="guardTipId"
+               :aria-invalid="!!guardInput && guardInput !== guardText" @keydown.enter="doExecute" />
       </div>
 
       <div class="ga-foot">
@@ -129,6 +132,9 @@ const errorRaw = ref<unknown>(null);
 /* 错误面板首行人话摘要（pre 仍保全文） */
 const friendlyError = computed(() => friendlyEsError(error.value));
 const guardInput = ref('');
+/* 守卫提示节点 id（aria-describedby 锚）——页面可同时挂多个本组件实例（多个高危动作钮），
+ 随机后缀隔离避免撞车（HistoryChart 同惯例） */
+const guardTipId = 'ga-guard-tip-' + Math.random().toString(36).slice(2, 8);
 const receipt = ref<any>(null);
 let receiptTimer: number | undefined;
 
@@ -226,6 +232,18 @@ function close() {
  close（executing 保护在函数内不变），与原自持分支语义等价。 */
 function onKey(e: KeyboardEvent) {
   if (!modalOpen.value) return;
+  /* Enter=执行（快捷性，与 ConfirmModal 同构）。仅中性焦点（body/弹窗容器）才接管——
+ 焦点在按钮/输入框上时原生行为已表达用户意图，接管会造成双触发；
+ 守卫输入框有原生 @keydown.enter；守卫未满足时 doExecute 自身会拦（不可用时忽略）。 */
+  if (e.key === 'Enter') {
+    const el = document.activeElement as HTMLElement | null;
+    const inBox = el && (el === boxRef.value || boxRef.value?.contains(el));
+    if (!el || el === document.body || (inBox && el.tagName !== 'BUTTON'
+        && el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA' && el.getAttribute('role') !== 'checkbox')) {
+      doExecute();
+      return;
+    }
+  }
   if (boxRef.value) trapTabKey(boxRef.value, e);
 }
 window.addEventListener('keydown', onKey);

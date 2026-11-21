@@ -5,7 +5,7 @@
     role="separator"
     tabindex="0"
     :aria-label="label"
-    :title="`${label}：拖拽调整 · 双击或按 R 重置 · 方向键微调（Shift 大步） · Home/End 到两端`"
+    v-tip="`${label}：拖拽调整 · 双击或按 R 重置 · 方向键微调（Shift 大步） · Home/End 到两端`"
     :aria-orientation="axis"
     :aria-valuemin="min"
     :aria-valuemax="max"
@@ -23,7 +23,7 @@
       type="button"
       class="sh-max"
       :class="{ 'sh-max-on': maxActive }"
-      :title="maxLabel"
+      v-tip="maxLabel"
       :aria-label="maxLabel"
       @pointerdown.stop
       @dblclick.stop

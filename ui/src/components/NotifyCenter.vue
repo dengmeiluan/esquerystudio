@@ -4,7 +4,7 @@
   <!-- popover 改受控——清空历史需先关面板再弹确认（避开弹层 z-index 叠加） -->
   <n-popover trigger="click" placement="bottom-end" :show-arrow="false" raw :show="open" @update:show="onToggle">
     <template #trigger>
-      <button class="btn ghost sm nc-btn" title="通知历史（最近 50 条，错过的失败提醒可回看）" aria-label="通知历史" :aria-expanded="open">
+      <button class="btn ghost sm nc-btn" v-tip="'通知历史（最近 50 条，错过的失败提醒可回看）'" aria-label="通知历史" :aria-expanded="open">
         <Bell :size="13" />
         <span v-if="unread" class="nc-dot">{{ unread > 99 ? '99+' : unread }}</span>
       </button>
@@ -16,11 +16,11 @@
         <div class="nc-tools toolrow">
           <!-- 历史里成功类占大头时，真正要回看的异常被淹没——一键只看 error/warning -->
           <button v-if="store.notifyLog.length" class="btn ghost sm" :class="{ on: errOnly }"
-            @click="errOnly = !errOnly" title="只看异常（error/warning）">
+            @click="errOnly = !errOnly" v-tip="'只看异常（error/warning）'">
 仅异常
 </button>
           <!-- 清空补确认（65 批 RestView 清空历史同款——本地记录清了就没了） -->
-          <button v-if="store.notifyLog.length" class="btn ghost sm" @click="clearLog" title="清空历史">
+          <button v-if="store.notifyLog.length" class="btn ghost sm" @click="clearLog" v-tip="'清空历史'">
             <Trash2 :size="12" /> 清空
           </button>
         </div>
@@ -38,15 +38,15 @@
             <div class="nc-body">
               <div class="nc-msg">{{ n.msg }}</div>
               <div class="nc-meta">
-                <span class="nc-ts mono" :title="tsTitle(n)">{{ relTime(n.ts, now) }}</span>
+                <span class="nc-ts mono" v-tip="tsTitle(n)">{{ relTime(n.ts, now) }}</span>
                 <!-- 同文案风暴聚合为一条，×N 保留发生次数证据；：首见→最近跨度一并可见 -->
-                <span v-if="(n.count || 1) > 1" class="nc-cnt mono" :title="tsTitle(n)">×{{ n.count }}</span>
+                <span v-if="(n.count || 1) > 1" class="nc-cnt mono" v-tip="tsTitle(n)">×{{ n.count }}</span>
                 <!-- 动作徽标——该通知带过操作按钮（toast 已逝，历史侧至少知悉错过了什么） -->
-                <span v-if="n.actions?.length" class="nc-acts mono" :title="'此通知带动作：' + n.actions.join('、') + '（toast 已消失，如需操作请重试原动作）'">⚡{{ n.actions.length }}</span>
-                <span v-if="n.firstTs && n.ts - n.firstTs >= 1000" class="nc-span mono" :title="tsTitle(n)">持续 {{ fmtDur(n.ts - n.firstTs) }}</span>
+                <span v-if="n.actions?.length" class="nc-acts mono" v-tip="'此通知带动作：' + n.actions.join('、') + '（toast 已消失，如需操作请重试原动作）'">⚡{{ n.actions.length }}</span>
+                <span v-if="n.firstTs && n.ts - n.firstTs >= 1000" class="nc-span mono" v-tip="tsTitle(n)">持续 {{ fmtDur(n.ts - n.firstTs) }}</span>
               </div>
             </div>
-            <button aria-label="复制这条通知文案" class="nc-copy btn ghost sm" title="复制这条通知文案" @click="copyMsg(n.msg)">
+            <button aria-label="复制这条通知文案" class="nc-copy btn ghost sm" v-tip="'复制这条通知文案'" @click="copyMsg(n.msg)">
               <Copy :size="11" />
             </button>
           </div>

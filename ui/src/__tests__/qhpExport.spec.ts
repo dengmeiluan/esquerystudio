@@ -24,6 +24,6 @@ describe('QueryHistoryPanel 导出（九十四批）', () => {
   });
 
   it('九十五批：title 诚实化（不承诺「可导入」——导出物暂无再导入消费方）', () => {
-    expect(src).toMatch(/title="导出当前过滤结果为 JSON（备份\/带出，供检索或存档）"/);
+    expect(src).toMatch(/v-tip="'导出当前过滤结果为 JSON（备份\/带出，供检索或存档）'"/);
   });
 });

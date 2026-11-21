@@ -25,6 +25,7 @@ import {
   jobEvents as xmJobEvents, jobConflicts as xmJobConflicts, jobReconcile as xmJobReconcile,
   probeCapabilities as xmProbeCapabilities,
   compareCapabilities as xmCompareCapabilities, diffStructure as xmDiffStructure,
+  verifyEquivalence as xmVerifyEquivalence,
   throttleJob as xmThrottle,
 } from './browserXmigrate';
 import { driftKeys as localDriftKeys, drift as localDrift, resetBaseline as resetDriftBaseline } from './browserDrift';
@@ -1375,6 +1376,21 @@ async function xmigrateFetch(u: URL, method: string, body: any): Promise<Respons
         }
       }
       return response(await xmDiffStructure(must, diffBody));
+    }
+    /* 迁移后等价性验证（只读）：双侧 _count + 样本逐 id 内容摘要对比 + 可选 terms 聚合对比；
+     * destConnId 可选 auto-fill（同 diff-structure），显式给了但非 host/当前档案如实拒绝 */
+    if (path === '/verify-equivalence') {
+      const verifyBody = { ...(body || {}) };
+      if (verifyBody.destConnId == null || String(verifyBody.destConnId).trim() === '') {
+        verifyBody.destConnId = profile()?.id ?? null;
+      } else {
+        const want = String(verifyBody.destConnId).trim();
+        if (want !== 'host' && want !== profile()?.id) {
+          return fail(400, '浏览器模式目标侧只能是当前激活连接（destConnId 传 host 或当前档案 id），实际: '
+            + want + '；请先在顶栏切换目标连接');
+        }
+      }
+      return response(await xmVerifyEquivalence(must, verifyBody));
     }
     /* 运行中作业调速（写）：本页 scroll+bulk 循环批粒度限速，-1 恢复不限速 */
     if (path === '/throttle') {

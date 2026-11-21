@@ -9,7 +9,7 @@
       <label class="gve-lb">distance</label>
       <input ref="distInpEl" class="inp mono gve-dist" :value="distText" placeholder="200km"
              role="combobox" aria-autocomplete="list" :aria-expanded="dcOpen ? 'true' : 'false'" :aria-controls="dcListId"
-             title="距离 + 单位（m/km/mi/yards/ft/inches/cm/mm/nm；缺省米）"
+             v-tip="'距离 + 单位（m/km/mi/yards/ft/inches/cm/mm/nm；缺省米）'"
              @focus="dcCombo.openPanel()" @input="onDist(($event.target as HTMLInputElement).value)" @keydown="onDistComboKey" />
       <!-- 单位量级候选弹层（可输可选：候选只提示常用量级，手输任意距离照常） -->
       <Teleport to="body">
@@ -34,20 +34,20 @@
         <span class="gve-grp">四边</span>
         <label class="gve-lb">top</label>
         <input class="inp mono gve-n" :value="edgeText('top')" placeholder="纬度上界"
-               title="top：北边界纬度（-90~90）" @input="onEdge('top', ($event.target as HTMLInputElement).value)" />
+               v-tip="'top：北边界纬度（-90~90）'" @input="onEdge('top', ($event.target as HTMLInputElement).value)" />
         <label class="gve-lb">left</label>
         <input class="inp mono gve-n" :value="edgeText('left')" placeholder="经度西界"
-               title="left：西边界经度（-180~180）" @input="onEdge('left', ($event.target as HTMLInputElement).value)" />
+               v-tip="'left：西边界经度（-180~180）'" @input="onEdge('left', ($event.target as HTMLInputElement).value)" />
         <label class="gve-lb">right</label>
         <input class="inp mono gve-n" :value="edgeText('right')" placeholder="经度东界"
-               title="right：东边界经度（-180~180）" @input="onEdge('right', ($event.target as HTMLInputElement).value)" />
+               v-tip="'right：东边界经度（-180~180）'" @input="onEdge('right', ($event.target as HTMLInputElement).value)" />
         <label class="gve-lb">bottom</label>
         <input class="inp mono gve-n" :value="edgeText('bottom')" placeholder="纬度下界"
-               title="bottom：南边界纬度（-90~90）" @input="onEdge('bottom', ($event.target as HTMLInputElement).value)" />
+               v-tip="'bottom：南边界纬度（-90~90）'" @input="onEdge('bottom', ($event.target as HTMLInputElement).value)" />
       </template>
     </template>
     <button aria-label="更多参数" class="btn sm ghost gve-more" :class="{ on: showMore }"
-            title="更多参数（distance_type / validation_method / boost…）" @click="showMore = !showMore">
+            v-tip="'更多参数（distance_type / validation_method / boost…）'" @click="showMore = !showMore">
       <SlidersHorizontal :size="12" />
     </button>    <div v-if="showMore" class="gve-sub">
       <GenericParams :value="moreView" :schema="OPS_META[op]?.params || []" path-prefix="" @update="onMore" />

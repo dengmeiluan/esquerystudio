@@ -4,15 +4,15 @@
        tabindex="0" @contextmenu.prevent="openRowMenu" @keydown.self="onRowMenuKey">
     <NodeSelectBox :id="node.id" />
     <button v-if="node.disabled" aria-label="恢复参与匹配" class="btn xs ghost cn-pw on"
-            title="该条件已临时停用，点击恢复参与匹配" @click="toggleDisabled(false)">
+            v-tip="'该条件已临时停用，点击恢复参与匹配'" @click="toggleDisabled(false)">
       <Circle :size="15" />
     </button>
     <button v-else aria-label="临时停用（不参与匹配）" class="btn xs ghost cn-pw"
-            title="临时停用该条件（不删除、不参与本次匹配），点击可恢复" @click="toggleDisabled(true)">
+            v-tip="'临时停用该条件（不删除、不参与本次匹配），点击可恢复'" @click="toggleDisabled(true)">
       <CircleSlash :size="15" />
     </button>
     <!-- 拖拽源只在 grip 柄：根 draggable 会劫持行内值输入框的文本选择/光标拖划 -->
-    <span class="cn-grip" title="拖拽排序（按住拖动）；Alt+↑/↓ 上移/下移" draggable="true" @dragstart.stop="onDragStart" @dragend="endDrag">⋮⋮</span>
+    <span class="cn-grip" v-tip="'拖拽排序（按住拖动）；Alt+↑/↓ 上移/下移'" draggable="true" @dragstart.stop="onDragStart" @dragend="endDrag">⋮⋮</span>
     <!-- 字段槽：field/named 形态显示（fields 多字段/none 无字段形态无单字段可选） -->
     <template v-if="hasFieldSlot">
       <FieldSelect
@@ -23,19 +23,19 @@
       <!-- 字段类型徽标 + 类型提示 tooltip（零结构改动的类型教育）：keyword→term 精确、
  text→match 全文、数值/date→range 范围；mapping 缺失（types 无此字段）不渲染，零降级 -->
       <!-- 类型徽标挂全站色卡 .mft-type（theme.css），删局部三类型撞色规则 -->
-      <span v-if="fieldType" class="cn-fty mono mft-type" :data-t="fieldType" :title="typeHint">{{ fieldType }}</span>
+      <span v-if="fieldType" class="cn-fty mono mft-type" :data-t="fieldType" v-tip="typeHint">{{ fieldType }}</span>
       <!-- 1056：text 字段做词项级算子且 mapping 有同名 .keyword 子域 → 一键改打子域。
            text 的倒排是分词词项，term/terms/wildcard/prefix/regexp/fuzzy/terms_set
            拿整串原值大概率查空；入口只给建议，点击才改（不静默改用户 DSL）。 -->
       <button v-if="kwTwin" type="button" class="btn xs ghost cn-kwfix"
-              :title="'text 字段的 ' + label(node.op) + ' 按分词词项匹配，整串原值通常查不到；改打 ' + kwTwin + ' 按整串匹配（值不变）'"
+              v-tip="'text 字段的 ' + label(node.op) + ' 按分词词项匹配，整串原值通常查不到；改打 ' + kwTwin + ' 按整串匹配（值不变）'"
               @click="applyKwTwin">打 .keyword</button>
     </template>
     <!-- 算子下拉：推荐（opsForType）+ 常用（单字段形态非推荐）+ 高级分组（ADV_MENU 同源）。
          升档 NSelect（tiny 档，窄位友好）：optgroup 分组同源映射进 group options，
          弹层/键盘（↑↓/Enter/Esc）/输入法语义由 naive-ui 内建；数据流不变（update:value → onOp）。 -->
     <n-select class="cn-op" size="tiny" :value="node.op" :options="opOptions"
-              :title="'当前算子：' + label(node.op)" @update:value="onOp" />
+              v-tip="'当前算子：' + label(node.op)" @update:value="onOp" />
 
     <!-- 1183：主值键缺席的行内说明——紧贴算子下拉、在值控件之前。
          `{percolate:{field,id}}`、`{knn:{field,query_vector_builder}}` 都是合法写法，
@@ -76,11 +76,11 @@
       <!-- range 打在 keyword/wildcard 字段=字典序比较（dslLint keyword-range 规则的交互层等价物）：
  值输入旁黄点警示，title 完整说明 -->
       <span v-if="rangeLexWarn" class="cn-rwarn" role="img" aria-label="keyword 字段的 range 按字典序比较"
-            title="keyword 字段的 range 按字典序比较（'100' < '20'）；数值/时间范围建议改用对应类型字段" />
+            v-tip="`keyword 字段的 range 按字典序比较（'100' < '20'）；数值/时间范围建议改用对应类型字段`" />
       <!-- 1041：日期时间窗快选（公告/研报/舆情查询的最高频手势）——一击成窗 gte=相对锚 + lte=now -->
       <div v-if="isDateRange" class="cn-rchips" role="group" aria-label="时间窗快选">
         <button v-for="c in DATE_CHIPS" :key="c.label" type="button" class="cn-rchip"
-                :title="'gte=' + c.gte + '，lte=now'" @click="applyChip(c)">{{ c.label }}</button>
+                v-tip="'gte=' + c.gte + '，lte=now'" @click="applyChip(c)">{{ c.label }}</button>
       </div>
     </template>
     <!-- 【985】多字段形态：主值输入 + 字段列表输入（逗号分隔 ↔ string[]）。
@@ -91,7 +91,7 @@
       <MltLikeEditor :value="node.value" @update="v => patch({ value: v })" />
       <input class="inp cn-val mono cn-fields" :value="fieldsText" placeholder="字段列表，逗号分隔"
              @input="onFields(($event.target as HTMLInputElement).value)" />
-      <button aria-label="多选字段" class="btn sm ghost" title="多选字段（弹层勾选）" @click.stop="toggleMf($event)"><ListChecks :size="11" /></button>
+      <button aria-label="多选字段" class="btn sm ghost" v-tip="'多选字段（弹层勾选）'" @click.stop="toggleMf($event)"><ListChecks :size="11" /></button>
     </template>
     <template v-else-if="nodeOpForm === 'fields'">
       <!-- 1039：长查询串主值多行编辑（query_string/simple_query_string/combined_fields——
@@ -104,7 +104,7 @@
              @input="onValue(($event.target as HTMLInputElement).value)" />
       <input class="inp cn-val mono cn-fields" :value="fieldsText" placeholder="字段列表，逗号分隔"
              @input="onFields(($event.target as HTMLInputElement).value)" />
-      <button aria-label="多选字段" class="btn sm ghost" title="多选字段（弹层勾选）" @click.stop="toggleMf($event)"><ListChecks :size="11" /></button>
+      <button aria-label="多选字段" class="btn sm ghost" v-tip="'多选字段（弹层勾选）'" @click.stop="toggleMf($event)"><ListChecks :size="11" /></button>
     </template>
     <!-- 1011：intervals 专用递归编辑位——规则可解析（唯一类型键+官方 6 类）即一等编辑：
          类型/主值/_name/参数 schema 表/all_of·any_of 递归子规则/位置过滤关系槽；
@@ -125,7 +125,7 @@
     <div v-else-if="node.op === 'percolate'" class="cn-objval">
       <JsonArea class="cn-perc" :class="{ bad: perc.bad.value }" :model-value="perc.text.value" :rows="4"
                 placeholder="document 文档体（JSON 对象）——反查：哪些已存查询会命中这份文档"
-                title="要反查的文档体；合法 JSON 对象即写回查询（非法半截态标红不写）"
+                v-tip="'要反查的文档体；合法 JSON 对象即写回查询（非法半截态标红不写）'"
                 @update:model-value="perc.onInput" />
     </div>
     <!-- 1019：terms lookup 远程词项形态（值对象键 ⊆ {index,id,path}）→ 三具名输入：
@@ -137,17 +137,17 @@
     <div v-else-if="isJsonVec" class="cn-objval">
       <JsonArea class="cn-perc" :class="{ bad: vec.bad.value }" :model-value="vec.text.value" :rows="3"
         :placeholder="node.op === 'knn' ? 'query_vector JSON 数组，如 [0.1, 0.2, …]' : 'query_vector JSON 对象（词 → 权重）'"
-        :title="node.op === 'knn' ? '向量数组（JSON）' : '稀疏向量对象（JSON）'"
+        v-tip="node.op === 'knn' ? '向量数组（JSON）' : '稀疏向量对象（JSON）'"
         @update:model-value="vec.onInput" />
     </div>
     <div v-else-if="termsLookup" class="cn-objval cn-tl">
-      <span class="cn-tl-tip" title="远程词项：ES 在查询时从目标文档的 path 字段取值集合作为本条件词项（集群内取数，不回传文档）">
+      <span class="cn-tl-tip" v-tip="'远程词项：ES 在查询时从目标文档的 path 字段取值集合作为本条件词项（集群内取数，不回传文档）'">
         远程词项 —— 从
-        <input class="inp mono cn-tl-in" :value="tlText('index')" placeholder="索引名 index" title="目标索引（要取词项的文档所在索引）" @input="onTl('index', ($event.target as HTMLInputElement).value)" />
+        <input class="inp mono cn-tl-in" :value="tlText('index')" placeholder="索引名 index" v-tip="'目标索引（要取词项的文档所在索引）'" @input="onTl('index', ($event.target as HTMLInputElement).value)" />
         索引的文档
-        <input class="inp mono cn-tl-in" :value="tlText('id')" placeholder="文档 _id" title="目标文档 _id" @input="onTl('id', ($event.target as HTMLInputElement).value)" />
+        <input class="inp mono cn-tl-in" :value="tlText('id')" placeholder="文档 _id" v-tip="'目标文档 _id'" @input="onTl('id', ($event.target as HTMLInputElement).value)" />
         取
-        <input class="inp mono cn-tl-in" :value="tlText('path')" placeholder="字段路径 path" title="词项来源字段路径（多值字段取全部值）" @input="onTl('path', ($event.target as HTMLInputElement).value)" />
+        <input class="inp mono cn-tl-in" :value="tlText('path')" placeholder="字段路径 path" v-tip="'词项来源字段路径（多值字段取全部值）'" @input="onTl('path', ($event.target as HTMLInputElement).value)" />
         字段的值集合
       </span>
     </div>
@@ -156,7 +156,7 @@
     <div v-else-if="isObjValue" class="cn-objval">
       <div v-if="objKeyHints.length" class="cn-objk" role="group" aria-label="常用键快捷添加">
         <button v-for="k in objKeyHints" :key="k" class="cn-objk-btn" type="button"
-                :disabled="k in objVal" :title="'添加常用键 ' + k" @click="addObjKey(k)">+ {{ k }}</button>
+                :disabled="k in objVal" v-tip="'添加常用键 ' + k" @click="addObjKey(k)">+ {{ k }}</button>
       </div>
       <GenericParams :value="objVal" @update="onObjValue" />
     </div>
@@ -165,7 +165,7 @@
  升档 NSelect（tiny 档），update:value → onBoolVal 数据流不变 -->
     <n-select
       v-else-if="isBoolTerm" class="cn-val cn-bool" size="tiny" :value="boolText" :options="BOOL_TERM_OPTIONS"
-      title="boolean 字段 term 值三态：true / false；选「（空）」删除该条件"
+      v-tip="'boolean 字段 term 值三态：true / false；选「（空）」删除该条件'"
       @update:value="onBoolVal"
     />
     <!-- 1005：数组值算子（terms/ids）chip 视觉化——值即标签可删可加，逗号分隔文本退役；
@@ -173,9 +173,9 @@
          非数组形态（如 terms-lookup 对象）不走此分支=保留原输入路径 -->
     <div v-else-if="isArrayVal" class="cn-chips" role="group"
          :aria-label="(OPS_META[props.node.op]?.label || props.node.op) + ' 值列表：回车或逗号添加，空输入退格删末项'">
-      <span v-for="(v, i) in arrVals" :key="i" class="cn-chip mono" :title="String(v)">
+      <span v-for="(v, i) in arrVals" :key="i" class="cn-chip mono" v-tip="String(v)">
         <span class="cn-chip-v">{{ v }}</span>
-        <button type="button" class="cn-chip-x" :aria-label="'删除值 ' + v" :title="'删除值 ' + v"
+        <button type="button" class="cn-chip-x" :aria-label="'删除值 ' + v" v-tip="'删除值 ' + v"
                 @click="delChip(i)"><X :size="10" /></button>
       </span>
       <input
@@ -238,7 +238,7 @@
  title 承载完整说明，友好不阻断）。
  span 升级 button——黄点可点，一键切到该类型推荐首算子（exists 是万能
  兜底不作为「推荐」目标；未知类型 opsForType 只有 exists，点击不动作）。 -->
-    <button v-if="rowWarn" type="button" class="cn-owarn" aria-label="改用推荐算子" :title="rowWarn" @click="onOwarnClick" />
+    <button v-if="rowWarn" type="button" class="cn-owarn" aria-label="改用推荐算子" v-tip="rowWarn" @click="onOwarnClick" />
     <!-- 998：行尾动作收成一组（margin-left:auto 右对齐）——空间不足时整组换行落到下一行右侧，
          不再出现「按钮散落在行首」的断裂感；组内按钮统一 22px 方形，视觉重量低于主控件 -->
     <span class="cn-acts">
@@ -247,34 +247,34 @@
  值能解析成标准时间才转换，解析失败保持原值（title 说明适用面）。 -->
       <!-- ⏰ 低频（1215）：静息隐藏、行悬停/聚焦才浮现——右键盘里已有「复制为 DSL 片段」等全部同类动作，
            常驻 6 个灰图标会把字段/值输入挤到一行不到一半（1440 实测动作簇占行宽 31%、整行折成 76px）。 -->
-      <button aria-label="标准时间转时间戳" class="btn sm ghost cn-act cn-act-lo" title="⏰ 把标准时间（YYYY-MM-DD HH:mm[:ss]）转成 epoch 毫秒；值不是标准时间格式时点击不变"
+      <button aria-label="标准时间转时间戳" class="btn sm ghost cn-act cn-act-lo" v-tip="'⏰ 把标准时间（YYYY-MM-DD HH:mm[:ss]）转成 epoch 毫秒；值不是标准时间格式时点击不变'"
               @click="convertStdTime">
         <Clock :size="12" />
       </button>
 
       <!-- 具名参数（schema 内）+ 更多参数入口 -->
-      <button aria-label="参数（boost/operator…）" v-if="hasParams" class="btn sm ghost cn-act cn-act-lo" title="参数（boost/operator…）" @click="paramsOpen = !paramsOpen">
+      <button aria-label="参数（boost/operator…）" v-if="hasParams" class="btn sm ghost cn-act cn-act-lo" v-tip="'参数（boost/operator…）'" @click="paramsOpen = !paramsOpen">
         <Settings2 :size="12" />
       </button>
-      <button aria-label="复制条件" class="btn sm ghost cn-act" title="复制条件（插到本条件之后）" @click="$emit('duplicate', node.id)"><Copy :size="12" /></button>
+      <button aria-label="复制条件" class="btn sm ghost cn-act" v-tip="'复制条件（插到本条件之后）'" @click="$emit('duplicate', node.id)"><Copy :size="12" /></button>
       <!-- 1036：复制子树入跨查询剪贴（含嵌套，任意条件组可粘贴） -->
-      <button aria-label="复制子树（跨查询粘贴用）" class="btn sm ghost cn-act cn-act-lo" title="复制子树（含嵌套，可粘贴到任意条件组）" @click="onCopySubtree"><ClipboardCopy :size="12" /></button>
-      <button aria-label="包成 bool 组" class="btn sm ghost cn-act cn-act-lo" title="包成 bool 组" @click="$emit('wrap')"><Group :size="12" /></button>
-      <button aria-label="删除" class="btn sm ghost cn-act danger" title="删除" @click="$emit('remove')"><X :size="12" /></button>
+      <button aria-label="复制子树（跨查询粘贴用）" class="btn sm ghost cn-act cn-act-lo" v-tip="'复制子树（含嵌套，可粘贴到任意条件组）'" @click="onCopySubtree"><ClipboardCopy :size="12" /></button>
+      <button aria-label="包成 bool 组" class="btn sm ghost cn-act cn-act-lo" v-tip="'包成 bool 组'" @click="$emit('wrap')"><Group :size="12" /></button>
+      <button aria-label="删除" class="btn sm ghost cn-act danger" v-tip="'删除'" @click="$emit('remove')"><X :size="12" /></button>
     </span>
     <div v-if="fieldUnknown" class="cn-defrt-bar">
       <span class="cn-defrt-hint">字段不在 mapping：</span>
       <!-- 1322：先给「你是不是想找」，再给「造新字段」。顺序有意为之——
            拼错一个字母的人，最该做的是改回已有字段，而不是新建一个空壳字段。 -->
       <button v-if="fieldSuggestion" type="button" class="btn xs cn-suggest"
-        :title="`把字段改为最接近的已有字段「${fieldSuggestion}」`" @click="useSuggestion">
+        v-tip="`把字段改为最接近的已有字段「${fieldSuggestion}」`" @click="useSuggestion">
         是不是想找 <code class="mono">{{ fieldSuggestion }}</code>？
       </button>
-      <button type="button" class="btn xs ghost cn-defrt" :title="runtimeTitle" @click="defineRuntimeField">＋创建 {{ runtimeGuess }} 运行时字段</button>
+      <button type="button" class="btn xs ghost cn-defrt" v-tip="runtimeTitle" @click="defineRuntimeField">＋创建 {{ runtimeGuess }} 运行时字段</button>
     </div>
     <div v-else-if="runtimeNoScript" class="cn-defrt-bar" role="status">
       <span class="cn-defrt-hint">运行时字段「{{ node.field }}」尚无 script：查询期不会产出值</span>
-      <button type="button" class="btn xs ghost cn-defrt" title="到「检索参数 → 运行时字段」补 script" @click="editRuntimeScript">补 script</button>
+      <button type="button" class="btn xs ghost cn-defrt" v-tip="'到「检索参数 → 运行时字段」补 script'" @click="editRuntimeScript">补 script</button>
     </div>
     <div v-if="paramsOpen" class="cn-params">
       <GenericParams :value="node.params" :schema="paramSchema" @update="onParams" />

@@ -1,10 +1,10 @@
 <template>
   <section ref="bodyEl" class="wl" :class="{ stacked, 'wl-viewport-bounded': !fillViewport }" :data-layout-axis="axis">
     <div v-if="toolbarVisible" class="wl-bar">
-      <button type="button" class="btn ghost xs" data-layout-preset="equal" title="等分布局" @click="applyPreset('equal')">等分</button>
-      <button type="button" class="btn ghost xs" data-layout-preset="editor-first" :title="presetEditorTitle" @click="applyPreset('editor-first')">{{ presetEditorLabel }}</button>
-      <button type="button" class="btn ghost xs" data-layout-preset="result-first" :title="presetResultTitle" @click="applyPreset('result-first')">{{ presetResultLabel }}</button>
-      <button type="button" class="btn ghost xs" data-layout-reset title="恢复默认布局" @click="resetLayout">重置</button>
+      <button type="button" class="btn ghost xs" data-layout-preset="equal" v-tip="'等分布局'" @click="applyPreset('equal')">等分</button>
+      <button type="button" class="btn ghost xs" data-layout-preset="editor-first" v-tip="presetEditorTitle" @click="applyPreset('editor-first')">{{ presetEditorLabel }}</button>
+      <button type="button" class="btn ghost xs" data-layout-preset="result-first" v-tip="presetResultTitle" @click="applyPreset('result-first')">{{ presetResultLabel }}</button>
+      <button type="button" class="btn ghost xs" data-layout-reset v-tip="'恢复默认布局'" @click="resetLayout">重置</button>
       <slot name="bar" />
     </div>
     <div class="wl-body">
@@ -36,7 +36,7 @@
  竖轨=隐藏侧原位的常驻还原入口，点击 setMaximize(null) 回对半；与 ResizablePane
  折叠竖标轨同一视觉语言。仅独占隐藏侧渲染，其余布局零渲染=既有消费方零感知 -->
         <button v-if="isMaxHidden(spec)" type="button" class="wl-restore-rail"
-          :title="restoreRailTitle(spec)" :aria-label="restoreRailTitle(spec)"
+          v-tip="restoreRailTitle(spec)" :aria-label="restoreRailTitle(spec)"
           @click="setMaximize(null)">还原对半</button>
       </template>
     </div>

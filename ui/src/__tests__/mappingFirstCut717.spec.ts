@@ -108,15 +108,17 @@ describe('G60：pickedMeta 三段英文 label 中文备注补齐（铁律 F）',
     await pickField(host, 'title');
     const segAn = detailSeg(host, 'analyzer');
     expect(segAn, 'analyzer 段必须在场（text 字段）').toBeTruthy();
-    expect(segAn!.getAttribute('title'), 'analyzer 段中文备注').toBe('写入分词器');
+    /* 段提示已迁 v-tip 指令（DOM 无 title 属性）——中文备注改源码锚（items prop 传 tip） */
+    const mdSrc = readFileSync(join(__dirname, '../views/MappingDesignerView.vue'), 'utf-8');
+    expect(mdSrc).toContain("label: 'analyzer', tip: '写入分词器'");
     expect(segAn!.className, '有 tip 无 to 段挂 help（cursor:help）').toContain('help');
     const segSa = detailSeg(host, 'search_analyzer');
     expect(segSa, 'search_analyzer 段必须在场（种子含 searchAnalyzer）').toBeTruthy();
-    expect(segSa!.getAttribute('title'), 'search_analyzer 段中文备注').toBe('搜索分词器');
+    expect(mdSrc).toContain("label: 'search_analyzer', tip: '搜索分词器'");
     expect(segSa!.className).toContain('help');
   });
 
-  it('② created_at 格式段：format title=字段存储格式', async () => {
+  it('② created_at 格式段：format 提示=字段存储格式', async () => {
     seedTree();
     const { host } = await mountView();
     const { useAppStore } = await import('../stores/app');
@@ -125,7 +127,8 @@ describe('G60：pickedMeta 三段英文 label 中文备注补齐（铁律 F）',
     await pickField(host, 'created_at');
     const segFmt = detailSeg(host, 'format');
     expect(segFmt, 'format 段必须在场（date 字段）').toBeTruthy();
-    expect(segFmt!.getAttribute('title'), 'format 段中文备注').toBe('字段存储格式');
+    /* 段提示已迁 v-tip 指令（DOM 无 title 属性）——中文备注改源码锚 */
+    expect(readFileSync(join(__dirname, '../views/MappingDesignerView.vue'), 'utf-8')).toContain("label: 'format', tip: '字段存储格式'");
   });
 
   it('③ 负锚：备注只走悬浮 title，不进详情串可见文本（信息串保持紧凑）', async () => {

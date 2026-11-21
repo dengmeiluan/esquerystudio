@@ -1,7 +1,7 @@
 <template>
   <n-popover trigger="click" placement="bottom-end" :show="open" @update:show="open = $event" style="max-height:320px;overflow:auto">
     <template #trigger>
-      <button class="btn sm ghost" title="选择显示的列（按索引记忆）" :aria-label="`选择显示的列（当前 ${selected.length}/${cols.length} 列）`">
+      <button class="btn sm ghost" v-tip="'选择显示的列（按索引记忆）'" :aria-label="`选择显示的列（当前 ${selected.length}/${cols.length} 列）`">
         <Columns3 :size="13" />
         <!-- 可选文字标签（dbx 工具栏语言——图标+文字自解释） -->
         <span v-if="label" class="cp-label">{{ label }}</span>
@@ -14,8 +14,8 @@
         <!-- 「前 N」N 值偏好（usePref 全站记忆）——−/＋ 只调 N 落盘，
  「前 N」按当前 N 应用；默认 6 保持既有行为 -->
         <button class="btn sm ghost" @click="emit('update:selected', cols.slice(0, firstN))">前 {{ firstN }}</button>
-        <button class="btn sm ghost cp-n-step" aria-label="减少默认列数" title="减少「前 N」的 N" :disabled="firstN <= 1" @click="firstN = Math.max(1, firstN - 1)">−</button>
-        <button class="btn sm ghost cp-n-step" aria-label="增加默认列数" title="增加「前 N」的 N" :disabled="firstN >= 30" @click="firstN = Math.min(30, firstN + 1)">＋</button>
+        <button class="btn sm ghost cp-n-step" aria-label="减少默认列数" v-tip="'减少「前 N」的 N'" :disabled="firstN <= 1" @click="firstN = Math.max(1, firstN - 1)">−</button>
+        <button class="btn sm ghost cp-n-step" aria-label="增加默认列数" v-tip="'增加「前 N」的 N'" :disabled="firstN >= 30" @click="firstN = Math.min(30, firstN + 1)">＋</button>
       </div>
       <div v-for="c in filtered" :key="c" class="col-pick-item">
         <!-- 列名文字入 n-checkbox 默认插槽（label 对 NCheckbox 根 div 无隐式关联，
@@ -31,13 +31,13 @@
 	 es_cols watch 自动落盘零新键）；首/末边界禁用；.stop.prevent 防冒泡误触。
 	 xxs 微档防溢出（theme.css .btn.xxs 20px） -->
         <span v-if="selected.includes(c)" class="cp-mv">
-          <button class="btn xxs ghost cp-mv-btn" aria-label="上移" title="上移" :disabled="c === selected[0]"
+          <button class="btn xxs ghost cp-mv-btn" aria-label="上移" v-tip="'上移'" :disabled="c === selected[0]"
             @click.stop.prevent="move(c, -1)">▲</button>
-          <button class="btn xxs ghost cp-mv-btn" aria-label="下移" title="下移" :disabled="c === selected[selected.length - 1]"
+          <button class="btn xxs ghost cp-mv-btn" aria-label="下移" v-tip="'下移'" :disabled="c === selected[selected.length - 1]"
             @click.stop.prevent="move(c, 1)">▼</button>
         </span>
         <!-- ·实报⑥：定位到列（未勾选列先自动显示；表格横向滚动到该列+列头闪烁） -->
-        <button class="btn xxs ghost cp-mv-btn" aria-label="定位到该列" title="定位到该列（表格滚动过去并闪烁列头）"
+        <button class="btn xxs ghost cp-mv-btn" aria-label="定位到该列" v-tip="'定位到该列（表格滚动过去并闪烁列头）'"
           @click.stop.prevent="emit('locate', c)"><Crosshair :size="11" /></button>
       </div>
       <div v-if="!filtered.length" class="col-pick-none">无匹配字段</div>

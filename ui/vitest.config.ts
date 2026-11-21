@@ -43,6 +43,6 @@ export default defineConfig({
        相对路径请求（store 轮询等）会打到 happy-dom 默认 origin(localhost:3000) 的真实
        网络上，ECONNREFUSED 以 unhandledrejection 形态偶发击穿用例（单跑恒绿）。
        兜底为同源空 200：被测语义永远走各 spec 自己的 api mock，此处只吸网络噪声。 */
-    setupFiles: ['src/__tests__/setupFetchGuard.ts'],
+    setupFiles: ['src/__tests__/setupFetchGuard.ts', 'src/__tests__/setupVTip.ts'],
   },
 });

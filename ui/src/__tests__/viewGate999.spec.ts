@@ -90,6 +90,7 @@ vi.mock('../components/MonacoEditor.vue', () => ({
 
 import { useAppStore } from '../stores/app';
 import { useAuthStore } from '../stores/auth';
+import { vTip } from '../directives/vTip';
 
 const apps: ReturnType<typeof createApp>[] = [];
 let pendingConfirms: { res: (v: boolean) => void }[] = [];
@@ -127,6 +128,7 @@ async function mountView(View: any, grantedPages: string[], hookStore?: (store: 
   await router.push('/');
   await router.isReady();
   const app = createApp({ render: () => h(View as any) });
+  app.directive('tip', vTip); /* 外链钮禁用引导已迁 v-tip 指令，注册后经浮层读取 */
   app.use(pinia);
   app.use(router);
   app.config.warnHandler = () => {};
@@ -236,7 +238,10 @@ describe('999 ② AdhocRebuildView 期望配置页外链宿主预判', () => {
     const { host } = await mountView(View, ['conn:c1:adhoc-rebuild']);
     const btn = btnByText(host, '打开期望配置页');
     expect(btn.disabled, '宿主静态页对纯连接模型不可达：必须禁用').toBe(true);
-    expect(btn.title).toContain('需宿主或静态页授权');
+    /* 禁用引导已迁 v-tip 指令（DOM 无 title 属性）：focusin 通道立即显示单例浮层 #vt-tip，
+       合成事件不受按钮 disabled 影响 */
+    btn.dispatchEvent(new Event('focusin', { bubbles: false }));
+    expect(document.getElementById('vt-tip')?.textContent ?? '').toContain('需宿主或静态页授权');
   });
 
   it('持静态页键（adhoc-rebuild）：钮面可点，行为不变', { timeout: 20000 }, async () => {

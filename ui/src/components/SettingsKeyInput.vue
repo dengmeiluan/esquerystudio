@@ -38,7 +38,7 @@
         </div>
 
         <div class="skp-ft">
-          <span class="skp-ex mono" :title="curExample">示例：{{ curExample || '—' }}</span>
+          <span class="skp-ex mono" v-tip="curExample">示例：{{ curExample || '—' }}</span>
           <span class="skp-keys"><kbd class="kbd">↑↓</kbd> 选择 <kbd class="kbd">Enter</kbd> 确认 <kbd class="kbd">Esc</kbd> 关闭</span>
         </div>
       </div>

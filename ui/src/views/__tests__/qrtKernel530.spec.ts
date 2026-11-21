@@ -19,6 +19,7 @@ import QueryResultTable from '../../components/QueryResultTable.vue';
 import { findMenuItem } from '../../__tests__/helpers/ctxMenu'; /* 1142：二级菜单取项 */
 import ResultTable from '../../components/ResultTable.vue';
 import { semFormat } from '../../composables/useSemFormat';
+import { vTip } from '../../directives/vTip';
 
 const apps: ReturnType<typeof createApp>[] = [];
 const host = document.createElement('div');
@@ -36,6 +37,8 @@ const tick = async (n = 8) => { for (let i = 0; i < n; i++) { await nextTick(); 
 async function mountTbl(comp: any, props: Record<string, any>, tblRef?: ReturnType<typeof ref>) {
   const p: Record<string, any> = tblRef ? { ...props, ref: tblRef } : props;
   const app = createApp({ setup: () => () => h(comp as any, p) });
+  /* 组件模板用 v-tip（main.ts 全局注册），自建 app 须注册同款指令浮层才在 */
+  app.directive('tip', vTip);
   app.use(createPinia());
   app.mount(host);
   apps.push(app);
@@ -187,7 +190,7 @@ describe('QRT exportRowFilter 行级导出过滤', () => {
 
 /* ═══════════ 五、QRT semOn 语义渲染扩展 ═══════════ */
 describe('QRT semOn 语义渲染（useSemFormat 接线）', () => {
-  it('semOn 命中：percent/bytes 显示格式化 text + tone 类；title 恒 raw', async () => {
+  it('semOn 命中：percent/bytes 显示格式化 text + tone 类；v-tip 浮层恒 raw', async () => {
     await mountTbl(QueryResultTable, {
       cols: ['p', 'b'], rows: [[0.85, 12288], [0.5, 7]], semOn: true,
       fieldTypes: { p: 'percent', b: 'bytes' },
@@ -195,9 +198,12 @@ describe('QRT semOn 语义渲染（useSemFormat 接线）', () => {
     const tds = [...host.querySelectorAll('tbody tr:first-child td.qrt-cell')] as HTMLElement[];
     expect(tds[0].textContent?.trim()).toBe('85%');
     expect(tds[0].classList.contains('qrt-sem-y')).toBe(true);
-    expect(tds[0].getAttribute('title')).toBe('0.85'); /* raw 恒在 title */
+    /* raw 恒在 v-tip 浮层（host 已挂 body，focusin 键盘通道立即显示单例 #vt-tip） */
+    tds[0].dispatchEvent(new Event('focusin'));
+    expect(document.getElementById('vt-tip')?.textContent ?? '').toBe('0.85');
     expect(tds[1].textContent?.trim()).toBe('12.0 KB');
-    expect(tds[1].getAttribute('title')).toBe('12288');
+    tds[1].dispatchEvent(new Event('focusin'));
+    expect(document.getElementById('vt-tip')?.textContent ?? '').toBe('12288');
     const tds2 = [...host.querySelectorAll('tbody tr:nth-child(2) td.qrt-cell')] as HTMLElement[];
     expect(tds2[0].textContent?.trim()).toBe('50%');
     expect(tds2[0].classList.contains('qrt-sem-g')).toBe(true);
@@ -244,12 +250,14 @@ describe('RT semOn 语义渲染（最小接线）', () => {
     { _id: 'a', _source: { p: 0.85, b: 12288 } },
     { _id: 'b', _source: { p: 0.5, b: 7 } },
   ] as any;
-  it('semOn 命中：显示格式化 text + rt-sem tone 类；title 恒 raw', async () => {
+  it('semOn 命中：显示格式化 text + rt-sem tone 类；v-tip 浮层恒 raw', async () => {
     await mountTbl(ResultTable, { hits: HITS, total: 2, index: 'i1', semOn: true, fieldTypes: { p: 'percent', b: 'bytes' } });
     const tds = [...host.querySelectorAll('tbody tr:first-child td.rt-cell')] as HTMLElement[];
     expect(tds[0].textContent?.trim()).toBe('85%');
     expect(tds[0].classList.contains('rt-sem-y')).toBe(true);
-    expect(tds[0].getAttribute('title')).toBe('0.85');
+    /* raw 恒在 v-tip 浮层（host 已挂 body，focusin 键盘通道立即显示单例 #vt-tip） */
+    tds[0].dispatchEvent(new Event('focusin'));
+    expect(document.getElementById('vt-tip')?.textContent ?? '').toBe('0.85');
     expect(tds[1].textContent?.trim()).toBe('12.0 KB');
   });
   it('不传 semOn：文本原样、无 rt-sem 类（零增量）', async () => {

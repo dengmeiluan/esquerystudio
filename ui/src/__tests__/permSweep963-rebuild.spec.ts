@@ -103,11 +103,11 @@ describe('AdhocRebuild：校验/write 与启动/中止/切换 ops 双层门', ()
     expect(adhoc).toContain("auth.canEndpoint('write', 'POST', '/internal/es/index/config-lab/validate', store.target)");
     expect(adhoc).toContain("auth.canEndpoint('ops', 'POST', '/internal/es/index/adhoc-rebuild/start', store.target)");
   });
-  it('仅校验/校验并继续 v-if="canValidate" + disabled 合并 canValidate + title', () => {
+  it('仅校验/校验并继续 v-if="canValidate" + disabled 合并 canValidate + v-tip', () => {
     /* 984：入口按「校验」真实权限面（config-validator 写键 或 adhoc 写键）显示——
        原 v-if="canOps" 会让持 config-validator 写键的人看不到后端允许的校验入口 */
-    expect(adhoc).toContain('v-if="canValidate" class="btn ghost" :disabled="validating || !canValidate" title="校验需配置校验页或托管重建写权限" @click="doValidateConfig(false)"');
-    expect(adhoc).toContain('v-if="canValidate" class="btn primary" :disabled="validating || !canValidate" title="校验需配置校验页或托管重建写权限" @click="doValidateConfig(true)"');
+    expect(adhoc).toContain(`v-if="canValidate" class="btn ghost" :disabled="validating || !canValidate" v-tip="'校验需配置校验页或托管重建写权限'" @click="doValidateConfig(false)"`);
+    expect(adhoc).toContain(`v-if="canValidate" class="btn primary" :disabled="validating || !canValidate" v-tip="'校验需配置校验页或托管重建写权限'" @click="doValidateConfig(true)"`);
   });
   it('doValidateConfig 首行 canValidate 早退 + notify', () => {
     expect(adhoc).toMatch(/async function doValidateConfig\(advance: boolean\) \{\s*(?:\/\*[\s\S]*?\*\/\s*)?if \(!canValidate\.value\) \{ store\.notify\('warning', '校验需配置校验页或托管重建写权限'\); return; \}/);

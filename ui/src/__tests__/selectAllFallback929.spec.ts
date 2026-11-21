@@ -170,8 +170,10 @@ describe('复制兜底链：失败 toast「全选内容」动作真实全选', (
     expect(document.getSelection()!.rangeCount, 'pre 本体点击主通道全选在场').toBeGreaterThan(0);
     document.getSelection()!.removeAllRanges();
     const focusSpy = vi.spyOn(pre!, 'focus');
+    /* 复制全部钮定位迁移：title 提示已迁 v-tip 指令（DOM 无 title 属性）——
+       icon+文本钮改按可见文本定位（本视图内含「复制全部」的钮唯一） */
     const copyBtn = Array.from(host.querySelectorAll<HTMLButtonElement>('button'))
-      .find(b => (b.title || '').includes('复制完整 settings'));
+      .find(b => b.textContent?.includes('复制全部'));
     expect(copyBtn, '复制全部钮在场').toBeTruthy();
     copyBtn!.click();
     await settle();

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * MCP 工具契约对齐门（单轨口径）：服务端 McpController、纯前端 browserMcp.ts、
- * 本地 Node stdio MCP 与 docs/mcp.md 必须暴露同一份「17 个 action 组 / 166 个 action」工具面。
+ * 本地 Node stdio MCP 与 docs/mcp.md 必须暴露同一份「17 个 action 组 / 167 个 action」工具面。
  *
  * 对齐面：
  *   a) 17 个 action 组三端一致（组名集合、组序、每组 action → 内部实现名映射、组描述）。
@@ -11,7 +11,9 @@
  *   c) WRITE_TOOLS / DESTRUCTIVE_TOOLS 三端一致，ADMIN_ONLY_TOOLS 服务端与浏览器一致。
  *   d) MRTR_CONFIRM_TOOLS / TASK_TOOLS 三端一致（本批纳入，防二次确认与任务化清单漂移）。
  *   e) docs/mcp.md 的工具表 = 17 组行，每组 action 枚举与三端一致。
- *   f) negative-control：裁剪任一对齐面后必须失败，防止门禁自欺。
+ *   f) 组级 annotations 静态表三端全等（readOnlyHint/destructiveHint/idempotentHint/
+ *      openWorldHint），且与按 WRITE/DESTRUCTIVE 清单派生的期望值一致（防表漂移）。
+ *   g) negative-control：裁剪任一对齐面后必须失败，防止门禁自欺。
  * 任何一侧新增/改名/漏文档都会在此处失败。
  */
 import { readFileSync } from 'node:fs';
@@ -131,6 +133,30 @@ function setNames(source, marker, label) {
   return [...match[1].matchAll(/'([a-z0-9_]+)'|"([a-z0-9_]+)"/g)].map((m) => m[1] || m[2]);
 }
 
+/* ---------- f) 组级 annotations 静态表 ---------- */
+/* 服务端：buildToolAnnotations 内逐组 out.put("组", annotations(readOnly, destructive)); */
+function parseJavaAnnotations(source) {
+  const start = source.indexOf('private static Map<String, Map<String, Object>> buildToolAnnotations()');
+  const end = source.indexOf('return Collections.unmodifiableMap(out);', start);
+  if (start < 0 || end < 0) throw new Error('McpController 未找到 buildToolAnnotations');
+  const out = {};
+  for (const m of source.slice(start, end).matchAll(/out\.put\("([a-z0-9_]+)", annotations\((true|false), (true|false)\)\);/g)) {
+    out[m[1]] = { readOnlyHint: m[2] === 'true', destructiveHint: m[3] === 'true', idempotentHint: m[2] === 'true', openWorldHint: true };
+  }
+  return out;
+}
+/* 浏览器/本地：Record/Object 字面量逐组 '组': { readOnlyHint: .., destructiveHint: .., idempotentHint: .., openWorldHint: .. } */
+function parseLiteralAnnotations(source, marker, label) {
+  const start = source.indexOf(marker);
+  const end = source.indexOf('};', start);
+  if (start < 0 || end < 0) throw new Error(`${label} 未找到 annotations 静态表`);
+  const out = {};
+  for (const m of source.slice(start, end).matchAll(/'([a-z0-9_]+)': \{ readOnlyHint: (true|false), destructiveHint: (true|false), idempotentHint: (true|false), openWorldHint: (true|false) \}/g)) {
+    out[m[1]] = { readOnlyHint: m[2] === 'true', destructiveHint: m[3] === 'true', idempotentHint: m[4] === 'true', openWorldHint: m[5] === 'true' };
+  }
+  return out;
+}
+
 /* ---------- e) docs 工具表 ---------- */
 function parseDocsGroups(source) {
   const section = source.slice(source.indexOf('## 工具'));
@@ -169,6 +195,9 @@ function collect() {
     javaTasks: setNames(java, 'TASK_TOOLS = ', '服务端 TASK_TOOLS'),
     tsTasks: setNames(ts, 'MCP_TASK_TOOLS = ', 'browserMcp MCP_TASK_TOOLS'),
     localTasks: setNames(local, 'const TASK_TOOLS = ', '本地 Node TASK_TOOLS'),
+    javaAnnotations: parseJavaAnnotations(java),
+    tsAnnotations: parseLiteralAnnotations(ts, 'export const MCP_TOOL_ANNOTATIONS', 'browserMcp'),
+    localAnnotations: parseLiteralAnnotations(local, 'const TOOL_ANNOTATIONS', '本地 Node'),
     docsGroups: parseDocsGroups(docs),
   };
 }
@@ -270,6 +299,32 @@ function runChecks(data) {
       throw new Error(`docs/mcp.md 分组 ${group} 的 action 枚举不一致：
   实现 ${expected.join(', ')}
   文档 ${data.docsGroups[group].join(', ')}`);
+    }
+  }
+
+  /* f) 组级 annotations 静态表三端全等，且与按 WRITE/DESTRUCTIVE 清单派生的期望值一致。 */
+  const annotationKeys = Object.keys(data.javaAnnotations);
+  if (JSON.stringify(annotationKeys) !== JSON.stringify(groupNames)) {
+    throw new Error(`服务端 annotations 表与 17 组不一致：${annotationKeys.length} 组 vs ${groupNames.length} 组`);
+  }
+  for (const [label, table] of [['浏览器', data.tsAnnotations], ['本地 Node', data.localAnnotations]]) {
+    if (JSON.stringify(data.javaAnnotations) !== JSON.stringify(table)) {
+      throw new Error(`annotations 静态表不一致（服务端 vs ${label}）`);
+    }
+  }
+  /* 派生自检：readOnlyHint=组内全部零写（非 WRITE 且非 es_rest），destructiveHint=组内
+     含 DESTRUCTIVE，idempotentHint 同 readOnlyHint，openWorldHint=true——静态表与真实
+     分类清单漂移时在此失败，防止 annotations 谎报。 */
+  for (const group of groupNames) {
+    const impls = Object.values(data.javaGroups[group]);
+    const derived = {
+      readOnlyHint: impls.every((n) => !data.javaWrites.includes(n) && n !== 'es_rest'),
+      destructiveHint: impls.some((n) => data.javaDestructive.includes(n)),
+      idempotentHint: impls.every((n) => !data.javaWrites.includes(n) && n !== 'es_rest'),
+      openWorldHint: true,
+    };
+    if (JSON.stringify(derived) !== JSON.stringify(data.javaAnnotations[group])) {
+      throw new Error(`annotations 表与清单派生值不一致：${group} 表 ${JSON.stringify(data.javaAnnotations[group])} vs 派生 ${JSON.stringify(derived)}`);
     }
   }
 }
@@ -378,13 +433,21 @@ if (process.argv.includes('--negative-control')) {
     const first = Object.keys(data.docsGroups)[0];
     delete data.docsGroups[first];
   });
+  mustFail('annotations 表少一组', (data) => {
+    const first = Object.keys(data.javaAnnotations)[0];
+    delete data.javaAnnotations[first];
+  });
+  mustFail('annotations 翻转一个布尔', (data) => {
+    const group = data.javaAnnotations.es_xmigrate;
+    group.destructiveHint = !group.destructiveHint;
+  });
   if (JSON.stringify(javaResources.slice(0, -1)) === JSON.stringify(tsResources)) {
     throw new Error('negative control 未触发：少一个资源 URI 仍被判为对齐');
   }
   if (JSON.stringify(javaPrompts.slice(0, -1)) === JSON.stringify(tsPrompts)) {
     throw new Error('negative control 未触发：少一个提示词仍被判为对齐');
   }
-  console.log('[mcp-parity] negative control OK — 少一个组/action/实现名/清单项/资源/提示词/docs 行在任一接入面都会被判失败');
+  console.log('[mcp-parity] negative control OK — 少一个组/action/实现名/清单项/annotations 布尔/资源/提示词/docs 行在任一接入面都会被判失败');
 }
 
 const data = collect();
