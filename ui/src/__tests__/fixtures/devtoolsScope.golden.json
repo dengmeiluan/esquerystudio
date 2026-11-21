@@ -1,0 +1,932 @@
+{
+  "note": "开发者工具/REST 透传的作用域金标准：后端 EsIndexAdmin.guardRawGuarded 与前端 utils/devtoolsScope.nonAdminDataPlaneWriteAllowed 各自断言同一份样例。allow=内核裁决（true 允许 / false 拒绝）；ui=前端应有的可执行态（allow 必须可执行；deny 必须禁用；any=前端无法从 method/path/body 判定，由内核兜底）。改动任一侧而未同步本文件 → 该侧测试红。",
+  "cases": [
+    {
+      "id": "e01",
+      "method": "GET",
+      "path": "/logs/_search",
+      "body": null,
+      "allow": true,
+      "ui": "allow",
+      "why": "业务索引检索"
+    },
+    {
+      "id": "e02",
+      "method": "POST",
+      "path": "/logs/_search",
+      "body": "{\"query\":{\"match_all\":{}},\"size\":1}",
+      "allow": true,
+      "ui": "allow",
+      "why": "DSL 检索"
+    },
+    {
+      "id": "e03",
+      "method": "GET",
+      "path": "/_cat/indices?format=json",
+      "body": null,
+      "allow": true,
+      "ui": "allow",
+      "why": "索引目录（JSON 行式+行过滤）"
+    },
+    {
+      "id": "e04",
+      "method": "GET",
+      "path": "/_security/_authenticate",
+      "body": null,
+      "allow": true,
+      "ui": "allow",
+      "why": "身份自省"
+    },
+    {
+      "id": "e05",
+      "method": "POST",
+      "path": "/logs/_doc",
+      "body": "{\"a\":1}",
+      "allow": true,
+      "ui": "allow",
+      "why": "自动 ID 写文档"
+    },
+    {
+      "id": "e06",
+      "method": "PUT",
+      "path": "/logs/_doc/1",
+      "body": "{\"a\":1}",
+      "allow": true,
+      "ui": "allow",
+      "why": "写文档"
+    },
+    {
+      "id": "e07",
+      "method": "DELETE",
+      "path": "/logs/_doc/1",
+      "body": null,
+      "allow": true,
+      "ui": "allow",
+      "why": "删文档"
+    },
+    {
+      "id": "e08",
+      "method": "POST",
+      "path": "/logs/_update/1",
+      "body": "{\"doc\":{\"a\":2}}",
+      "allow": true,
+      "ui": "allow",
+      "why": "局部更新"
+    },
+    {
+      "id": "e09",
+      "method": "POST",
+      "path": "/_bulk",
+      "body": "{\"index\":{\"_index\":\"logs\",\"_id\":\"1\"}}\n{\"a\":1}\n",
+      "allow": true,
+      "ui": "allow",
+      "why": "批量写"
+    },
+    {
+      "id": "e10",
+      "method": "POST",
+      "path": "/logs/_delete_by_query",
+      "body": "{\"query\":{\"term\":{\"a\":1}}}",
+      "allow": true,
+      "ui": "allow",
+      "why": "按查询删（业务索引）"
+    },
+    {
+      "id": "e11",
+      "method": "POST",
+      "path": "/logs/_update_by_query",
+      "body": "{\"query\":{\"term\":{\"a\":1}}}",
+      "allow": true,
+      "ui": "allow",
+      "why": "按查询改（业务索引）"
+    },
+    {
+      "id": "e12",
+      "method": "POST",
+      "path": "/_sql",
+      "body": "{\"query\":\"SELECT * FROM logs LIMIT 1\"}",
+      "allow": true,
+      "ui": "allow",
+      "why": "SQL 查业务索引"
+    },
+    {
+      "id": "e13",
+      "method": "POST",
+      "path": "/_analyze",
+      "body": "{\"text\":\"abc\"}",
+      "allow": true,
+      "ui": "allow",
+      "why": "分词"
+    },
+    {
+      "id": "e14",
+      "method": "GET",
+      "path": "/_cluster/health",
+      "body": null,
+      "allow": true,
+      "ui": "allow",
+      "why": "集群健康（非索引级）"
+    },
+    {
+      "id": "e15",
+      "method": "POST",
+      "path": "/logs/_pit?keep_alive=1m",
+      "body": null,
+      "allow": true,
+      "ui": "allow",
+      "why": "索引级 PIT（显式索引）"
+    },
+    {
+      "id": "e16",
+      "method": "POST",
+      "path": "/_search",
+      "body": "{\"pit\":{\"id\":\"abc\"},\"query\":{\"match_all\":{}}}",
+      "allow": true,
+      "ui": "allow",
+      "why": "PIT 搜索（唯一豁免形态）"
+    },
+    {
+      "id": "e17",
+      "method": "DELETE",
+      "path": "/_pit",
+      "body": "{\"id\":\"abc\"}",
+      "allow": true,
+      "ui": "allow",
+      "why": "释放自己持有的 PIT"
+    },
+    {
+      "id": "e18",
+      "method": "DELETE",
+      "path": "/_search/scroll",
+      "body": "{\"scroll_id\":\"abc\"}",
+      "allow": true,
+      "ui": "allow",
+      "why": "释放 scroll"
+    },
+    {
+      "id": "d01",
+      "method": "PUT",
+      "path": "/_cluster/settings",
+      "body": "{\"persistent\":{\"x\":1}}",
+      "allow": false,
+      "ui": "deny",
+      "why": "集群设置需 cluster-settings 页"
+    },
+    {
+      "id": "d02",
+      "method": "POST",
+      "path": "/_cluster/reroute",
+      "body": "{}",
+      "allow": false,
+      "ui": "deny",
+      "why": "分片路由"
+    },
+    {
+      "id": "d03",
+      "method": "PUT",
+      "path": "/_security/user/evil",
+      "body": "{\"password\":\"x\"}",
+      "allow": false,
+      "ui": "deny",
+      "why": "账号管理"
+    },
+    {
+      "id": "d04",
+      "method": "PUT",
+      "path": "/_index_template/evil",
+      "body": "{\"index_patterns\":[\"*\"]}",
+      "allow": false,
+      "ui": "deny",
+      "why": "模板需 templates 页"
+    },
+    {
+      "id": "d05",
+      "method": "PUT",
+      "path": "/_template/evil",
+      "body": "{\"index_patterns\":[\"*\"]}",
+      "allow": false,
+      "ui": "deny",
+      "why": "旧模板"
+    },
+    {
+      "id": "d06",
+      "method": "PUT",
+      "path": "/_scripts/evil",
+      "body": "{\"script\":{\"lang\":\"painless\",\"source\":\"1\"}}",
+      "allow": false,
+      "ui": "deny",
+      "why": "已存脚本"
+    },
+    {
+      "id": "d07",
+      "method": "PUT",
+      "path": "/_ingest/pipeline/evil",
+      "body": "{}",
+      "allow": false,
+      "ui": "deny",
+      "why": "管道"
+    },
+    {
+      "id": "d08",
+      "method": "POST",
+      "path": "/_ilm/start",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "ILM 集群开关"
+    },
+    {
+      "id": "d09",
+      "method": "POST",
+      "path": "/_snapshot/repo/snap",
+      "body": "{}",
+      "allow": false,
+      "ui": "deny",
+      "why": "快照需 snapshots 页"
+    },
+    {
+      "id": "d10",
+      "method": "POST",
+      "path": "/_reindex",
+      "body": "{\"source\":{\"index\":\"a\"},\"dest\":{\"index\":\"b\"}}",
+      "allow": false,
+      "ui": "deny",
+      "why": "reindex 需专用页"
+    },
+    {
+      "id": "d11",
+      "method": "POST",
+      "path": "/_aliases",
+      "body": "{}",
+      "allow": false,
+      "ui": "deny",
+      "why": "别名切换需 aliases 页"
+    },
+    {
+      "id": "d12",
+      "method": "DELETE",
+      "path": "/logs",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "删索引"
+    },
+    {
+      "id": "d13",
+      "method": "PUT",
+      "path": "/new-index",
+      "body": "{}",
+      "allow": false,
+      "ui": "deny",
+      "why": "建索引"
+    },
+    {
+      "id": "d14",
+      "method": "POST",
+      "path": "/logs/_close",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "关索引"
+    },
+    {
+      "id": "d15",
+      "method": "PUT",
+      "path": "/logs/_mapping",
+      "body": "{\"properties\":{}}",
+      "allow": false,
+      "ui": "deny",
+      "why": "改 mapping"
+    },
+    {
+      "id": "d16",
+      "method": "PUT",
+      "path": "/logs/_settings",
+      "body": "{\"index\":{\"number_of_replicas\":0}}",
+      "allow": false,
+      "ui": "deny",
+      "why": "改 settings"
+    },
+    {
+      "id": "d17",
+      "method": "POST",
+      "path": "/logs/_alias/hot",
+      "body": "{}",
+      "allow": false,
+      "ui": "deny",
+      "why": "加别名"
+    },
+    {
+      "id": "d18",
+      "method": "POST",
+      "path": "/logs/_forcemerge",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "force-merge"
+    },
+    {
+      "id": "d19",
+      "method": "POST",
+      "path": "/logs/_rollover",
+      "body": "{}",
+      "allow": false,
+      "ui": "deny",
+      "why": "rollover"
+    },
+    {
+      "id": "d20",
+      "method": "DELETE",
+      "path": "/_all",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "全量删除"
+    },
+    {
+      "id": "d21",
+      "method": "POST",
+      "path": "/_nodes/reload_secure_settings",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "节点安全配置"
+    },
+    {
+      "id": "d22",
+      "method": "POST",
+      "path": "/_tasks/abc/_cancel",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "任务取消需 tasks 页"
+    },
+    {
+      "id": "d23",
+      "method": "PUT",
+      "path": "//_cluster/settings",
+      "body": "{}",
+      "allow": false,
+      "ui": "deny",
+      "why": "重复斜杠变形"
+    },
+    {
+      "id": "d24",
+      "method": "PUT",
+      "path": "/./_cluster/settings",
+      "body": "{}",
+      "allow": false,
+      "ui": "deny",
+      "why": "点段变形"
+    },
+    {
+      "id": "d25",
+      "method": "PUT",
+      "path": "/%5Fcluster/settings",
+      "body": "{}",
+      "allow": false,
+      "ui": "deny",
+      "why": "编码下划线"
+    },
+    {
+      "id": "d26",
+      "method": "PUT",
+      "path": "/_SECURITY/user/evil",
+      "body": "{\"password\":\"x\"}",
+      "allow": false,
+      "ui": "deny",
+      "why": "大写变体"
+    },
+    {
+      "id": "d27",
+      "method": "GET",
+      "path": "/_cluster/state/metadata",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "集群元数据读"
+    },
+    {
+      "id": "d28",
+      "method": "GET",
+      "path": "/_nodes",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "节点清单读"
+    },
+    {
+      "id": "d29",
+      "method": "GET",
+      "path": "/_cat/indices",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "索引目录必须 format=json（无法过滤控制面行）"
+    },
+    {
+      "id": "d30",
+      "method": "POST",
+      "path": "/_pit",
+      "body": "{\"keep_alive\":\"1d\"}",
+      "allow": false,
+      "ui": "deny",
+      "why": "根级开 PIT=全量读"
+    },
+    {
+      "id": "d31",
+      "method": "POST",
+      "path": "/_search/scroll",
+      "body": "{\"scroll_id\":\"abc\"}",
+      "allow": false,
+      "ui": "deny",
+      "why": "续读他人 scroll"
+    },
+    {
+      "id": "d32",
+      "method": "PUT",
+      "path": "/esquerystudio_user/_doc/1",
+      "body": "{\"role\":\"ADMIN\"}",
+      "allow": false,
+      "ui": "deny",
+      "why": "直写控制面索引"
+    },
+    {
+      "id": "d33",
+      "method": "POST",
+      "path": "/.security/_search",
+      "body": "{}",
+      "allow": false,
+      "ui": "deny",
+      "why": "系统隐藏索引"
+    },
+    {
+      "id": "d34",
+      "method": "POST",
+      "path": "/logs*_esquerystudio_lock/_delete_by_query",
+      "body": "{\"query\":{\"match_all\":{}}}",
+      "allow": false,
+      "ui": "deny",
+      "why": "后缀控制索引通配"
+    },
+    {
+      "id": "d35",
+      "method": "DELETE",
+      "path": "/logs-*",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "通配删索引"
+    },
+    {
+      "id": "d36",
+      "method": "POST",
+      "path": "/_search?index=logs",
+      "body": "{\"query\":{\"match_all\":{}}}",
+      "allow": false,
+      "ui": "deny",
+      "why": "查询参数不构成目标限定"
+    },
+    {
+      "id": "d37",
+      "method": "GET",
+      "path": "/logs/_search?index=orders",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "路径与查询参数目标二义"
+    },
+    {
+      "id": "d38",
+      "method": "PUT",
+      "path": "/logs/_doc/..%2F..%2F_security/user/evil",
+      "body": "{}",
+      "allow": false,
+      "ui": "deny",
+      "why": "文档 ID 穿越"
+    },
+    {
+      "id": "d39",
+      "method": "PUT",
+      "path": "http://evil.example.com/",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "绝对 URL 不是 ES 路径"
+    },
+    {
+      "id": "d40",
+      "method": "TRACE",
+      "path": "/logs/_search",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "方法白名单"
+    },
+    {
+      "id": "d41",
+      "method": "GET",
+      "path": "/_cat/indices/esquerystudio_user?format=json",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "系统 API 后续段仍是索引位（1046 前端逐段镜像）"
+    },
+    {
+      "id": "d42",
+      "method": "GET",
+      "path": "/_all",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "_all 隐式全量（1046 前端不再因 _ 前缀放行）"
+    },
+    {
+      "id": "d43",
+      "method": "GET",
+      "path": "/_cluster/health?level=indices",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "索引级 health 枚举控制面（1046 前端镜像）"
+    },
+    {
+      "id": "d44",
+      "method": "GET",
+      "path": "/logs%2F_search",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "解码分隔符与真实路由分歧（1046 前端 fail-closed）"
+    },
+    {
+      "id": "d45",
+      "method": "POST",
+      "path": "/logs/_search",
+      "body": "{\"query\":{\"terms\":{\"u\":{\"index\":\".security\",\"id\":\"1\",\"path\":\"username\"}}}}",
+      "allow": false,
+      "ui": "deny",
+      "why": "检索 body 二级数据源指向控制面（1046 前端解析 terms/wrapper/MLT）"
+    },
+    {
+      "id": "d46",
+      "method": "POST",
+      "path": "/_msearch",
+      "body": "{\"indices\":\"esquerystudio_user\"}\n{\"query\":{\"match_all\":{}}}\n",
+      "allow": false,
+      "ui": "deny",
+      "why": "msearch indices 字符串形态（1046 前端兼容 string/array）"
+    },
+    {
+      "id": "d47",
+      "method": "GET",
+      "path": "/_logstash/pipeline",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "管道元数据可带凭据（1046 管理面读拒绝）"
+    },
+    {
+      "id": "d48",
+      "method": "GET",
+      "path": "/_connector",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "连接器密钥面（1046）"
+    },
+    {
+      "id": "d49",
+      "method": "GET",
+      "path": "/_synonyms",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "同义词集元数据（1046）"
+    },
+    {
+      "id": "d50",
+      "method": "GET",
+      "path": "/_query_rules",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "查询规则管理面（1046）"
+    },
+    {
+      "id": "d51",
+      "method": "GET",
+      "path": "/_autoscaling/capacity",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "集群容量信息（1046）"
+    },
+    {
+      "id": "d52",
+      "method": "GET",
+      "path": "/_searchable_snapshots/cache/stats",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "可搜索快照缓存元数据（1046）"
+    },
+    {
+      "id": "e19",
+      "method": "GET",
+      "path": "/logs/_search?source=%7B%22pit%22%3A%7B%22id%22%3A%22abc%22%7D%7D",
+      "body": null,
+      "allow": true,
+      "ui": "allow",
+      "why": "?source= 是 body 同权形态：索引级 PIT 搜索应放行（1046 前端同样按 source 判定）"
+    },
+    {
+      "id": "e20",
+      "method": "GET",
+      "path": "/logs/_search?pretty=true",
+      "body": null,
+      "allow": true,
+      "ui": "allow",
+      "why": "普通查询参数不影响数据面检索"
+    },
+    {
+      "id": "b01",
+      "method": "POST",
+      "path": "/_bulk",
+      "body": "{\"index\":{\"_index\":\"esquerystudio_user\",\"_id\":\"1\"}}\n{\"role\":\"ADMIN\"}\n",
+      "allow": false,
+      "ui": "deny",
+      "why": "body 夹带控制索引（1046 前端已解析 bulk 动作行）"
+    },
+    {
+      "id": "b02",
+      "method": "POST",
+      "path": "/_msearch",
+      "body": "{\"index\":\"esquerystudio_user\"}\n{\"query\":{\"match_all\":{}}}\n",
+      "allow": false,
+      "ui": "deny",
+      "why": "body 头夹带（1046 前端已解析 msearch）"
+    },
+    {
+      "id": "b03",
+      "method": "POST",
+      "path": "/_mget",
+      "body": "{\"docs\":[{\"_index\":\"esquerystudio_user\",\"_id\":\"1\"}]}",
+      "allow": false,
+      "ui": "deny",
+      "why": "docs 夹带（1046 前端已解析 mget）"
+    },
+    {
+      "id": "b04",
+      "method": "POST",
+      "path": "/_sql",
+      "body": "{\"query\":\"SELECT * FROM esquerystudio_user\"}",
+      "allow": false,
+      "ui": "deny",
+      "why": "SQL FROM 控制面（1046 前端逐 token 判定）"
+    },
+    {
+      "id": "b05",
+      "method": "POST",
+      "path": "/logs/_update/1",
+      "body": "{\"script\":{\"source\":\"ctx._index='esquerystudio_user'\"}}",
+      "allow": false,
+      "ui": "any",
+      "why": "_index 改写脚本（前端不解析 painless）"
+    },
+    {
+      "id": "b06",
+      "method": "POST",
+      "path": "/_render/template",
+      "body": "{\"id\":\"evil\"}",
+      "allow": false,
+      "ui": "deny",
+      "why": "按已存 id 渲染（1046 前端对 id 引用禁用）"
+    },
+    {
+      "id": "e21",
+      "method": "POST",
+      "path": "/_sql/translate",
+      "body": "{\"query\":\"SELECT * FROM logs LIMIT 1\"}",
+      "allow": true,
+      "ui": "allow",
+      "why": "SQL 翻译是只读数据面（1007 具名子路由白名单）"
+    },
+    {
+      "id": "e22",
+      "method": "GET",
+      "path": "/",
+      "body": null,
+      "allow": true,
+      "ui": "allow",
+      "why": "根路径自省只回集群名/版本（无路径段不等于越权）"
+    },
+    {
+      "id": "e23",
+      "method": "GET",
+      "path": "/_cat/indices?format=json&h=index,status",
+      "body": null,
+      "allow": true,
+      "ui": "allow",
+      "why": "显式投影 index 列（行级过滤可用）"
+    },
+    {
+      "id": "e24",
+      "method": "GET",
+      "path": "/_cat/shards?format=json",
+      "body": null,
+      "allow": true,
+      "ui": "allow",
+      "why": "默认列含 index；ip/node 由服务端摘除（排障仍可看状态）"
+    },
+    {
+      "id": "d53",
+      "method": "GET",
+      "path": "/logs/_search_shards",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "索引级 _search_shards 自带 transport_address（1007 与根形态同权拒绝）"
+    },
+    {
+      "id": "d54",
+      "method": "GET",
+      "path": "/_search_shards",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "根级分片拓扑读"
+    },
+    {
+      "id": "d55",
+      "method": "GET",
+      "path": "/_cat/master",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "master 身份（节点 id/name）"
+    },
+    {
+      "id": "d56",
+      "method": "GET",
+      "path": "/_cluster/voting_config_exclusions",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "选主成员清单"
+    },
+    {
+      "id": "d57",
+      "method": "GET",
+      "path": "/_async_search/abc",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "异步结果按 id 取回（id 即凭据，结果按执行者权限生成）"
+    },
+    {
+      "id": "d58",
+      "method": "GET",
+      "path": "/_sql/async/abc",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "异步 SQL 结果按 id 取回"
+    },
+    {
+      "id": "d59",
+      "method": "DELETE",
+      "path": "/_sql/async/abc",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "SQL 只放行具名子路由（禁止 /_sql/** 整段放行）"
+    },
+    {
+      "id": "d60",
+      "method": "GET",
+      "path": "/_cat/indices?format=json&h=status",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "投影掉了 index 列，服务端无法过滤控制面行"
+    },
+    {
+      "id": "d61",
+      "method": "POST",
+      "path": "/_search",
+      "body": "{\"pit\":{\"id\":\"abc\"},\"index\":\"logs\"}",
+      "allow": false,
+      "ui": "deny",
+      "why": "PIT 与 index 并存=目标二义（1007 PIT 豁免要求无 index/indices）"
+    },
+    {
+      "id": "d62",
+      "method": "POST",
+      "path": "/logs/_pit?keep_alive=999d",
+      "body": null,
+      "allow": false,
+      "ui": "any",
+      "why": "PIT keep_alive 超上限（后端夹紧规则；前端无法从 method/path 判定时长）"
+    },
+    {
+      "id": "d63",
+      "method": "GET",
+      "path": "/_CAT/NODES",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "系统读拒绝清单大小写归一（1007）"
+    },
+    {
+      "id": "p01",
+      "method": "GET",
+      "path": "/_search?q=*",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "根级检索查询串形态=全量读（1124 实测）"
+    },
+    {
+      "id": "p02",
+      "method": "GET",
+      "path": "/_search?q=*&size=100",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "根级检索查询串形态（带 size）"
+    },
+    {
+      "id": "p03",
+      "method": "GET",
+      "path": "/_count?q=*",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "count 的 q 通配=全量"
+    },
+    {
+      "id": "p04",
+      "method": "GET",
+      "path": "/_search_shards",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "分片视图枚举索引名"
+    },
+    {
+      "id": "p05",
+      "method": "POST",
+      "path": "/_msearch",
+      "body": "{}\n{\"query\":{\"match_all\":{}}}\n",
+      "allow": false,
+      "ui": "deny",
+      "why": "根路径空头=不限索引（全量）"
+    },
+    {
+      "id": "p06",
+      "method": "POST",
+      "path": "/logs/_msearch",
+      "body": "{}\n{\"query\":{\"match_all\":{}}}\n",
+      "allow": true,
+      "ui": "allow",
+      "why": "路径索引是头的默认索引（ES 语义，非全量）"
+    },
+    {
+      "id": "p07",
+      "method": "POST",
+      "path": "/logs/_bulk",
+      "body": "{\"index\":{}}\n{\"a\":1}\n",
+      "allow": true,
+      "ui": "allow",
+      "why": "bulk 继承路径索引（ES 语义）"
+    },
+    {
+      "id": "p08",
+      "method": "GET",
+      "path": "/_cat/aliases?format=json",
+      "body": null,
+      "allow": true,
+      "ui": "allow",
+      "why": "JSON 行式，结果侧按行剔除控制面"
+    },
+    {
+      "id": "p09",
+      "method": "GET",
+      "path": "/_cat/shards?format=json",
+      "body": null,
+      "allow": true,
+      "ui": "allow",
+      "why": "JSON 行式，结果侧按行剔除控制面"
+    },
+    {
+      "id": "p10",
+      "method": "GET",
+      "path": "/_cat/count",
+      "body": null,
+      "allow": false,
+      "ui": "deny",
+      "why": "聚合形态无法按行过滤"
+    }
+  ]
+}

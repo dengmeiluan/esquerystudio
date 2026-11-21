@@ -1,0 +1,3 @@
+function s(n){return n==null?"":typeof n=="object"?JSON.stringify(n):String(n)}function e(n){return[n.cols.join("	"),...n.rows.map(r=>n.cols.map(t=>s(n.getVal(r,t)).replace(/[\t\r\n]/g," ")).join("	"))].join(`
+`)}function a(n){const r=t=>s(t).replace(/\|/g,"\\|").replace(/[\r\n]/g," ");return["| "+n.cols.join(" | ")+" |","| "+n.cols.map(()=>"---").join(" | ")+" |",...n.rows.map(t=>"| "+n.cols.map(i=>r(n.getVal(t,i))).join(" | ")+" |")].join(`
+`)}function o(n){const r=n.rows.map(t=>n.jsonRow?n.jsonRow(t):Object.fromEntries(n.cols.map(i=>[i,n.getVal(t,i)??null])));return JSON.stringify(r,null,2)}function c(n,r){return r==="tsv"?e(n):r==="md"?a(n):o(n)}function l(n,r,t){return typeof n=="string"&&r.includes(n)?n:t}export{e as a,c as m,l as n};

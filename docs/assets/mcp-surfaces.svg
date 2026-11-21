@@ -1,0 +1,116 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="720" viewBox="0 0 1200 720" role="img" aria-labelledby="title desc">
+  <title id="title">ESQueryStudio MCP 三种接入面</title>
+  <desc id="desc">服务端 /mcp、浏览器 window.ESQueryStudioMCP、本地 Node stdio 三种 MCP 接入面共用 130 个工具、9 个只读资源、1 个 MCP App 与 5 个引导提示词；API key 按角色、连接集合、连接级读写与频率配额治理。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0e14"/>
+      <stop offset="1" stop-color="#0d141c"/>
+    </linearGradient>
+    <linearGradient id="srv" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5eead4" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#5eead4" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="brw" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#93c5fd" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#93c5fd" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="nod" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fbbf24" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#fbbf24" stop-opacity="0"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#ffffff" stroke-opacity=".035" stroke-width="1"/>
+    </pattern>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#64748b"/>
+    </marker>
+    <style>
+      .display { font-family: "Segoe UI", "Microsoft YaHei", "Noto Sans SC", sans-serif; font-weight: 700; }
+      .body { font-family: "Segoe UI", "Microsoft YaHei", "Noto Sans SC", sans-serif; }
+      .mono { font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace; }
+      .mut { fill: #8b9bb4; }
+      .white { fill: #f1f5f9; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="720" fill="url(#bg)"/>
+  <rect width="1200" height="720" fill="url(#grid)"/>
+  <circle cx="1040" cy="80" r="200" fill="#5eead4" opacity=".035"/>
+  <circle cx="140" cy="650" r="240" fill="#93c5fd" opacity=".03"/>
+
+  <text x="48" y="62" class="display white" font-size="30">三种 MCP 接入面，一套工具契约</text>
+  <text x="48" y="90" class="body mut" font-size="14">One protocol contract, three transports — 130 tools · 10 resources · 5 prompts · JSON-RPC 2.0</text>
+
+  <!-- Server lane -->
+  <g>
+    <rect x="48" y="126" width="352" height="330" rx="18" fill="#0f1620" stroke="#1f2b3a"/>
+    <rect x="48" y="126" width="352" height="120" rx="18" fill="url(#srv)"/>
+    <text x="72" y="158" class="mono" fill="#5eead4" font-size="11">A · SERVER</text>
+    <text x="72" y="184" class="display white" font-size="19">服务端 /mcp</text>
+    <text x="72" y="206" class="body mut" font-size="11">HTTP JSON-RPC 2.0 · SSE 可选</text>
+
+    <rect x="72" y="232" width="304" height="44" rx="8" fill="#0b1118" stroke="#2dd4bf" stroke-opacity=".35"/>
+    <text x="86" y="259" class="mono" fill="#5eead4" font-size="11">POST /mcp  →  initialize / tools/list</text>
+    <rect x="72" y="288" width="304" height="44" rx="8" fill="#0b1118" stroke="#1f2b3a"/>
+    <text x="86" y="315" class="body white" font-size="12">API key → SHA-256 校验 → 限流 / 配额</text>
+    <rect x="72" y="344" width="304" height="44" rx="8" fill="#0b1118" stroke="#1f2b3a"/>
+    <text x="86" y="371" class="body white" font-size="12">多集群路由 → 目标连接权限判定</text>
+    <rect x="72" y="400" width="304" height="34" rx="8" fill="#0b1118" stroke="#1f2b3a"/>
+    <text x="86" y="422" class="body mut" font-size="11">适配 Claude Desktop / Cursor / 任意 MCP 客户端</text>
+  </g>
+
+  <!-- Browser lane -->
+  <g>
+    <rect x="424" y="126" width="352" height="330" rx="18" fill="#0f1620" stroke="#1f2b3a"/>
+    <rect x="424" y="126" width="352" height="120" rx="18" fill="url(#brw)"/>
+    <text x="448" y="158" class="mono" fill="#93c5fd" font-size="11">B · BROWSER</text>
+    <text x="448" y="184" class="display white" font-size="19">页面内 MCP</text>
+    <text x="448" y="206" class="body mut" font-size="11">window.ESQueryStudioMCP · 零端口</text>
+
+    <rect x="448" y="232" width="304" height="44" rx="8" fill="#0b1118" stroke="#93c5fd" stroke-opacity=".35"/>
+    <text x="462" y="259" class="mono" fill="#93c5fd" font-size="11">await ESQueryStudioMCP.handle({…})</text>
+    <rect x="448" y="288" width="304" height="44" rx="8" fill="#0b1118" stroke="#1f2b3a"/>
+    <text x="462" y="315" class="body white" font-size="12">browserApi 直连 ES transport</text>
+    <rect x="448" y="344" width="304" height="44" rx="8" fill="#0b1118" stroke="#1f2b3a"/>
+    <text x="462" y="371" class="body white" font-size="12">不经过服务端 · 不读服务端凭据</text>
+    <rect x="448" y="400" width="304" height="34" rx="8" fill="#0b1118" stroke="#1f2b3a"/>
+    <text x="462" y="422" class="body mut" font-size="11">适合页面内 AI / Agent 与 Chrome 扩展</text>
+  </g>
+
+  <!-- Node lane -->
+  <g>
+    <rect x="800" y="126" width="352" height="330" rx="18" fill="#0f1620" stroke="#1f2b3a"/>
+    <rect x="800" y="126" width="352" height="120" rx="18" fill="url(#nod)"/>
+    <text x="824" y="158" class="mono" fill="#fbbf24" font-size="11">C · LOCAL NODE</text>
+    <text x="824" y="184" class="display white" font-size="19">本地 stdio MCP</text>
+    <text x="824" y="206" class="body mut" font-size="11">Node 18+ · 无第三方依赖</text>
+
+    <rect x="824" y="232" width="304" height="44" rx="8" fill="#0b1118" stroke="#fbbf24" stroke-opacity=".35"/>
+    <text x="838" y="259" class="mono" fill="#fbbf24" font-size="11">esquerystudio-mcp --config mcp.json</text>
+    <rect x="824" y="288" width="304" height="44" rx="8" fill="#0b1118" stroke="#1f2b3a"/>
+    <text x="838" y="315" class="body white" font-size="12">多连接 · 本机凭据 · --allow-write</text>
+    <rect x="824" y="344" width="304" height="44" rx="8" fill="#0b1118" stroke="#1f2b3a"/>
+    <text x="838" y="371" class="body white" font-size="12">stdio 直连 ES · 不经过控制台</text>
+    <rect x="824" y="400" width="304" height="34" rx="8" fill="#0b1118" stroke="#1f2b3a"/>
+    <text x="838" y="422" class="body mut" font-size="11">适合本机 IDE / 桌面 Agent / 内网机器</text>
+  </g>
+
+  <!-- Arrows to ES -->
+  <line x1="200" y1="456" x2="200" y2="486" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="600" y1="456" x2="600" y2="486" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="976" y1="456" x2="976" y2="486" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <rect x="48" y="492" width="1104" height="70" rx="14" fill="#0b1118" stroke="#1f2b3a"/>
+  <text x="72" y="518" class="body mut" font-size="11">SAME ES QUERY KERNEL</text>
+  <text x="72" y="542" class="body white" font-size="13">ES 6 / 7 / 8 / 9 · SQL / explain / update 路径按版本自动降级 · 文档 CRUD · raw REST 读写分类</text>
+  <rect x="970" y="510" width="158" height="30" rx="15" fill="#123a37" stroke="#2dd4bf" stroke-opacity=".45"/>
+  <text x="1049" y="530" text-anchor="middle" class="mono" fill="#5eead4" font-size="11">130 tools · 5 prompts</text>
+
+  <!-- Key band -->
+  <rect x="48" y="590" width="1104" height="96" rx="14" fill="#0f1620" stroke="#38bdf8" stroke-opacity=".25"/>
+  <text x="72" y="618" class="mono" fill="#38bdf8" font-size="11">KEY RING · 实时签发，立即生效</text>
+  <text x="72" y="644" class="body white" font-size="13">角色快照 · 连接集合 · 连接级读写（QA/UAT 写，PROD 只读）· rpm / 日 / 月配额 · 到期 · 轮换 / 撤销</text>
+  <text x="72" y="666" class="body mut" font-size="11">明文只出现一次；存储只保留 SHA-256；面板展示累计 / 今日 / 本月用量与错误数</text>
+  <rect x="980" y="610" width="148" height="30" rx="15" fill="#12263f" stroke="#60a5fa" stroke-opacity=".4"/>
+  <text x="1054" y="630" text-anchor="middle" class="mono" fill="#93c5fd" font-size="11">esq_mcp_••••</text>
+</svg>

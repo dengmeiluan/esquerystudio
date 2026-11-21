@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">ESQueryStudio runtime architecture</title>
+  <desc id="desc">Host apps and MCP agents enter the console runtime through ConsoleHostIntegration or /mcp; the platform layer provides page authorization, feature packs and the console SPA; the engine and observability modules operate one or more Elasticsearch clusters.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#090d12"/>
+      <stop offset="1" stop-color="#0d141c"/>
+    </linearGradient>
+    <linearGradient id="hostFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#162a46" stop-opacity=".62"/>
+      <stop offset="1" stop-color="#0b1118"/>
+    </linearGradient>
+    <linearGradient id="plateFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#123a37" stop-opacity=".58"/>
+      <stop offset="1" stop-color="#0b1118"/>
+    </linearGradient>
+    <linearGradient id="engineFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a2433" stop-opacity=".8"/>
+      <stop offset="1" stop-color="#0b1118"/>
+    </linearGradient>
+    <linearGradient id="esFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a2e18" stop-opacity=".7"/>
+      <stop offset="1" stop-color="#0b1118"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#ffffff" stroke-opacity=".035" stroke-width="1"/>
+    </pattern>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#64748b"/>
+    </marker>
+    <marker id="arrowTeal" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#2dd4bf"/>
+    </marker>
+    <marker id="arrowAmber" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#d9a441"/>
+    </marker>
+    <style>
+      .display { font-family: "Segoe UI", "Microsoft YaHei", "Noto Sans SC", sans-serif; font-weight: 700; }
+      .body { font-family: "Segoe UI", "Microsoft YaHei", "Noto Sans SC", sans-serif; }
+      .mono { font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="700" fill="url(#bg)"/>
+  <rect width="1200" height="700" fill="url(#grid)"/>
+
+  <text x="52" y="58" class="mono" fill="#5eead4" font-size="12" letter-spacing="2">ESQUERYSTUDIO / RUNTIME SHAPE</text>
+  <text x="52" y="92" class="display" fill="#f1f5f9" font-size="30" letter-spacing="-0.6">One console runtime. Host-owned identity. Engine-side execution.</text>
+  <text x="52" y="118" class="body" fill="#8b9bad" font-size="14">The platform contract stays independent of the host; the console and engine sit between application identity and Elasticsearch.</text>
+
+  <!-- Entry column -->
+  <g>
+    <rect x="52" y="172" width="210" height="112" rx="10" fill="url(#hostFill)" stroke="#2f4b6e"/>
+    <text x="72" y="200" class="mono" fill="#93c5fd" font-size="11" letter-spacing="1.4">HOST APPLICATION</text>
+    <text x="72" y="226" class="display" fill="#f1f5f9" font-size="18">宿主应用</text>
+    <text x="72" y="250" class="body" fill="#8b9bad" font-size="12.5">Login · roles · menus · routes</text>
+    <text x="72" y="268" class="mono" fill="#7f95ad" font-size="10.5">ConsoleHostIntegration</text>
+
+    <rect x="52" y="304" width="210" height="96" rx="10" fill="url(#hostFill)" stroke="#2f4b6e"/>
+    <text x="72" y="332" class="mono" fill="#93c5fd" font-size="11" letter-spacing="1.4">STANDALONE</text>
+    <text x="72" y="358" class="display" fill="#f1f5f9" font-size="17">esquerystudio-server</text>
+    <text x="72" y="380" class="body" fill="#8b9bad" font-size="12.5">Bootable jar · setup wizard</text>
+
+    <rect x="52" y="420" width="210" height="152" rx="10" fill="url(#hostFill)" stroke="#2f4b6e"/>
+    <text x="72" y="448" class="mono" fill="#93c5fd" font-size="11" letter-spacing="1.4">MCP / AGENTS</text>
+    <text x="72" y="474" class="display" fill="#f1f5f9" font-size="17">Agents</text>
+    <text x="72" y="498" class="mono" fill="#cbd5e1" font-size="10.5">POST /mcp</text>
+    <text x="72" y="517" class="mono" fill="#cbd5e1" font-size="10.5">window.ESQueryStudioMCP</text>
+    <text x="72" y="536" class="mono" fill="#cbd5e1" font-size="10.5">local Node stdio</text>
+    <text x="72" y="558" class="body" fill="#8b9bad" font-size="11.5">Bearer key · scoped tools</text>
+
+    <rect x="52" y="592" width="210" height="62" rx="10" fill="#0d141c" stroke="#2f4b6e" stroke-dasharray="4 4"/>
+    <text x="72" y="616" class="mono" fill="#93c5fd" font-size="10.5" letter-spacing="1">BROWSER / EXTENSION</text>
+    <text x="72" y="636" class="body" fill="#8b9bad" font-size="11.5">same Vue source · direct ES</text>
+  </g>
+
+  <!-- Connectors from entries -->
+  <path d="M262 228H312" stroke="#64748b" stroke-width="1.4" marker-end="url(#arrow)"/>
+  <path d="M262 352H312" stroke="#64748b" stroke-width="1.4" marker-end="url(#arrow)"/>
+  <path d="M262 496H312" stroke="#2dd4bf" stroke-width="1.4" marker-end="url(#arrowTeal)"/>
+  <text x="270" y="218" class="mono" fill="#64748b" font-size="9.5">SPI</text>
+  <text x="270" y="342" class="mono" fill="#64748b" font-size="9.5">embed</text>
+  <text x="270" y="486" class="mono" fill="#2dd4bf" font-size="9.5">JSON-RPC</text>
+
+  <!-- Platform -->
+  <rect x="330" y="150" width="390" height="504" rx="14" fill="url(#plateFill)" stroke="#2dd4bf" stroke-opacity=".42"/>
+  <text x="354" y="184" class="mono" fill="#5eead4" font-size="11" letter-spacing="1.6">PLATFORM + CONSOLE</text>
+  <text x="354" y="212" class="display" fill="#f1f5f9" font-size="22">ESQueryStudio</text>
+  <text x="354" y="235" class="body" fill="#8b9bad" font-size="12.5">One contract · host-owned identity</text>
+
+  <g class="body">
+    <rect x="354" y="258" width="342" height="72" rx="8" fill="#0d171d" stroke="#1d3b40"/>
+    <text x="372" y="282" class="display" fill="#e2e8f0" font-size="14">Page-level authorization</text>
+    <text x="372" y="303" class="body" fill="#8b9bad" font-size="11.5">connection × page × read / write</text>
+    <text x="372" y="320" class="mono" fill="#5eead4" font-size="10">ConsoleAuthInterceptor</text>
+
+    <rect x="354" y="342" width="342" height="60" rx="8" fill="#0d171d" stroke="#1d3b40"/>
+    <text x="372" y="366" class="display" fill="#e2e8f0" font-size="14">Feature-pack registry</text>
+    <text x="372" y="387" class="body" fill="#8b9bad" font-size="11.5">11 packs · trim by deployment</text>
+
+    <rect x="354" y="414" width="342" height="76" rx="8" fill="#0d171d" stroke="#1d3b40"/>
+    <text x="372" y="438" class="display" fill="#e2e8f0" font-size="14">Console SPA</text>
+    <text x="372" y="459" class="body" fill="#8b9bad" font-size="11.5">53 pages · Vue 3 · one source</text>
+    <text x="372" y="478" class="mono" fill="#5eead4" font-size="10">server · browser · extension</text>
+
+    <rect x="354" y="502" width="342" height="60" rx="8" fill="#0d171d" stroke="#1d3b40"/>
+    <text x="372" y="526" class="display" fill="#e2e8f0" font-size="14">Connection directory</text>
+    <text x="372" y="547" class="body" fill="#8b9bad" font-size="11.5">target routing · per-connection scope</text>
+
+    <rect x="354" y="574" width="342" height="56" rx="8" fill="#0d171d" stroke="#1d3b40"/>
+    <text x="372" y="598" class="display" fill="#e2e8f0" font-size="14">Host SPI boundary</text>
+    <text x="372" y="618" class="mono" fill="#8b9bad" font-size="10">ConsoleHostIntegration · ConnStore · Audit</text>
+  </g>
+
+  <!-- Engine and observability -->
+  <rect x="790" y="196" width="220" height="148" rx="10" fill="url(#engineFill)" stroke="#314158"/>
+  <text x="812" y="226" class="mono" fill="#cbd5e1" font-size="10.5" letter-spacing="1.2">ENGINE</text>
+  <text x="812" y="254" class="display" fill="#f1f5f9" font-size="17">Rebuild / migration</text>
+  <text x="812" y="276" class="display" fill="#f1f5f9" font-size="17">Mapping engine</text>
+  <text x="812" y="302" class="body" fill="#8b9bad" font-size="11.5">version-aware · resumable</text>
+  <text x="812" y="322" class="mono" fill="#d9a441" font-size="10">managed index lifecycle</text>
+
+  <rect x="790" y="368" width="220" height="148" rx="10" fill="url(#engineFill)" stroke="#314158"/>
+  <text x="812" y="398" class="mono" fill="#cbd5e1" font-size="10.5" letter-spacing="1.2">OBSERVABILITY</text>
+  <text x="812" y="426" class="display" fill="#f1f5f9" font-size="17">Monitoring</text>
+  <text x="812" y="448" class="display" fill="#f1f5f9" font-size="17">Diagnostics / audit</text>
+  <text x="812" y="474" class="body" fill="#8b9bad" font-size="11.5">cluster · shard · query probes</text>
+  <text x="812" y="494" class="mono" fill="#d9a441" font-size="10">alerts · evidence trail</text>
+
+  <!-- Elasticsearch -->
+  <rect x="1050" y="230" width="110" height="250" rx="55" fill="url(#esFill)" stroke="#d9a441" stroke-opacity=".55"/>
+  <text x="1105" y="274" text-anchor="middle" class="mono" fill="#d9a441" font-size="10">TARGET</text>
+  <text x="1105" y="318" text-anchor="middle" class="display" fill="#f1f5f9" font-size="17">Elastic</text>
+  <text x="1105" y="340" text-anchor="middle" class="display" fill="#f1f5f9" font-size="17">search</text>
+  <text x="1105" y="372" text-anchor="middle" class="body" fill="#8b9bad" font-size="11">6 / 7 / 8 / 9</text>
+  <text x="1105" y="394" text-anchor="middle" class="mono" fill="#8b9bad" font-size="9.5">direct REST</text>
+  <text x="1105" y="426" text-anchor="middle" class="body" fill="#8b9bad" font-size="10.5">multi-cluster</text>
+  <text x="1105" y="446" text-anchor="middle" class="mono" fill="#8b9bad" font-size="9.5">per-connection</text>
+
+  <!-- Connectors platform -> engine/observability -> ES -->
+  <path d="M720 270H782" stroke="#64748b" stroke-width="1.4" marker-end="url(#arrow)"/>
+  <path d="M720 442H782" stroke="#64748b" stroke-width="1.4" marker-end="url(#arrow)"/>
+  <path d="M1010 270H1042" stroke="#d9a441" stroke-width="1.4" marker-end="url(#arrowAmber)"/>
+  <path d="M1010 442H1042" stroke="#d9a441" stroke-width="1.4" marker-end="url(#arrowAmber)"/>
+
+  <!-- Legend -->
+  <g class="mono" font-size="10" fill="#7f95ad">
+    <line x1="52" y1="676" x2="82" y2="676" stroke="#2dd4bf" stroke-width="1.4" marker-end="url(#arrowTeal)"/>
+    <text x="90" y="680">MCP / agent path</text>
+    <line x1="230" y1="676" x2="260" y2="676" stroke="#64748b" stroke-width="1.4" marker-end="url(#arrow)"/>
+    <text x="268" y="680">host / module boundary</text>
+    <line x1="470" y1="676" x2="500" y2="676" stroke="#d9a441" stroke-width="1.4" marker-end="url(#arrowAmber)"/>
+    <text x="508" y="680">Elasticsearch traffic</text>
+  </g>
+</svg>

@@ -1,0 +1,1 @@
+try{var ht=new URLSearchParams(location.search).get('hostTheme');var t=localStorage.getItem('es_theme');var mode=t||(window.parent!==window?'host':'dark');var eff=mode==='host'?(ht==='light'?'light':'dark'):(mode==='auto'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):mode);if(eff==='light'){document.documentElement.style.background='#f7f8fa';}}catch(e){}

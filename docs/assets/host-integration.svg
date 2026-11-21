@@ -1,0 +1,149 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">ESQueryStudio 宿主集成架构</title>
+  <desc id="desc">宿主应用通过 ConsoleAuthDelegate、ConnStore、ConsoleAuditContributor 与 ConsoleHostIntegration 接入控制台；多集群按连接授权，MCP key 可设置 QA/UAT 可写、生产只读。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0e14"/>
+      <stop offset="1" stop-color="#0d141c"/>
+    </linearGradient>
+    <linearGradient id="hostFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#12263f" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#0b1118"/>
+    </linearGradient>
+    <linearGradient id="consoleFill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#123a37" stop-opacity=".5"/>
+      <stop offset="1" stop-color="#0b1118"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#ffffff" stroke-opacity=".035" stroke-width="1"/>
+    </pattern>
+    <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#60a5fa"/>
+    </marker>
+    <marker id="arrowTeal" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#2dd4bf"/>
+    </marker>
+    <marker id="arrowAmber" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#fbbf24"/>
+    </marker>
+    <style>
+      .display { font-family: "Segoe UI", "Microsoft YaHei", "Noto Sans SC", sans-serif; font-weight: 700; }
+      .body { font-family: "Segoe UI", "Microsoft YaHei", "Noto Sans SC", sans-serif; }
+      .mono { font-family: "Cascadia Code", "SFMono-Regular", Consolas, monospace; }
+      .mut { fill: #8b9bb4; }
+      .white { fill: #f1f5f9; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="700" fill="url(#bg)"/>
+  <rect width="1200" height="700" fill="url(#grid)"/>
+  <circle cx="1030" cy="100" r="190" fill="#2dd4bf" opacity=".035"/>
+  <circle cx="170" cy="620" r="230" fill="#60a5fa" opacity=".03"/>
+
+  <text x="48" y="64" class="display white" font-size="30">宿主集成：一个控制台，接管你的身份与集群</text>
+  <text x="48" y="92" class="body mut" font-size="14">Host-first integration — 登录态、角色、菜单、连接与审计留在宿主；ESQueryStudio 只提供产品面与执行护栏</text>
+
+  <!-- Host app -->
+  <g>
+    <rect x="48" y="130" width="326" height="416" rx="18" fill="url(#hostFill)" stroke="#2f4a68"/>
+    <rect x="70" y="150" width="282" height="30" rx="8" fill="#0b1118" stroke="#2f4a68"/>
+    <circle cx="86" cy="165" r="4" fill="#60a5fa"/>
+    <text x="98" y="169" class="body mut" font-size="11">YOUR SPRING BOOT APP</text>
+    <text x="70" y="214" class="display white" font-size="18">宿主应用</text>
+    <text x="70" y="234" class="body mut" font-size="11">Host owns identity &amp; governance</text>
+
+    <rect x="70" y="254" width="282" height="50" rx="9" fill="#0b1118" stroke="#1f2b3a"/>
+    <text x="86" y="276" class="body white" font-size="12">登录 / SSO / JWT</text>
+    <text x="86" y="293" class="body mut" font-size="10">X-Es-Host-Token → ConsolePrincipal</text>
+
+    <rect x="70" y="316" width="282" height="50" rx="9" fill="#0b1118" stroke="#1f2b3a"/>
+    <text x="86" y="338" class="body white" font-size="12">角色 / 菜单 / 页面授权</text>
+    <text x="86" y="355" class="body mut" font-size="10">页面契约 → 菜单注册器 + page gate</text>
+
+    <rect x="70" y="378" width="282" height="50" rx="9" fill="#0b1118" stroke="#1f2b3a"/>
+    <text x="86" y="400" class="body white" font-size="12">连接目录 / 凭据托管</text>
+    <text x="86" y="417" class="body mut" font-size="10">ConnStore：密码只在服务端流转</text>
+
+    <rect x="70" y="440" width="282" height="50" rx="9" fill="#0b1118" stroke="#1f2b3a"/>
+    <text x="86" y="462" class="body white" font-size="12">操作审计 / 合规</text>
+    <text x="86" y="479" class="body mut" font-size="10">ConsoleAuditContributor 并入宿主审计</text>
+
+    <text x="70" y="520" class="body mut" font-size="11">SPI 是唯一扩展面：不把业务语义硬编码进平台</text>
+  </g>
+
+  <!-- Console -->
+  <g>
+    <rect x="438" y="130" width="326" height="416" rx="18" fill="url(#consoleFill)" stroke="#2a5c56"/>
+    <rect x="460" y="150" width="282" height="30" rx="8" fill="#0b1118" stroke="#2a5c56"/>
+    <circle cx="476" cy="165" r="4" fill="#2dd4bf"/>
+    <text x="488" y="169" class="body mut" font-size="11">ESQUERYSTUDIO CONSOLE</text>
+    <text x="460" y="214" class="display white" font-size="18">控制台产品面</text>
+    <text x="460" y="234" class="body mut" font-size="11">Same Vue source · 53 pages · 11 packs</text>
+
+    <rect x="460" y="254" width="282" height="66" rx="9" fill="#0b1118" stroke="#2dd4bf" stroke-opacity=".35"/>
+    <text x="476" y="277" class="body white" font-size="12">查询 / 索引 / 治理 / 生命周期</text>
+    <text x="476" y="297" class="body mut" font-size="10">DSL · SQL · Lucene · Mapping · ILM · Reindex</text>
+    <text x="476" y="312" class="body mut" font-size="10">页面契约：导航 + 后端门 + 宿主菜单三端同源</text>
+
+    <rect x="460" y="332" width="282" height="94" rx="9" fill="#0b1118" stroke="#2dd4bf" stroke-opacity=".35"/>
+    <text x="476" y="355" class="body white" font-size="12">MCP 网关 / 密钥与用量</text>
+    <text x="476" y="375" class="body mut" font-size="10">/mcp · 130 tools · 10 resources · 5 prompts</text>
+    <text x="476" y="394" class="body mut" font-size="10">SHA-256 存储 · 轮换 / 撤销 · rpm / 日 / 月配额</text>
+    <text x="476" y="413" class="body mut" font-size="10">角色快照 · 连接集合 · 连接级读写</text>
+
+    <rect x="460" y="438" width="282" height="52" rx="9" fill="#0b1118" stroke="#1f2b3a"/>
+    <text x="476" y="460" class="body white" font-size="12">实时签发 · 立即生效</text>
+    <text x="476" y="477" class="body mut" font-size="10">不重启、不改配置；key 落控制面持久化</text>
+
+    <text x="460" y="520" class="body mut" font-size="11">产品面可裁剪：功能包 + 单页排除，不改 page key</text>
+  </g>
+
+  <!-- ES clusters -->
+  <g>
+    <rect x="828" y="130" width="324" height="416" rx="18" fill="#0f1620" stroke="#1f2b3a"/>
+    <text x="850" y="170" class="display white" font-size="18">Elasticsearch 集群</text>
+    <text x="850" y="190" class="body mut" font-size="11">6 / 7 / 8 / 9 · 多集群连接档案</text>
+
+    <rect x="850" y="214" width="280" height="70" rx="9" fill="#0b1118" stroke="#ef4444" stroke-opacity=".35"/>
+    <text x="866" y="238" class="body white" font-size="12">PROD · 生产集群</text>
+    <text x="866" y="258" class="body mut" font-size="10">只读 · 裸写请求在控制台边界被拒绝</text>
+    <rect x="1042" y="226" width="72" height="22" rx="11" fill="#2a1416" stroke="#ef4444" stroke-opacity=".5"/>
+    <text x="1078" y="241" text-anchor="middle" class="mono" fill="#fca5a5" font-size="10">READ</text>
+
+    <rect x="850" y="298" width="280" height="70" rx="9" fill="#0b1118" stroke="#22c55e" stroke-opacity=".35"/>
+    <text x="866" y="322" class="body white" font-size="12">QA / UAT · 测试集群</text>
+    <text x="866" y="342" class="body mut" font-size="10">可写 · 用于 Agent 联调与回归验证</text>
+    <rect x="1030" y="310" width="84" height="22" rx="11" fill="#0f2418" stroke="#22c55e" stroke-opacity=".5"/>
+    <text x="1072" y="325" text-anchor="middle" class="mono" fill="#86efac" font-size="10">READ+WRITE</text>
+
+    <rect x="850" y="382" width="280" height="64" rx="9" fill="#0b1118" stroke="#1f2b3a"/>
+    <text x="866" y="406" class="body white" font-size="12">MCP key 连接级授权</text>
+    <text x="866" y="426" class="body mut" font-size="10">同一把 key：QA/UAT 写，PROD 只读；按目标连接判权</text>
+
+    <text x="850" y="484" class="body mut" font-size="11">工具目录按「任意连接」汇总</text>
+    <text x="850" y="502" class="body mut" font-size="11">执行前按目标连接再做一次权限判定</text>
+    <text x="850" y="520" class="body mut" font-size="11">越权写不会到达 ES</text>
+  </g>
+
+  <!-- SPI bus -->
+  <rect x="438" y="566" width="714" height="58" rx="12" fill="#0b1118" stroke="#2f4a68"/>
+  <text x="458" y="589" class="body mut" font-size="11">SPI BUS</text>
+  <text x="458" y="609" class="body white" font-size="12">ConsoleAuthDelegate · ConnStore · ConsoleAuditContributor · ConsolePageCatalog · McpKeyStore</text>
+
+  <!-- arrows host <-> console -->
+  <line x1="374" y1="300" x2="438" y2="300" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+  <line x1="438" y1="360" x2="374" y2="360" stroke="#60a5fa" stroke-width="1.5" marker-end="url(#arrowBlue)"/>
+  <text x="406" y="288" text-anchor="middle" class="mono" fill="#93c5fd" font-size="9">identity</text>
+  <text x="406" y="378" text-anchor="middle" class="mono" fill="#93c5fd" font-size="9">SPI</text>
+
+  <!-- arrows console <-> ES -->
+  <line x1="764" y1="300" x2="828" y2="300" stroke="#2dd4bf" stroke-width="1.5" marker-end="url(#arrowTeal)"/>
+  <line x1="828" y1="342" x2="764" y2="342" stroke="#2dd4bf" stroke-width="1.5" marker-end="url(#arrowTeal)"/>
+  <text x="796" y="288" text-anchor="middle" class="mono" fill="#7dd3fc" font-size="9">query</text>
+  <text x="796" y="360" text-anchor="middle" class="mono" fill="#7dd3fc" font-size="9">guard</text>
+
+  <!-- key badge -->
+  <rect x="48" y="576" width="326" height="48" rx="12" fill="#0b1118" stroke="#fbbf24" stroke-opacity=".35"/>
+  <text x="64" y="598" class="mono" fill="#fbbf24" font-size="10">esq_mcp_xxxxxxxx</text>
+  <text x="64" y="614" class="body mut" font-size="10">QA/UAT write · PROD read · 120/min · rotate/revoke</text>
+</svg>
