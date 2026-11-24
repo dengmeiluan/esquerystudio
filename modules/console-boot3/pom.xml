@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.4</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>io.github.dengmeiluan</groupId>
+    <artifactId>esquerystudio-console-boot3</artifactId>
+    <version>1.0.99</version>
+    <name>ESQueryStudio Console (Boot 3)</name>
+    <description>Parallel Spring Boot 3 / Java 17 artifact for Elasticsearch 8.x/9.x.
+        Phase 0: serves the existing Vue console assets and proves low-level REST connectivity.</description>
+
+    <properties>
+        <java.version>17</java.version>
+        <elasticsearch.client.version>8.18.1</elasticsearch.client.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.dengmeiluan</groupId>
+            <artifactId>esquerystudio-boot-support</artifactId>
+            <version>1.0.99</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-client</artifactId>
+            <version>${elasticsearch.client.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <profiles>
+        <!-- No-op: keeps `-Pboot3 -pl modules/console-boot3` warning-free when Maven
+             evaluates this module's own POM. The real profile lives in the root POM. -->
+        <profile>
+            <id>boot3</id>
+        </profile>
+    </profiles>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <!-- The Vue console travels inside esquerystudio-boot-support (single source);
+                 the app jar must not duplicate it. -->
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

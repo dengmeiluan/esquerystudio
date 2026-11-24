@@ -1,0 +1,30 @@
+/*
+ * Copyright 2026 Meiluan Deng
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package io.github.dengmeiluan.esquerystudio.console.mcp;
+
+import java.util.List;
+import java.util.Map;
+
+/** Collected cluster metrics series (console scheduler writes these). */
+public interface McpMonitorMetricsStore {
+
+    List<Map<String, Object>> search(String connId, String clusterUuid, String scope,
+                                     int size, int from, Long fromMs, Long toMs);
+
+    List<Map<String, Object>> searchAgg(String connId, String clusterUuid, String scope,
+                                        Long fromMs, Long toMs, String interval, String agg);
+}

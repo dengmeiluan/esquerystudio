@@ -1,0 +1,36 @@
+name: Boot 2 host adapter
+
+on:
+  push:
+    paths:
+      - 'modules/boot-support/**'
+      - 'modules/mcp-server/**'
+      - 'modules/mcp-core/**'
+      - 'modules/es-engine/**'
+      - 'modules/es-rest/**'
+      - 'modules/console-boot2/**'
+      - 'pom.xml'
+      - '.github/workflows/boot2.yml'
+  pull_request:
+    paths:
+      - 'modules/boot-support/**'
+      - 'modules/console-boot2/**'
+      - 'pom.xml'
+      - '.github/workflows/boot2.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  boot2:
+    name: Boot 2.7 / Java 17 host adapter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Test the Boot 2 host adapter
+        run: mvn -B -Pboot2 -pl modules/console-boot2 -am test

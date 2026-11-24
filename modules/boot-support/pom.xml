@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.github.dengmeiluan</groupId>
+    <artifactId>esquerystudio-boot-support</artifactId>
+    <version>1.0.99</version>
+    <name>ESQueryStudio Boot Support</name>
+    <description>Framework-neutral REST/probe core shared by the Boot 3 and Boot 4 parallel artifacts.
+        No Spring Boot dependency; each artifact supplies its own Boot baseline and ES client version.</description>
+
+    <properties>
+        <maven.compiler.release>8</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <elasticsearch.client.version>8.18.1</elasticsearch.client.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <!-- Compile against the lowest Spring baseline (5.3); Boot 3/4 provide Spring 6 at runtime.
+                     The shared controllers intentionally use only APIs stable across both. -->
+                <version>2.7.18</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+            <!-- Single UI source: the library jar carries the console shell so any host
+                 (incl. a Boot 2.3 app embedding this dependency) serves it from classpath. -->
+            <resource>
+                <directory>${project.basedir}/../console-ui/src/main/resources/static</directory>
+                <targetPath>static</targetPath>
+            </resource>
+            <!-- Single source of truth: package the existing 53-page contract as-is. -->
+            <resource>
+                <directory>${project.basedir}/../../platform/src/main/resources/META-INF</directory>
+                <targetPath>META-INF</targetPath>
+                <includes>
+                    <include>esquerystudio-pages.json</include>
+                </includes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <parameters>true</parameters>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.dengmeiluan</groupId>
+            <artifactId>esquerystudio-es-rest</artifactId>
+            <version>1.0.99</version>
+        </dependency>
+        <!-- Shared Spring-neutral engine: hosts can inject EsIndexAdmin via EsClientContext. -->
+        <dependency>
+            <groupId>io.github.dengmeiluan</groupId>
+            <artifactId>esquerystudio-es-engine</artifactId>
+            <version>1.0.99</version>
+        </dependency>
+        <!-- Shared MCP core: same 17-group JSON-RPC endpoint as the full console. -->
+        <dependency>
+            <groupId>io.github.dengmeiluan</groupId>
+            <artifactId>esquerystudio-mcp-server</artifactId>
+            <version>1.0.99</version>
+        </dependency>
+        <!-- Supplied by the Boot 3/4 app; keeping these provided prevents a Spring 6.2
+             transitive version from winning over Spring 7 in the Boot 4 app. -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!-- @AutoConfiguration / @ConditionalOn*: supplied by the host (Boot 2.7+). -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Supplied by every host (Boot 2/3 starter-web; Boot 4 explicit). -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.13.5</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- Compiled against the 8.x low-level API; the Boot 3/4 apps supply 8.x/9.x at runtime. -->
+        <dependency>
+            <groupId>org.elasticsearch.client</groupId>
+            <artifactId>elasticsearch-rest-client</artifactId>
+            <version>${elasticsearch.client.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

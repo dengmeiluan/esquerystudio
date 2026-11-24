@@ -1,0 +1,13 @@
+server:
+  port: ${ESQ_BOOT2_PORT:5602}
+
+spring:
+  application:
+    name: esquerystudio-console-boot2
+
+esquerystudio:
+  artifact: esquerystudio-console-boot2
+  elasticsearch:
+    url: ${ESQ_ES_URL:http://localhost:9200}
+    username: ${ESQ_ES_USERNAME:}
+    password: ${ESQ_ES_PASSWORD:}

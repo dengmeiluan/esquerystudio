@@ -1,0 +1,1 @@
+import{a8 as t}from"./vendor-B-EGLdkN.js";function r(n,u=250){let e=null;const l=(...o)=>{e!==null&&clearTimeout(e),e=setTimeout(()=>{e=null,n(...o)},u)};return t(()=>{e!==null&&(clearTimeout(e),e=null)}),l}export{r as u};

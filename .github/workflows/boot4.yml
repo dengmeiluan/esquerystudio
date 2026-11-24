@@ -1,0 +1,36 @@
+name: Boot 4 client stack
+
+on:
+  push:
+    paths:
+      - 'modules/boot-support/**'
+      - 'modules/mcp-server/**'
+      - 'modules/mcp-core/**'
+      - 'modules/es-engine/**'
+      - 'modules/es-rest/**'
+      - 'modules/console-boot4/**'
+      - 'pom.xml'
+      - '.github/workflows/boot4.yml'
+  pull_request:
+    paths:
+      - 'modules/boot-support/**'
+      - 'modules/console-boot4/**'
+      - 'pom.xml'
+      - '.github/workflows/boot4.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  boot4:
+    name: Boot 4 / Java 21 smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Test the Boot 4 artifact
+        run: mvn -B -Pboot4 -pl modules/console-boot4 -am test

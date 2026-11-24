@@ -1,0 +1,30 @@
+# 最小嵌入式宿主配置：每一段都可以照抄进你的业务应用。
+server:
+  # 避开 8080 常用业务端口，方便与你的应用并排跑
+  port: 8081
+  # 演示宿主默认只绑回环（与 standalone 同款）：用户索引为空期间兜底账号
+  # admin/esquerystudio 可直登 ADMIN，绑定全部网卡等于把默认口令暴露给整个内网；
+  # 需要对外演示时显式覆盖本值并先建立真实账号。
+  address: 127.0.0.1
+
+spring:
+  application:
+    # 自举档案/SQLite 库文件目录 ~/.esquerystudio/<name>/
+    name: demo-host
+  data:
+    elasticsearch:
+      repositories:
+        enabled: false
+
+esquerystudio:
+  elasticsearch:
+    # console 模式：重建能力 + 运维控制台全套（改 client 则只保留重建，不开控制台）
+    mode: console
+    mapping:
+      # 启动时对账 @Document 实体与线上 mapping：新增字段自动补齐
+      auto-register: startup
+    console:
+      # auto：本地自举档案优先，其次 Setup 向导首连
+      control-mode: auto
+      # 作业+审计落本地 SQLite（~/.esquerystudio/demo-host/jobs.db），重启历史不丢
+      store: sqlite
