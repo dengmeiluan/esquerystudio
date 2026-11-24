@@ -1,0 +1,1 @@
+function d(n){const s=String((n==null?void 0:n.message)??n);return((n==null?void 0:n.status)===403||/FORBIDDEN|权限不足/.test(s))&&!s.includes("联系管理员")?s+"——当前账号角色不足：请切换更高权限账号后重试，或联系管理员开通对应写权限":s}export{d as p};

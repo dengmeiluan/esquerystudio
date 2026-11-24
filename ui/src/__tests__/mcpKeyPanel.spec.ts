@@ -1,0 +1,356 @@
+import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+const SRC = join(__dirname, '..');
+const panel = readFileSync(join(SRC, 'components/McpPanel.vue'), 'utf-8');
+const apiTs = readFileSync(join(SRC, 'api.ts'), 'utf-8');
+const unsupported = readFileSync(join(SRC, 'utils/browserUnsupported.ts'), 'utf-8');
+const topbar = readFileSync(join(SRC, 'components/TopBar.vue'), 'utf-8');
+const devtools = readFileSync(join(SRC, 'views/DevToolsView.vue'), 'utf-8');
+const routerTs = readFileSync(join(SRC, 'router.ts'), 'utf-8');
+const contract = JSON.parse(readFileSync(join(SRC, '../../modules/console-ui/src/main/resources/META-INF/esquerystudio-pages.json'), 'utf-8'));
+
+describe('MCP 接入管理面', () => {
+  it('服务端模式提供密钥/用量页并调用管理端点', () => {
+    expect(panel).toContain('密钥与用量');
+    expect(panel).toContain('api.mcpKeys.list()');
+    expect(panel).toContain('api.mcpKeys.create(payload)');
+    expect(panel).toContain('api.mcpKeys.revoke(k.id)');
+    expect(panel).toContain('requestsPerMinute');
+    expect(panel).toContain('dailyQuota');
+    expect(panel).toContain('monthlyQuota');
+    expect(panel).toContain('ADMIN');
+    expect(panel).toContain('OPERATOR');
+    expect(panel).toContain('连接集合');
+    expect(panel).toContain('写权限连接');
+    expect(panel).toContain('connectionPermissions');
+    expect(panel).toContain('MCP_WRITE_TOOLS');
+    expect(panel).toContain('MCP_TOOL_GROUPS');
+    expect(panel).toContain('totalActionCount');
+    expect(panel).toContain('actionGroupSelected');
+    expect(panel).toContain('toolPickerOptions');
+    expect(panel).toContain('NSelect');
+    expect(panel).toContain('MCP_TOOL_PACKS');
+    expect(panel).toContain('applyToolPack');
+    expect(panel).toContain('toolBudgetWarning');
+    expect(panel).toContain('trimKey');
+    expect(panel).toContain('.mcp-scope-grid { grid-template-columns: 1fr; }');
+    /* SSE toggle 已退役：传输统一 Streamable HTTP，锁退役说明与保留的 toggle 容器类（工具面开关沿用） */
+    expect(panel).toContain('旧 SSE 传输已退役，统一 streamable HTTP');
+    expect(panel).not.toContain('sseEndpoint');
+    expect(panel).toContain('mcp-transport-toggle');
+    expect(panel).toContain('actionGroups');
+    expect(panel).toContain('openKeyGroups');
+    expect(panel).toContain('keyGroupExpanded');
+    expect(panel).toContain('toggleKeyGroup');
+    expect(panel).toContain('toggleAllKeyGroups');
+    expect(panel).toContain('mcp-key-group-toggle');
+    expect(panel).toContain('groupCallForLegacy');
+    expect(panel).toContain('filteredActionCatalog');
+    expect(panel).toContain('openCatalogGroups');
+    expect(panel).toContain('catalogGroupExpanded');
+    expect(panel).toContain('toggleCatalogGroup');
+    expect(panel).toContain('mcp-action-group-head');
+    expect(panel).toContain('mcp-rail-item');
+    expect(panel).toContain("tab === 'audit'");
+    expect(panel).toContain('filteredAuditCalls');
+    expect(panel).toContain('exportAuditCsv');
+    expect(panel).toContain('openAuditForKey');
+    expect(panel).toContain('mcp-audit-filter');
+    expect(panel).toContain('mcp-audit-table');
+    expect(panel).toContain('inline');
+    expect(routerTs).toContain("path: '/mcp'");
+    expect(contract.pages.some((page: any) => page.key === 'mcp' && page.route === '/mcp' && page.group === 'devx')).toBe(true);
+    expect(panel).toContain('resetToolArgs');
+    expect(panel).toContain('buildToolArgs');
+    expect(panel).toContain('toolFieldErrors');
+    expect(panel).toContain('callServerTool');
+    expect(panel).toContain('serverToken');
+    expect(panel).toContain('keyQuery');
+    expect(panel).toContain('keyRoleFilter');
+    expect(panel).toContain('全部角色');
+    expect(panel).toContain('adminUsers');
+    /* 升档 combobox 后迁：归属用户候选源走 usePopupList 弹层（mcpComboSrc='owner' 通道） */
+    expect(panel).toContain("mcpComboSrc.value === 'owner'");
+    expect(panel).toContain('ownerRoleWarning');
+    expect(panel).toContain('ADMIN 角色的 key 拥有全部连接写权限');
+    expect(panel).toContain('filteredKeys');
+    expect(panel).toContain('usagePercent');
+    /* 密钥舞台：卡片式列表 + 前缀一键复制 + 一次性明文弹窗（HTTP 下也走 copyText 三层回退） */
+    expect(panel).toContain('mcp-key-roster');
+    expect(panel).toContain('mcp-key-card');
+    expect(panel).toContain('mcp-key-copy-hint');
+    expect(panel).toContain('AES-256-GCM');
+    expect(panel).toContain('revealSavedKey');
+    expect(panel).toContain('mcpKeys.secret');
+    expect(panel).toContain('mcp-prefix-copy');
+    expect(panel).toContain('copyKeyPrefix');
+    expect(panel).toContain('keyMenuOptions');
+    expect(panel).toContain('onKeyMenuAction');
+    expect(panel).toContain('轮换密钥（旧 key 立即失效）');
+    expect(panel).toContain('showSecretModal');
+    expect(panel).toContain('mcp-secret-value');
+    expect(panel).toContain('mcp-secret-copy');
+    expect(panel).toContain('复制 key');
+    expect(panel).toContain('下载 .env');
+    expect(panel).toContain('selectSecretText');
+    expect(panel).toContain('mcp-copy-notice');
+    expect(panel).toContain('copyAndFlash');
+    expect(panel).toContain('Unexpected token');
+    expect(panel).toContain('MCP_KEY_REVOKED');
+    expect(panel).not.toContain('navigator.clipboard');
+    expect(panel).toContain('editKey');
+    expect(panel).toContain('保存修改');
+    expect(panel).toContain('expandedKeyId');
+    expect(panel).toContain('sortedToolCounts');
+    expect(panel).toContain('applyPreset');
+    expect(panel).toContain('快速预设');
+    expect(panel).toContain('exportUsageCsv');
+    expect(panel).toContain('导出用量');
+    expect(panel).toContain('toolKindFilter');
+    expect(panel).toContain('全部权限');
+    expect(panel).toContain('cloneKey');
+    expect(panel).toContain('以此为模板签发');
+    expect(panel).toContain('keySort');
+    expect(panel).toContain('今日用量');
+    expect(panel).toContain('copyResult');
+    expect(panel).toContain('复制结果');
+    expect(apiTs).toContain('mcpKeys');
+    expect(panel).toContain('copyProtocolCatalog');
+    expect(panel).toContain('复制协议清单');
+    expect(panel).toContain('ownerScope');
+    expect(apiTs).toContain('owner-scope');
+    expect(panel).toContain('mcp-issue-ledger');
+    expect(panel).toContain('mcp-perm-matrix');
+    expect(panel).toContain('mcp-key-scope-row');
+    expect(panel).toContain('auditTransport');
+    expect(panel).toContain('mcp-audit-detail');
+    expect(panel).toContain('readyCount');
+    expect(panel).toContain('probeCommand');
+    expect(panel).toContain('DBX 0.6+');
+    expect(panel).toContain('mcp-client-matrix');
+    expect(panel).toContain('mcp-signal-bar');
+    expect(panel).toContain('onboardingSurface');
+    expect(panel).toContain('surface=compact');
+    expect(panel).toContain('copyKeyFull');
+    expect(panel).toContain('openClientConfigForKey');
+    /* 客户端配置只接受真正的 key/service token，浏览器登录密码自动填进 password 框时
+       不能变成 Authorization: Bearer 111111。 */
+    expect(panel).toContain('onboardingToken');
+    /* 防自动填充走 NInput :input-props（标签 attrs 到不了 NInput 内部 input） */
+    expect(panel).toContain("autocomplete: 'new-password'");
+    expect(panel).toContain("return t.length >= 24 ? t : ''");
+    expect(panel).toContain("onboardingToken.value || '<esq_mcp_key>'");
+    /* 审计页不再发可选 service token，401 不再污染整页台账。 */
+    expect(panel).not.toContain('审计附加凭证');
+    expect(panel).not.toContain('service token 只是附加来源');
+    expect(panel).toContain('clientKeyNotice');
+    expect(panel).toContain('auditErr');
+    expect(panel).toContain('askConfirm');
+    expect(panel).not.toContain('window.confirm');
+    expect(panel).toContain('mcp-client-workbench');
+    expect(panel).toContain('ensureCopyableKey');
+    expect(apiTs).toContain('ownerScope');
+    expect(apiTs).toContain('/secret');
+    expect(apiTs).toContain('/calls');
+    expect(panel).toContain('exportLocalConfig');
+    /* MCP 端点路径由 setup/status 下发（默认 /esmcp，可配置），UI 不再硬编码裸 /mcp。 */
+    expect(panel).toContain('mcpPath');
+    expect(panel).toContain('mcpMountPath');
+    expect(apiTs).toContain("get<any>('/mcp/keys')");
+  });
+
+  it('浏览器/演示模式如实说明 HTTP key 边界，不伪造可用 key', () => {
+    expect(panel).toContain('API key 只在服务端模式生效');
+    expect(panel).toContain('演示站不生成真实密钥');
+    expect(unsupported).toContain("'/mcp/keys'");
+    expect(unsupported).toContain('浏览器标签页不监听 TCP');
+  });
+
+  it('接入页保留页面内 MCP 桥与 schema 驱动工具试跑', () => {
+    expect(panel).toContain('window.ESQueryStudioMCP');
+    expect(panel).toContain('mcpCallTool');
+    expect(panel).toContain('运行工具');
+    expect(panel).toContain('orderedToolFields');
+    expect(panel).toContain('JSON 模式');
+    expect(panel).toContain('mcp-result-status');
+    expect(panel).toContain('validateServerToken');
+    expect(panel).toContain('credentialFailureMessage');
+    expect(panel).toContain('INVALID_MCP_KEY');
+  });
+
+  it('Codex 使用官方 TOML，Claude Code 使用 mcpServers 配置', () => {
+    expect(panel).toContain('[mcp_servers.esquerystudio]');
+    expect(panel).toContain('http_headers = { Authorization');
+    /* SSE 退役后 type 固定 http，不再有 onboardingHttpType 开关 */
+    expect(panel).toContain("type: 'http'");
+    expect(panel).not.toContain('onboardingHttpType');
+    expect(panel).toContain('transport: ');
+    expect(panel).toContain('claude mcp add --transport');
+  });
+
+  it('接入页展示只读资源、引导提示词与真实协议自检', () => {
+    expect(panel).toContain('资源与提示词');
+    expect(panel).toContain('MCP_STATIC_RESOURCES');
+    expect(panel).toContain('MCP_RESOURCE_TEMPLATES');
+    expect(panel).toContain('MCP_PROMPTS');
+    expect(panel).toContain('runProtocolCheck');
+    expect(panel).toContain('server/discover');
+    expect(panel).toContain('协议自检');
+    expect(panel).toContain('loadAuditCalls');
+    expect(panel).toContain('调用留档');
+    expect(panel).toContain('resources/list');
+    expect(panel).toContain('prompts/list');
+    expect(panel).toContain('resources/templates/list');
+    expect(panel).toContain('浏览器模式只读当前激活连接');
+    expect(panel).toContain('httpClientConfig');
+    expect(panel).toContain('支持 Streamable HTTP 的客户端');
+    expect(panel).toContain('dailySeries');
+    expect(panel).toContain('近 14 天请求');
+    expect(panel).toContain('dailyCounts');
+    expect(panel).toContain('openPrompt');
+    expect(panel).toContain('runPrompt');
+    expect(panel).toContain('生成提示词');
+    expect(panel).toContain("prompts/get");
+    expect(panel).toContain('openResource');
+    expect(panel).toContain('runResource');
+    expect(panel).toContain("resources/read");
+    expect(panel).toContain('读取资源');
+    expect(panel).toContain('connectionChoices');
+    /* 升档 combobox 后迁：连接/索引候选源走 usePopupList 弹层（mcpComboSrc 通道） */
+    expect(panel).toContain("mcpComboSrc.value === 'connection'");
+    expect(panel).toContain("mcpComboSrc.value === 'index'");
+    expect(panel).toContain('onboardingConfig');
+    expect(panel).toContain('onboardingClients');
+    expect(panel).toContain('mcp-clients-tab');
+    expect(panel).toContain("tab === 'clients'");
+    expect(panel).toContain('浏览器/演示模式没有可被外部进程连接的 HTTP 端点');
+    expect(panel).toContain('客户端接入配置');
+    expect(panel).toContain('downloadOnboardingConfig');
+    expect(panel).toContain('下载');
+    expect(panel).toContain('onboardingInstallCommand');
+    expect(panel).toContain('onboardingLocal');
+    expect(panel).toContain('--local');
+    expect(panel).toContain('复制安装命令');
+    expect(panel).toContain('loadIndexChoices');
+    expect(panel).toContain('indexChoices');
+    expect(panel).toContain('auditLog');
+    expect(panel).toContain('管理记录');
+    expect(panel).toContain('auditActionLabel');
+    expect(panel).toContain('billingDays');
+    expect(panel).toContain('billingTotal');
+    expect(panel).toContain('近 7 天用量账本');
+    expect(panel).toContain('exportDailyLedgerCsv');
+    expect(panel).toContain('导出日账');
+  });
+
+  it('密钥签发表按角色收窄系统管理工具，与端点执行一致', () => {
+    expect(panel).toContain('adminOnlyTools');
+    expect(panel).toContain("form.role === 'ADMIN'");
+    expect(panel).toContain("tool === 'es_rest'");
+    expect(panel).toContain('MCP_ADMIN_ONLY_TOOLS');
+    expect(panel).toContain('仅 ADMIN');
+    expect(panel).toContain('roleOptions');
+    expect(panel).toContain('roleRank(callerRole)');
+    expect(panel).toContain('mcp-client-chip');
+    expect(panel).toContain('onboardingClientNote');
+  });
+
+  it('控制面提供权限链路、连接体检、首把密钥与审计排障', () => {
+    expect(panel).toContain('traceClient');
+    expect(panel).toContain('traceScope');
+    expect(panel).toContain('mcp-doctor');
+    expect(panel).toContain('copyDoctorReport');
+    expect(panel).toContain('mcp-key-zero');
+    expect(panel).toContain('keyPresetCards');
+    expect(panel).toContain('startKeyPreset');
+    expect(panel).toContain('trialKeyId');
+    expect(panel).toContain('testOnboarding');
+    expect(panel).toContain('auditKey');
+    expect(panel).toContain('auditWindow');
+    expect(panel).toContain('toggleAuditLive');
+    expect(panel).toContain('copyAuditBundle');
+    /* 写权限必须按后端 writeTools 逐连接收窄，不能只给一个可勾选复选框。 */
+    expect(panel).toContain('connectionWritableTools');
+    expect(panel).toContain('canWriteConnection');
+    expect(panel).toContain('writeBlockReason');
+    expect(panel).toContain('uncoveredWriteTools');
+    expect(panel).toContain('mcp-perm-na');
+    expect(panel).toContain('writeTools');
+    expect(panel).toContain('canIssueWriteTools');
+    expect(panel).toContain('hydrateKeyScope');
+    expect(panel).toContain('form.owner.trim() !== target');
+    /* 控件升级防回潮：密钥表单限流数值位走 NInputNumber、勾选位走 NCheckbox、折叠区走
+       CollapsePanel、JSON 位走 JsonArea——原生 number/checkbox/details/textarea 不得回流 */
+    expect(panel).not.toContain('type="number"');
+    expect(panel).not.toContain('type="checkbox"');
+    expect(panel).not.toContain('<details');
+    expect(panel).not.toContain('<textarea');
+    expect(panel).toContain('NInputNumber');
+    expect(panel).toContain('NCheckbox');
+    expect(panel).toContain('CollapsePanel');
+    expect(panel).toContain('JsonArea');
+    /* Key Inspector 默认按组汇总 130 个动作，完整清单收进 details，避免详情被工具墙撑爆。 */
+    expect(panel).toContain('keyToolGroups');
+    expect(panel).toContain('mcp-key-tool-groups');
+    expect(panel).toContain('查看全部');
+    expect(panel).not.toContain('工具（{{ (inspectedKey.allowedTools');
+    expect(panel).toContain('MCP_APP_RESOURCE');
+    expect(panel).toContain('个资源（含 1 个 MCP App）');
+    expect(panel).toContain("r.app ? 'App' : '可读'");
+    /* Key Inspector 用四个 tab 拆分概览/范围/调用/记录，避免窄栏纵向堆满。 */
+    expect(panel).toContain('mcp-key-inspector-tabs');
+    expect(panel).toContain('inspectorTabs');
+    expect(panel).toContain('onInspectorTabKeydown');
+    expect(panel).toContain('mcp-key-stat-grid');
+    expect(panel).toContain('keyConnectionStats');
+    /* 筛选下拉只保留一层外框；密钥页顶部账本保持紧凑。 */
+    expect(panel).toContain('.n-base-selection__border');
+    expect(panel).toContain('height: 46px');
+    /* 审计表必须是 table-row；旧列表版的 flex 行会把表头与单元格拆散。 */
+    expect(panel).not.toMatch(/\.mcp-audit-row\s*\{[^}]*display:\s*flex/);
+  });
+
+  it('顶栏 MCP 是全局入口，DevTools 消费一次性标记', () => {
+    expect(topbar).toContain('MCP 接入与密钥管理');
+    expect(topbar).toContain("router.push('/mcp')");
+    expect(devtools).toContain('consumeMcpOpen()');
+  });
+
+  it('勾选行文字入 n-checkbox 默认插槽（label 包裹退役——点文字失效修复）', () => {
+    /* R-1 修复：label 对 NCheckbox 根 div 无隐式关联，勾选行文字一律入插槽 */
+    expect(panel, '防回潮：mcp-check 不得再用 label 包裹 NCheckbox').not.toMatch(/<label[^>]*class="mcp-check[^"]*"[^>]*>\s*<n-checkbox/);
+    expect(panel).toContain('<n-checkbox v-model:checked="browserWrite" size="small" @update:checked="toggleBrowserWrite">允许页面内写工具</n-checkbox>');
+    expect(panel).toContain('v-model:checked="onboardingLocal" size="small" class="mcp-check mcp-onboarding-local">通过本地 Node 直连（stdio，不经服务端 HTTP 端点）</n-checkbox>');
+    /* 工具面单轨：目录/签发不再提供细粒度兼容视图，试跑不再有「以 action 组调用」开关。 */
+    expect(panel, '防回潮：目录视图切换不得回流').not.toContain('catalogView');
+    expect(panel, '防回潮：细粒度兼容视图开关不得回流').not.toContain('showLegacyTools');
+    expect(panel, '防回潮：试跑组调用开关不得回流——组调用是唯一路径').not.toContain('trialAsGroup');
+    expect(panel, '防回潮：细粒度兼容入口文案不得回流').not.toContain('细粒度兼容');
+    expect(panel, '防回潮：兼容调试文案不得回流').not.toContain('兼容调试');
+  });
+
+  it('客户端矩阵扩容到 26 家品牌：新 11 家方言锚齐备', () => {
+    /* 锁结构不锁品牌排序：四锚分别覆盖 Claude Desktop / Gemini CLI / Zed / Gemini 方言键 */
+    expect(panel).toContain("'claude-desktop'");
+    expect(panel).toContain("'gemini-cli'");
+    expect(panel).toContain('context_servers');
+    expect(panel).toContain('httpUrl');
+    /* 品牌计数与 onboardingClientCount 同口径：剔除接入方式（http/stdio/local/browser）与 dbx */
+    const matrix = panel.match(/const onboardingClients = \[([\s\S]*?)\n\];/);
+    expect(matrix, 'onboardingClients 数组应存在').toBeTruthy();
+    const ids = Array.from(matrix![1].matchAll(/\{ id: '([^']+)'/g), (m) => m[1]);
+    /* local-exe 与 local/stdio 同为「接入方式」而不是客户端品牌，不能算进品牌数。 */
+  const brands = ids.filter((id) => !['http', 'stdio', 'local', 'local-exe', 'browser', 'dbx'].includes(id));
+    expect(brands, '客户端品牌数应为 26').toHaveLength(26);
+    for (const id of ['claude-desktop', 'cline', 'roo-code', 'kilo-code', 'gemini-cli', 'copilot-cli', 'zed', 'continue', 'amp', 'crush', 'jetbrains']) {
+      expect(brands).toContain(id);
+    }
+    /* Crush 走 TOML（url + headers 方言）、JetBrains 走项目级 .idea/mcp.xml 的 stdio 桥 XML */
+    expect(panel).toContain("'crush'");
+    expect(panel).toContain("onboardingClient.value === 'jetbrains'");
+    expect(panel).toContain('<component name="McpServer">');
+    expect(panel).toContain('headers = { Authorization = ');
+  });
+});

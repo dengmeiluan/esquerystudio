@@ -1,0 +1,48 @@
+name: Boot 2.3 embedding compatibility
+
+on:
+  push:
+    paths:
+      - 'modules/boot-support/**'
+      - 'modules/mcp-server/**'
+      - 'modules/mcp-core/**'
+      - 'modules/es-engine/**'
+      - 'modules/es-rest/**'
+      - 'modules/boot-support-boot23-it/**'
+      - 'modules/es-rest/**'
+      - 'pom.xml'
+      - '.github/workflows/boot23.yml'
+  pull_request:
+    paths:
+      - 'modules/boot-support/**'
+      - 'modules/boot-support-boot23-it/**'
+      - 'modules/es-rest/**'
+      - 'pom.xml'
+      - '.github/workflows/boot23.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  boot23:
+    name: Boot 2.3 / Java 8 embedding
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '8'
+          cache: maven
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      - name: Build the console assets (the library jar carries them)
+        working-directory: ui
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build
+      - name: Embed the shared library into a Boot 2.3 host
+        run: mvn -B -Pboot23 -pl modules/boot-support-boot23-it -am -Dconsole.build.skip=true test

@@ -1,0 +1,68 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: "31 2 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze ${{ matrix.language }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ["java-kotlin", "javascript-typescript"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        if: matrix.language == 'java-kotlin'
+        with:
+          # Temurin 资产在 GitHub Release CDN 偶发 504；Zulu 走 Azul CDN，避开同一故障域。
+          distribution: zulu
+          java-version: "8"
+          cache: maven
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Build UI for Maven compile
+        if: matrix.language == 'java-kotlin'
+        working-directory: ui
+        run: |
+          if ! npm ci --no-audit --no-fund; then
+            echo "### npm ci failed — falling back to npm install (self-heal)" >> "$GITHUB_STEP_SUMMARY"
+            npm install --no-audit --no-fund --loglevel=error || exit 1
+          fi
+          npm run build
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.language == 'java-kotlin' && 'manual' || 'none' }}
+          queries: security-and-quality
+
+      - name: Compile Java
+        if: matrix.language == 'java-kotlin'
+        run: mvn -B -DskipTests -Dconsole.build.skip=true compile
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"

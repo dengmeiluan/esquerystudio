@@ -1,0 +1,36 @@
+name: Boot 3 client stack
+
+on:
+  push:
+    paths:
+      - 'modules/boot-support/**'
+      - 'modules/mcp-server/**'
+      - 'modules/mcp-core/**'
+      - 'modules/es-engine/**'
+      - 'modules/es-rest/**'
+      - 'modules/console-boot3/**'
+      - 'pom.xml'
+      - '.github/workflows/boot3.yml'
+  pull_request:
+    paths:
+      - 'modules/boot-support/**'
+      - 'modules/console-boot3/**'
+      - 'pom.xml'
+      - '.github/workflows/boot3.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  boot3:
+    name: Boot 3 / Java 17 smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Test the Boot 3 artifact
+        run: mvn -B -Pboot3 -pl modules/console-boot3 -am test

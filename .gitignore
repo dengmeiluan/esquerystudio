@@ -1,0 +1,42 @@
+dist/
+# Java
+target/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+
+# 前端构建产物（打包时由 vite 现生成；唯一归属 console-ui，console 模块经 pom 引用该目录）
+modules/console-ui/src/main/resources/static/esquerystudio/
+
+# Node
+node_modules/
+*.log
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS
+.DS_Store
+Thumbs.db
+
+# local maintenance notes (kept out of the distribution; history lives in commit messages)
+ui/docs/GOAL-*
+.tmp-prescan894.mjs
+# local test/verify artifacts (shard logs, JSON reports, browser profiles)
+.tmp/
+# local visual-test temp artifacts
+ui/vite.browser.tmp.config.mjs
+ui/vitest-final.json
+# one-off probe artifacts (screenshots / node dumps) — never distributed
+.tmp-*
+.workbuddy/
+
+build/
+
+# 会话工具产物
+.zcode/

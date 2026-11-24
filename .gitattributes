@@ -1,0 +1,24 @@
+# 仓库内文本统一 LF 存储和工作区换行按各 OS 惯例检出的基线。
+* text=auto
+
+# Unix 脚本恒 LF（跨平台直接可执行）
+*.sh text eol=lf
+mvnw text eol=lf
+
+# Windows 批处理恒 CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# 二进制构件永不归一
+*.jar binary
+*.zip binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.db binary

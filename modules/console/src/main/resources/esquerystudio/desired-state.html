@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>受管索引 · 期望配置</title>
+<style>
+/* 设计令牌照搬 console/src/theme.css，不自创配色 —— 本页与 Vue 控制台是同一产品的两个入口，
+   观感必须同源。字体缺失时回落到系统字体（禁止引外部字体）。 */
+:root{
+  --bg0:#0d0e12;--bg1:#131418;--bg2:#1a1c22;--bg3:#22242c;
+  --line:#26282f;--line-strong:#33363f;
+  --tx0:#eceef2;--tx1:#b3b9c5;--tx2:#6b7280;
+  --ac:#14b8a6;--ac-hi:#2dd4bf;--ac-soft:rgba(20,184,166,.14);--ac-line:rgba(20,184,166,.38);
+  --ok:#34d399;--ok-soft:rgba(52,211,153,.12);
+  --warn:#fbbf24;--warn-soft:rgba(251,191,36,.12);
+  --err:#f87171;--err-soft:rgba(248,113,113,.12);
+  --info:#60a5fa;--info-soft:rgba(96,165,250,.12);
+  --r-s:6px;--r-m:8px;--r-l:10px;
+  --font:"Inter","Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  --mono:"JetBrains Mono","SF Mono",Consolas,monospace;
+  --w:1560px;
+}
+*{box-sizing:border-box}
+/* 缺陷 1：页面必须吃满视口。body 做纵向 flex，.wrap 抢占剩余高度，
+   页脚被压到底部 —— 内容不足时不再是内容结束处一片死黑。 */
+html,body{height:100%}
+body{margin:0;background:var(--bg0);color:var(--tx0);font:13px/1.6 var(--font);
+  display:flex;flex-direction:column;min-height:100vh}
+.wrap{width:100%;max-width:var(--w);margin:0 auto;padding:24px 24px 0;flex:1 0 auto;
+  display:flex;flex-direction:column}
+/* 缺陷 3：正文/说明区与卡片网格同宽 —— 统一由 .wrap 的 --w 约束，
+   不再出现「说明 660px / 表格 1550px」的双节奏。 */
+.hd{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+h1{margin:0;font-size:19px;font-weight:650;letter-spacing:.01em}
+.sub{color:var(--tx1);font-size:12.5px;margin:0 0 14px}
+.notice{display:flex;gap:8px;align-items:flex-start;padding:10px 14px;margin-bottom:14px;
+  border:1px solid var(--line);border-left:2px solid var(--warn);border-radius:var(--r-m);
+  background:var(--warn-soft);color:var(--tx1);font-size:12px}
+.notice b{color:var(--warn);font-weight:600}
+.notice svg{flex:0 0 auto;margin-top:2px}
+.bar{display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+button{cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:inherit;
+  background:var(--bg2);border:1px solid var(--line-strong);color:var(--tx0);
+  border-radius:var(--r-s);padding:5px 12px;font-size:12.5px;font-weight:500;white-space:nowrap;
+  transition:background .13s,border-color .13s,color .13s}
+button:hover:not(:disabled){background:var(--bg3);border-color:var(--ac-line);color:var(--ac-hi)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button.pri:not(:disabled){background:var(--ac);border-color:var(--ac);color:#04211d;font-weight:600}
+button.pri:hover:not(:disabled){background:var(--ac-hi);border-color:var(--ac-hi);color:#04211d}
+button.mini{padding:1px 8px;font-size:11px;color:var(--tx1);background:transparent;border-color:var(--line)}
+button.mini:hover:not(:disabled){color:var(--ac-hi);background:var(--bg3)}
+.count{color:var(--tx2);font-size:12px}
+#q{background:var(--bg2);border:1px solid var(--line-strong);color:var(--tx0);border-radius:var(--r-s);
+  padding:5px 10px;font-size:12.5px;font-family:inherit;min-width:240px;outline:none}
+#q:focus{border-color:var(--ac-line)}
+#q::placeholder{color:var(--tx2)}
+.ic.hide{display:none}
+#tip{margin-left:auto;font-size:12px;color:var(--tx1)}
+#tip.ok{color:var(--ok)}
+#tip.err{color:var(--err)}
+code{font-family:var(--mono);font-size:12px;overflow-wrap:anywhere}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:1.5px 8px;border-radius:99px;
+  font-size:11px;font-weight:600;white-space:nowrap}
+.pill.g{background:var(--ok-soft);color:var(--ok)}
+.pill.y{background:var(--warn-soft);color:var(--warn)}
+.pill.r{background:var(--err-soft);color:var(--err)}
+.pill.b{background:var(--info-soft);color:var(--info)}
+.pill.n{background:var(--bg2);color:var(--tx1)}
+/* .tag / .hint 与 .pill 同形：dateCell 的「未声明 / 未知」两个分支由
+   DesiredStatePageTest 逐字钉死（含 class 名），故保留这两个类名而不是并入 .pill。 */
+.tag{display:inline-flex;align-items:center;padding:1.5px 8px;border-radius:99px;
+  font-size:11px;font-weight:600;white-space:nowrap}
+.tag.no{background:var(--warn-soft);color:var(--warn)}
+.tag.yes{background:var(--ok-soft);color:var(--ok)}
+.hint{display:inline;font-size:11px;color:var(--tx2);margin-left:6px}
+/* 徽章前缀标签：卡片里没有列表头兜住语义，靠它说明这枚徽章讲的是哪一维 */
+.lb{font-size:11px;color:var(--tx2);margin-right:-3px}
+.dc{cursor:help}
+/* 缺陷 4：卡片网格。常态卡片保持素净，例外卡片靠左侧强调条 + 琥珀色描边跳出来。 */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:14px;
+  align-items:start;padding-bottom:24px}
+.ic{background:var(--bg1);border:1px solid var(--line);border-radius:var(--r-l);
+  padding:14px 16px;display:flex;flex-direction:column;gap:10px;position:relative;
+  transition:border-color .13s,box-shadow .13s}
+.ic:hover{border-color:var(--line-strong)}
+/* 例外项（本应用里是 bondRepurchaseBasicInfo）：mapping 非 @Mapping 直供、date 无从统计。
+   凸显用「左侧琥珀条 + 略亮描边」，不用整圈高饱和描边 —— 后者读起来像报错，
+   而这不是错误、只是值得看一眼。强度对齐控制台 .tbl tbody tr:hover 的 inset 条。 */
+.ic.alt{border-color:var(--line-strong);box-shadow:inset 2px 0 0 var(--warn)}
+.ic-t{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-bottom:2px}
+/* 索引名是卡片的锚：mono + 主文本色 + 左侧青绿点，与控制台里标识符用强调色的用法一致。 */
+.ic-t .k{font-family:var(--mono);font-size:13.5px;font-weight:650;color:var(--tx0);letter-spacing:.01em}
+.ic-t .k::before{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;
+  background:var(--ac);margin-right:7px;vertical-align:2px}
+.ic-t .sp{margin-left:auto;display:flex;gap:6px}
+/* 键值区：标签压小压灰、值提亮 —— 对齐控制台指标卡「小灰标签 + 亮值」的层级，
+   否则整块是一片同色灰字，卡片内部没有层次。 */
+.kv{display:grid;grid-template-columns:auto 1fr;gap:5px 10px;font-size:11.5px;align-items:baseline}
+.kv dt{color:var(--tx2);white-space:nowrap;font-size:10.5px;letter-spacing:.04em}
+.kv dd{margin:0;min-width:0;color:var(--tx0)}
+.kv dd code{color:var(--tx0)}
+/* 长别名/FQN 截断加省略号而不是折行 —— 折行把标识符拆得没法读；完整值在 title 里。 */
+.trunc{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* 状态行：常态（settings 有 + mapping 来自 @Mapping）在这里压成一句弱化文本，
+   7 张同质卡片不再各自重复两枚绿徽章。 */
+.st{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:11.5px;color:var(--tx2);
+  border-top:1px solid var(--line);padding-top:9px}
+.st .norm{display:inline-flex;align-items:center;gap:6px;color:var(--tx2)}
+.st .norm .dot{width:6px;height:6px;border-radius:50%;background:var(--ok);opacity:.75;flex:0 0 auto}
+.st .why{color:var(--tx2);cursor:help;border-bottom:1px dotted var(--line-strong)}
+.acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto;padding-top:2px}
+/* 配置详情：settings / mapping 各自成块、各带独立复制按钮，互不干扰。 */
+.det{display:none;flex-direction:column;gap:10px}
+.det.on{display:flex}
+.blk{background:var(--bg0);border:1px solid var(--line);border-radius:var(--r-m);overflow:hidden}
+.blk-hd{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg2);
+  border-bottom:1px solid var(--line);font-size:11px;color:var(--tx2);
+  letter-spacing:.05em;text-transform:uppercase}
+.blk-hd b{color:var(--tx0);font-weight:650;font-size:11.5px;letter-spacing:.05em}
+.blk-hd .sp{margin-left:auto;text-transform:none;letter-spacing:0}
+.blk pre{margin:0;padding:10px;font:11.5px/1.6 var(--mono);color:var(--tx1);
+  white-space:pre;overflow:auto;max-height:300px}
+/* JSON 语法高亮：复用既有语义色，不新增调色板。key=青绿/字符串=绿/数字=蓝/布尔空=琥珀 */
+.jk{color:var(--ac-hi)}.js{color:var(--ok)}.jn{color:var(--info)}.jb{color:var(--warn)}
+/* 搜索命中标记：叠加在语法高亮之上（只作用于标签间文本，见 hl/mark 说明） */
+mark{background:var(--warn);color:#04211d;border-radius:2px;padding:0 1px}
+.blk .none{padding:10px;color:var(--tx2);font-size:11.5px}
+.dl{margin:0;padding:0;list-style:none;font-size:11.5px}
+.dl li{display:flex;gap:8px;padding:2px 0}
+.dl li code{color:var(--tx1)}
+.dl li code+code{color:var(--tx2);margin-left:auto;text-align:right}
+.note{font-size:11px;color:var(--tx2);padding:0 0 2px}
+.panel{padding:32px 24px;text-align:center;background:var(--bg1);border:1px solid var(--line);
+  border-radius:var(--r-l)}
+.panel.error{border-color:var(--err);background:var(--err-soft)}
+.panel h2{margin:0 0 6px;font-size:15px;font-weight:650;color:var(--tx0)}
+.panel.error h2{color:var(--err)}
+.panel p{margin:0 auto;color:var(--tx1);max-width:58ch}
+.panel .steps{margin:16px auto 0;max-width:58ch;text-align:left;background:var(--bg0);
+  border:1px solid var(--line);border-radius:var(--r-m);padding:12px 16px;color:var(--tx1);font-size:12px}
+.panel .steps code{color:var(--ac-hi);background:var(--bg2);padding:1px 5px;border-radius:4px}
+.panel .steps ol{margin:6px 0 0;padding-left:20px}
+.panel .steps li{margin:4px 0}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid var(--line-strong);
+  border-top-color:var(--ac-hi);border-radius:50%;animation:sp .7s linear infinite;
+  vertical-align:-2px;margin-right:7px}
+@keyframes sp{to{transform:rotate(360deg)}}
+/* 页脚把视口底部收住：内容少时它贴在底边，不留成片死黑。 */
+.ft{flex:0 0 auto;width:100%;max-width:var(--w);margin:0 auto;padding:11px 24px 14px;
+  border-top:1px solid var(--line);color:var(--tx2);font-size:11px;
+  display:flex;gap:14px;flex-wrap:wrap}
+#fallback{position:fixed;left:-9999px;top:0;width:1px;height:1px;opacity:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="hd"><h1>受管索引 · 期望配置</h1><span class="count" id="count"></span></div>
+<p class="sub">本页由业务应用提供，<b>只读</b>，不执行任何重建操作。复制某个索引（或全部）的期望配置，粘贴到 宿主的「Adhoc 托管重建」即可执行重建或比对。</p>
+
+<div class="notice">
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="#fbbf24" stroke-width="1.6"><path d="M8 1.6 1.2 13.4h13.6L8 1.6Z" stroke-linejoin="round"/><path d="M8 6.4v3.2" stroke-linecap="round"/><circle cx="8" cy="11.6" r=".7" fill="#fbbf24" stroke="none"/></svg>
+  <span><b>仅限内网访问：本页及其数据接口不含任何鉴权</b>，任何能访问到本服务的人都可读取索引结构。请勿将本服务暴露到公网或不受信网络。</span>
+</div>
+
+<div class="bar">
+  <button class="pri" id="copyAll" disabled>复制全部</button>
+  <button id="reload">刷新</button>
+  <input id="q" type="search" placeholder="搜索索引名 / 别名 / 字段 / 配置项…" autocomplete="off" />
+  <span id="tip"></span>
+</div>
+
+<div id="host"></div>
+<textarea id="fallback" readonly aria-hidden="true"></textarea>
+</div>
+<div class="ft">
+  <span>只读视图 · 不触发任何 ES 写操作</span>
+  <span>重建与风险判定在 宿主侧执行</span>
+</div>
+
+<script>
+(function () {
+  var host = document.getElementById('host');
+  var tip = document.getElementById('tip');
+  var countEl = document.getElementById('count');
+  var copyAllBtn = document.getElementById('copyAll');
+  var qEl = document.getElementById('q');
+  var rows = [];
+  // 服务端响应原文。「复制全部」直接复制它，零再序列化 —— 复制到的文本与 curl 拿到的字节相同，
+  // 且键序由服务端保证，而不是由浏览器的对象键序实现保证。
+  var rawText = '';
+
+  function say(msg, kind) {
+    tip.textContent = msg;
+    tip.className = kind || '';
+    if (msg) {
+      setTimeout(function () { if (tip.textContent === msg) { tip.textContent = ''; tip.className = ''; } }, 4000);
+    }
+  }
+  /** 取类简名。包名前缀对同一应用的所有索引都一样，全显只会挤爆卡片。 */
+  function simpleName(fqn) {
+    var s = String(fqn == null ? '' : fqn);
+    var i = s.lastIndexOf('.');
+    return i < 0 ? s : s.slice(i + 1);
+  }
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  // 剪贴板不可用（非 HTTPS 且非 localhost）时降级为隐藏 textarea 选中，让用户手动 Ctrl+C。
+  // 绝不静默失败——静默失败会让人以为复制成功了，拿着空剪贴板去 宿主 粘贴。
+  function copy(text, label) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () {
+        say('已复制 ' + label, 'ok');
+      }, function () {
+        manual(text, label);
+      });
+    } else {
+      manual(text, label);
+    }
+  }
+
+  function manual(text, label) {
+    var ta = document.getElementById('fallback');
+    ta.value = text;
+    ta.style.left = '0';
+    ta.style.opacity = '0';
+    ta.style.width = '1px';
+    ta.select();
+    var okExec = false;
+    try { okExec = document.execCommand('copy'); } catch (e) { okExec = false; }
+    if (okExec) {
+      ta.style.left = '-9999px';
+      say('已复制 ' + label + '（降级方式）', 'ok');
+    } else {
+      ta.style.left = '0';
+      ta.style.top = 'auto';
+      ta.style.bottom = '12px';
+      ta.style.width = '60%';
+      ta.style.height = '80px';
+      ta.style.opacity = '1';
+      ta.select();
+      say('浏览器不允许自动复制，内容已选中，请按 Ctrl+C 手动复制', 'err');
+    }
+  }
+
+  function setCopyAll(enabled) {
+    copyAllBtn.disabled = !enabled;
+  }
+
+  function showLoading() {
+    setCopyAll(false);
+    countEl.textContent = '';
+    host.innerHTML = '<div class="panel"><span class="spin"></span>正在加载受管索引…</div>';
+  }
+
+  function showError(title, detail) {
+    setCopyAll(false);
+    countEl.textContent = '';
+    host.innerHTML = '<div class="panel error"><h2>' + esc(title) + '</h2><p>' + esc(detail) + '</p></div>';
+  }
+
+  function showEmpty() {
+    setCopyAll(false);
+    countEl.textContent = '';
+    host.innerHTML = '<div class="panel">'
+      + '<h2>当前没有已登记的受管索引</h2>'
+      + '<p>本应用已装载 esquerystudio starter，但没有发现任何索引声明。这不是错误 —— 通常表示尚未接入。</p>'
+      + '<div class="steps">下一步：'
+      + '<ol>'
+      + '<li>给 ES 实体类加 <code>@Document</code>（索引名写在 <code>indexName</code> 里）；</li>'
+      + '<li>确认该实体在应用 <code>@SpringBootApplication</code> 的基础包下 —— 扫描范围以此为准；</li>'
+      + '<li>重启应用后回到本页并点「刷新」。</li>'
+      + '</ol>'
+      + '<p style="margin:10px 0 0"><b>不要</b>再手写 <code>ManagedEsIndex</code> 实现并注册为 Spring '
+      + '<code>Bean</code>（<code>@Component</code>）—— 该通道已废弃，残留实现会让应用启动失败。</p>'
+      + '</div></div>';
+  }
+
+  /** 把 JSON 原文重排成 2 空格缩进；解析不了就原样给出（不静默吞掉内容）。 */
+  function pretty(s) {
+    if (s == null || String(s).trim() === '') { return null; }
+    try { return JSON.stringify(JSON.parse(String(s)), null, 2); }
+    catch (e) { return String(s); }
+  }
+
+  /**
+   * JSON 语法高亮：先 esc() 转义（<>& 变实体，绝不会被当标签），再给 4 类 token 包 span。
+   * 只上色、不改文本——<pre> 里的 textContent 仍是原始 JSON，故 cpj 复制路径不受影响。
+   * 正则次序：key（"..":）必须先于普通 string 匹配，否则键名会被当成字符串上错色。
+   */
+  function hl(text) {
+    /* 只转义 < > &（<pre> 元素内容里 " 无需转义），保留字面 " 让下面的 key/string 正则能匹配。
+       esc() 会把 " 变 &quot; 导致正则全部落空——这是刻意不复用 esc 的原因。 */
+    var e = String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    return e.replace(
+      /("(?:[^"\\]|\\.)*"\s*:)|("(?:[^"\\]|\\.)*")|(\b-?\d+(?:\.\d+)?\b)|(\btrue\b|\bfalse\b|\bnull\b)/g,
+      function (m, k, s, n, b) {
+        if (k) { return '<span class="jk">' + k + '</span>'; }
+        if (s) { return '<span class="js">' + s + '</span>'; }
+        if (n) { return '<span class="jn">' + n + '</span>'; }
+        return '<span class="jb">' + b + '</span>';
+      });
+  }
+
+  function jsonBlk(title, srcTag, text) {
+    var body = text == null
+      ? '<div class="none">未声明 —— 建索引时由 ES 取默认值</div>'
+      : '<pre>' + hl(text) + '</pre>';
+    var cp = text == null ? '' : '<button class="mini cpj sp">复制</button>';
+    return '<div class="blk"><div class="blk-hd"><b>' + esc(title) + '</b>'
+      + (srcTag ? '<span class="pill y">' + esc(srcTag) + '</span>' : '')
+      + cp + '</div>' + body + '</div>';
+  }
+
+  /** esType==='date' 的字段。仅在 r.mappingParsed 为 true 时才有意义。 */
+  function dateFields(r) {
+    var out = [], fs = r.fields || [];
+    for (var i = 0; i < fs.length; i++) {
+      if (fs[i].esType === 'date') { out.push(fs[i]); }
+    }
+    return out;
+  }
+
+  /**
+   * 卡片折叠区：settings / mapping 全文 + date 字段明细，各自成块、可独立复制。
+   * 原来 settings/mapping 只有一个「有/无」徽章，想读内容必须先复制到别处。
+   */
+  function detail(r, i) {
+    var mp = pretty(r.mappingJson), dv = pretty(r.derivedMappingJson);
+    var mapText = mp != null ? mp : dv;
+    var mapTag = mp != null ? '' : (dv != null ? '来自注解推导' : '');
+    return '<div class="det" id="cd' + i + '">'
+      + '<div class="note">物理索引前缀 physicalIndexPrefix：<code>' + esc(r.physicalIndexPrefix)
+      + '</code> —— 物理索引实际名为「前缀 + _v + 时间戳」。当前与读写别名同值，'
+      + '但二者是语义不同的两个字段，契约上不保证相等，请勿由别名反推前缀。</div>'
+      + jsonBlk('settings', '', pretty(r.settingsJson))
+      + jsonBlk('mapping', mapTag, mapText)
+      + dateBlk(r)
+      + '</div>';
+  }
+
+  /**
+   * mapping 来源，三态互斥（R100）：
+   *   1. 有 @Mapping                        → 常态
+   *   2. 无 @Mapping 但 starter 推导出了     → 例外，重建会用这份，复制时必须一起带走
+   *   3. 两者皆空                            → 才是真的由 ES 动态推断
+   * R100 之前只看 mappingJson，把第 2 种也写成「将由 ES 动态推断」—— 那是假话：
+   * 重建走 IndexNameResolver 第②级会应用推导出的 mapping。
+   */
+  function mapPill(r) {
+    if (r.mappingJson != null) { return ''; }
+    if (r.derivedMappingJson != null) {
+      return '<span class="pill y dc" title="业务侧实体没有 @Mapping。'
+        + '这份 mapping 由 starter 从实体注解推导而来（payload 的 derivedMappingJson），'
+        + '也是重建实际会应用的那份，已随本页配置一并带出。">mapping 来自注解推导</span>';
+    }
+    return '<span class="pill y dc" title="实体既无 @Mapping 也无可推导的注解，'
+      + '建索引后字段类型将由 ES 动态推断。">mapping 未声明</span>';
+  }
+
+  /**
+   * date 字段徽章，三态互斥（评审 I-2 / I-3）：
+   *   1. mappingJson == null  → 业务方没写 @Mapping，是正常路径，不是失败
+   *   2. mappingParsed 为 false（且已声明 mapping）→ 真异常：JSON 没解析成功
+   *   3. 已解析 → 统计 esType==='date' 的字段数
+   * mappingParsed 取自 payload row 级（per-index 事实），不再从 fields[0] 推断。
+   *
+   * 缺陷 2：0 个时曾渲染裸的 `0`，打破全页的徽章视觉语言。这里改为中性 .pill.n 徽章
+   * ——「0」这个数字本身是老实话（实测 128 个字段确实无 date 字段），只改呈现，不动统计口径。
+   */
+  function datePill(r) {
+    if (r.mappingJson == null) {
+      var why = r.derivedMappingJson != null
+        ? '实体无 @Mapping，本页 mapping 来自注解推导。date 统计需要已解析的 mapping 作依据，故此处不出数——字段类型不是由 ES 推断的。'
+        : '实体无 @Mapping 且注解推导为空，字段类型将由 ES 动态推断，业务侧无从统计 date 字段。';
+      return '<span class="dc" title="' + esc(why) + '">'
+        + '<span class="lb">date</span><span class="tag no">未声明</span></span>';
+    }
+    if (r.mappingParsed !== true) {
+      return '<span class="tag no">未知</span><div class="hint">mapping 未解析</div>';
+    }
+    var n = dateFields(r).length;
+    var tip2 = '按实体声明统计 esType 为 date 的字段。只展示、不做判定'
+      + '——真正的 date 兼容风险判定需要 ES 侧采样，而业务侧零 ES 读取。';
+    if (!n) {
+      return '<span class="pill n dc" title="' + esc(tip2) + '">date 字段 0</span>';
+    }
+    return '<span class="pill b dc" title="' + esc(tip2) + '">date 字段 ' + n + '</span>';
+  }
+
+  /** date 明细块：只列 name / javaType，并写明判定不在业务侧做。 */
+  function dateBlk(r) {
+    if (r.mappingParsed !== true) { return ''; }
+    var ds = dateFields(r);
+    if (!ds.length) { return ''; }
+    var h = '<div class="blk"><div class="blk-hd"><b>date 字段</b>'
+      + '<span class="pill b sp">' + ds.length + '</span></div><div style="padding:8px 10px">'
+      + '<div class="note">风险判定请在 宿主侧执行——判定需要 ES 侧采样，业务侧零 ES 读取。</div>'
+      + '<ul class="dl">';
+    for (var k = 0; k < ds.length; k++) {
+      h += '<li><code>' + esc(ds[k].name) + '</code><code>' + esc(ds[k].javaType) + '</code></li>';
+    }
+    return h + '</ul></div></div>';
+  }
+
+  /**
+   * 缺陷 4：同质项降噪 + 例外项凸显。
+   * 8 个索引里 7 个是「settings 有 + mapping 来自 @Mapping + date 0」的常态，
+   * 旧表格让它们各自重复两枚绿徽章 —— 全是噪声，反而把唯一的例外埋掉了。
+   * 常态压成一行弱化文本（一个小绿点 + 一句话），例外才升级成琥珀徽章 + 卡片强调条。
+   */
+  function isAlt(r) {
+    return r.mappingJson == null || r.settingsJson == null || r.mappingParsed !== true;
+  }
+
+  function statusRow(r) {
+    if (!isAlt(r)) {
+      return '<div class="st"><span class="norm"><i class="dot"></i>'
+        + 'settings 与 mapping 均已声明</span>' + datePill(r) + '</div>';
+    }
+    var h = '<div class="st">' + mapPill(r);
+    if (r.settingsJson == null) {
+      h += '<span class="pill y dc" title="未声明 @Setting，建索引时由 ES 取默认值（分片/副本等）">'
+        + 'settings 未声明</span>';
+    }
+    return h + datePill(r) + '</div>';
+  }
+
+  function card(r, i) {
+    return '<div class="ic' + (isAlt(r) ? ' alt' : '') + '" data-card="' + i + '">'
+      + '<div class="ic-t"><span class="k">' + esc(r.indexKey) + '</span>'
+      + '<span class="sp"></span></div>'
+      + '<dl class="kv">'
+      + '<dt>读写别名</dt><dd><code class="trunc" title="' + esc(r.alias) + '">'
+      + esc(r.alias) + '</code></dd>'
+      + '<dt>实体类</dt><dd><code class="trunc" title="' + esc(r.entityClass) + '">'
+      + esc(simpleName(r.entityClass)) + '</code></dd>'
+      + '<dt>sdes</dt><dd><code>' + esc(r.sdesVersion) + '</code></dd>'
+      + '</dl>'
+      + statusRow(r)
+      + '<div class="acts">'
+      + '<button data-i="' + i + '" class="cp">复制期望 JSON</button>'
+      + '<button data-c="' + i + '" class="vw" '
+      + 'title="展开 settings 与 mapping 全文（各自可独立复制）">配置详情</button>'
+      + '</div>'
+      + detail(r, i)
+      + '</div>';
+  }
+
+  function render() {
+    if (!rows.length) { showEmpty(); return; }
+    setCopyAll(true);
+    countEl.textContent = '共 ' + rows.length + ' 个受管索引';
+    var h = '<div class="grid">';
+    for (var i = 0; i < rows.length; i++) {
+      h += card(rows[i], i);
+    }
+    host.innerHTML = h + '</div><div id="noHit" class="panel" style="display:none">无匹配的索引 —— 换个关键词试试</div>';
+    // 缓存每个 pre 的干净高亮 HTML：搜索命中标记需反复重建，避免在已含 <mark> 的串上再标。
+    var pres = host.querySelectorAll('pre');
+    for (var p = 0; p < pres.length; p++) { pres[p]._o = pres[p].innerHTML; }
+
+    var btns = host.querySelectorAll('button.cp');
+    for (var j = 0; j < btns.length; j++) {
+      btns[j].addEventListener('click', function (e) {
+        var idx = Number(e.currentTarget.getAttribute('data-i'));
+        // 服务端输出格式已与本调用对齐（2 空格缩进），由 DesiredStateSerializationTest 钉死。
+        copy(JSON.stringify(rows[idx], null, 2), rows[idx].indexKey);
+      });
+    }
+    var vws = host.querySelectorAll('button.vw');
+    for (var v = 0; v < vws.length; v++) {
+      vws[v].addEventListener('click', function (e) {
+        var el = document.getElementById('cd' + e.currentTarget.getAttribute('data-c'));
+        if (!el) { return; }
+        var on = el.className.indexOf('on') >= 0;
+        el.className = on ? 'det' : 'det on';
+        e.currentTarget.textContent = on ? '配置详情' : '收起详情';
+      });
+    }
+    var cjs = host.querySelectorAll('button.cpj');
+    for (var c = 0; c < cjs.length; c++) {
+      cjs[c].addEventListener('click', function (e) {
+        var blk = e.currentTarget.parentNode.parentNode;
+        var pre = blk.querySelector('pre');
+        var name = blk.querySelector('b');
+        if (pre) { copy(pre.textContent, name ? name.textContent : 'JSON'); }
+      });
+    }
+    filter();  // 渲染后重放当前查询（刷新后保持筛选态）
+  }
+
+  function escRe(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+  /**
+   * 在已语法高亮的 HTML 上标记命中：只在 >...< 的文本节点内包 <mark>，
+   * 永不触碰标签内部（class="js" 等），故搜 "js" 不会标到类名上，两层高亮互不破坏。
+   * q 为空则还原干净 HTML（orig 是 render 时缓存的未标记版）。
+   */
+  function markPre(pre, orig, q) {
+    if (!q) { pre.innerHTML = orig; return; }
+    var re = new RegExp('(' + escRe(q) + ')', 'gi');
+    pre.innerHTML = orig.replace(/>([^<]+)</g, function (_, t) {
+      return '>' + t.replace(re, '<mark>$1</mark>') + '<';
+    });
+  }
+
+  function filter() {
+    var q = qEl.value.trim().toLowerCase();
+    var cards = host.querySelectorAll('.ic'), hit = 0;
+    for (var i = 0; i < cards.length; i++) {
+      var c = cards[i], r = rows[Number(c.getAttribute('data-card'))];
+      var nameHay = (r.indexKey + ' ' + r.alias + ' ' + r.physicalIndexPrefix + ' ' + r.entityClass).toLowerCase();
+      var jsonHay = ((r.settingsJson || '') + ' ' + (r.mappingJson || '') + ' ' + (r.derivedMappingJson || '')).toLowerCase();
+      var inJson = q && jsonHay.indexOf(q) >= 0;
+      var match = !q || nameHay.indexOf(q) >= 0 || inJson;
+      c.className = c.className.replace(/ hide/g, '') + (match ? '' : ' hide');
+      if (match) { hit++; }
+      // 命中点在 JSON 正文 → 展开该卡让人看见为什么命中；q 清空 → 收起复位
+      var det = c.querySelector('.det'), vw = c.querySelector('button.vw');
+      if (inJson) { det.className = 'det on'; if (vw) { vw.textContent = '收起详情'; } }
+      else if (!q) { det.className = 'det'; if (vw) { vw.textContent = '配置详情'; } }
+      var pp = c.querySelectorAll('pre');
+      for (var k = 0; k < pp.length; k++) { markPre(pp[k], pp[k]._o, inJson ? q : ''); }
+    }
+    document.getElementById('noHit').style.display = (q && hit === 0) ? 'block' : 'none';
+    countEl.textContent = q ? ('命中 ' + hit + ' / 共 ' + rows.length) : ('共 ' + rows.length + ' 个受管索引');
+  }
+
+  function load() {
+    showLoading();
+    rawText = '';
+    rows = [];
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', 'desired-state', true);
+    xhr.setRequestHeader('Accept', 'application/json');
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) { return; }
+      if (xhr.status === 0) {
+        showError('无法连接到服务', '请求未能送达（网络中断，或服务已停止）。请确认应用仍在运行后点「刷新」重试。');
+        return;
+      }
+      if (xhr.status < 200 || xhr.status >= 300) {
+        showError('加载失败：HTTP ' + xhr.status,
+          '数据接口 desired-state 返回了 ' + xhr.status + ' ' + (xhr.statusText || '') + '。'
+          + '若为 404，通常表示 starter 未装载或路径被网关改写；若为 5xx，请查看应用日志。');
+        return;
+      }
+      try {
+        rawText = xhr.responseText;
+        rows = JSON.parse(rawText) || [];
+      } catch (e) {
+        rawText = '';
+        rows = [];
+        showError('返回内容不是合法 JSON', '接口返回了无法解析的内容，通常是被网关或代理改写。原始响应前 200 字符：'
+          + String(xhr.responseText).slice(0, 200));
+        return;
+      }
+      render();
+    };
+    xhr.send();
+  }
+
+  copyAllBtn.addEventListener('click', function () {
+    if (!rows.length || !rawText) { say('没有可复制的内容', 'err'); return; }
+    copy(rawText, '全部 ' + rows.length + ' 个索引');
+  });
+  document.getElementById('reload').addEventListener('click', load);
+  qEl.addEventListener('input', filter);
+  load();
+})();
+</script>
+</body>
+</html>
